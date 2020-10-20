@@ -8,8 +8,7 @@ namespace Structure.Code
     {
         public static int GetCodeLength()
         {
-            var temp = Directory.GetFiles(".");
-            var allCSFiles = Directory.GetFiles(@"C:\Users\chris\source\repos\Structure\Structure\Code", "*.cs", new EnumerationOptions() { RecurseSubdirectories = true });
+            var allCSFiles = Directory.GetFiles(Data.CodeDirectory, "*.cs", new EnumerationOptions() { RecurseSubdirectories = true });
             return allCSFiles.Sum(f => File.ReadAllText(f).Length);
         }
 
@@ -20,7 +19,6 @@ namespace Structure.Code
             {
                 total += Math.Floor(i + factor * Math.Pow(2, i / doublingRate));
             }
-
             return (int)Math.Max(minimum, Math.Floor(total / 4));
         }
     }
