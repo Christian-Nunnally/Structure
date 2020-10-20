@@ -12,7 +12,7 @@ namespace Structure.Code
         {
             _maxLevel = int.Parse(args[0]);
             var level = Data.Get(Data.Key.Level);
-            var xpForNextLevel = Utility.ExperienceForLevel(level + 1, 10, 150, 13);
+            var pointsForNextLevel = Utility.ExperienceForLevel(level + 1, 10, 75, 25);
             var codeLength = Utility.GetCodeLength();
 
             IncrementToxins(codeLength);
@@ -21,7 +21,7 @@ namespace Structure.Code
             while (!_exiting)
             {
                 var points = Data.Get(Data.Key.Points);
-                Console.WriteLine($"Progress: {points}/{xpForNextLevel}");
+                Console.WriteLine($"Points: {points}/{pointsForNextLevel}");
                 Console.WriteLine("Type task and press enter when complete.");
                 var task = Console.ReadLine();
                 Console.Clear();
@@ -73,7 +73,7 @@ namespace Structure.Code
         {
             var points = Data.Get(Data.Key.Points);
             var level = Data.Get(Data.Key.Level);
-            var xpForNextLevel = Utility.ExperienceForLevel(level + 1, 10, 150, 13);
+            var xpForNextLevel = Utility.ExperienceForLevel(level + 1, 10, 75, 25);
             if (points >= xpForNextLevel)
             {
                 if (level >= _maxLevel)
@@ -117,7 +117,7 @@ namespace Structure.Code
         {
             var grass = Data.Get(Data.Key.Grass);
             var addedToxins = Math.Max(0, codeLength - grass);
-            Console.Write($"Added toxins per day = {addedToxins}{(grass > 0 ? $" ({grass} toxins being absorbed by grass blades)" : "")}");
+            Console.WriteLine($"Added toxins per day = {addedToxins}{(grass > 0 ? $" ({grass} toxins being absorbed by grass blades)" : "")}");
             if (Data.GetLastWriteTime(Data.Key.Toxins).Date != DateTime.Today.Date)
             {
                 Data.Set(Data.Key.Toxins, Data.Get(Data.Key.Toxins) + addedToxins);
