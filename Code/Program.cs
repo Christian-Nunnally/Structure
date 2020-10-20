@@ -7,6 +7,7 @@ namespace Structure.Code
     {
         public static bool _exiting;
         public static int _maxLevel;
+        private static DateTime _lastCharacterBonusTime = DateTime.Now;
 
         private static void Main(string[] args)
         {
@@ -14,6 +15,7 @@ namespace Structure.Code
             var level = Data.Get(Data.Key.Level);
             var pointsForNextLevel = Utility.ExperienceForLevel(level + 1, 10, 75, 25);
             var codeLength = Utility.GetCodeLength();
+            _lastCharacterBonusTime = DateTime.Now;
 
             IncrementToxins(codeLength);
             PromptPrestiegeOptions();
@@ -32,6 +34,17 @@ namespace Structure.Code
                 Thread.Sleep(500);
                 Console.Clear();
                 TryToLevelUp();
+                GrantCharacterBonus();
+            }
+        }
+
+        private static void GrantCharacterBonus()
+        {
+            if ((DateTime.Now - _lastCharacterBonusTime).TotalMinutes > 5)
+            {
+                Console.WriteLine("Character bonus +5");
+                Data.Set(Data.Key.CharacterBonus, Data.Get(Data.Key.CharacterBonus) + 5);
+                _lastCharacterBonusTime = DateTime.Now;
             }
         }
 

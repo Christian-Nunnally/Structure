@@ -22,6 +22,7 @@ namespace Structure.Code
             Prestiege,
             Level,
             Grass,
+            CharacterBonus,
         }
 
         public static string SaveDirectory
