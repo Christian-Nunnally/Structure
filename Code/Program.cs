@@ -46,15 +46,18 @@ namespace Structure.Code
 
         private static void PromptToSpendPrestiegeOnGrass(int prestiegePoints)
         {
-            Console.WriteLine($"You have {prestiegePoints} would you like to spend 1 on 10 blades of grass? (y/n)");
+            Console.WriteLine($"You have {prestiegePoints} prestiege points.");
+            Console.WriteLine("would you like to spend one on 10 blades of grass? (y/n)");
             while (Console.ReadLine() == "y" && prestiegePoints > 0)
             {
                 Data.Set(Data.Key.Grass, Data.Get(Data.Key.Grass) + 10);
                 prestiegePoints--;
                 if (prestiegePoints == 0) break;
-                Console.WriteLine($"You now have {prestiegePoints} would you like to buy 10 more blades of grass? (y/n)");
+                Console.WriteLine($"You now have {prestiegePoints} prestiege points.");
+                Console.WriteLine("would you like to spend one on 10 blades of grass? (y/n)");
             }
             Console.WriteLine($"You now have {Data.Get(Data.Key.Grass)} blades of grass.");
+            Console.WriteLine($"Each blade of grass will reduce added toxins by 1 per day.");
             Data.Set(Data.Key.Prestiege, prestiegePoints);
         }
 
@@ -112,10 +115,12 @@ namespace Structure.Code
 
         private static void IncrementToxins(int codeLength)
         {
-            Console.WriteLine("Added toxins per day = " + codeLength);
+            var grass = Data.Get(Data.Key.Grass);
+            var addedToxins = Math.Max(0, codeLength - grass);
+            Console.Write($"Added toxins per day = {addedToxins}{(grass > 0 ? $" ({grass} toxins being absorbed by grass blades)" : "")}");
             if (Data.GetLastWriteTime(Data.Key.Toxins).Date != DateTime.Today.Date)
             {
-                Data.Set(Data.Key.Toxins, Data.Get(Data.Key.Toxins) + codeLength);
+                Data.Set(Data.Key.Toxins, Data.Get(Data.Key.Toxins) + addedToxins);
             }
         }
     }
