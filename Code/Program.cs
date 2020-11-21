@@ -1,140 +1,168 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
+using static Structure.Data;
+using static Structure.IO;
 
-namespace Structure.Code
+namespace Structure
 {
     internal class Program
     {
-        public static bool _exiting;
-        public static int _maxLevel;
-        private static DateTime _lastCharacterBonusTime = DateTime.Now;
+        public static Queue<Action> QueudActions = new Queue<Action>();
 
-        private static void Main(string[] args)
+        public bool _exiting;
+        public int _maxLevel;
+        private DateTime _lastCharacterBonusTime = DateTime.Now;
+
+        public Program(int maxLevel)
         {
-            _maxLevel = int.Parse(args[0]);
-            var level = Data.Get(Data.Key.Level);
-            var pointsForNextLevel = Utility.ExperienceForLevel(level + 1, 10, 75, 25);
-            var codeLength = Utility.GetCodeLength();
-            _lastCharacterBonusTime = DateTime.Now;
+            _maxLevel = maxLevel;
+            InitializeHotkey(ConsoleKey.I, PrintInfo);
+            InitializeHotkey(ConsoleKey.T, StartNewTask);
+            UpdateCharacterBonus();
+            IncrementToxins();
 
-            IncrementToxins(codeLength);
-            PromptPrestiegeOptions();
+            new List<string>(TaskList).ForEach(x => QueudActions.Enqueue(() => DoTask(x)));
 
             while (!_exiting)
             {
-                var points = Data.Get(Data.Key.Points);
-                Console.WriteLine($"Points: {points}/{pointsForNextLevel}");
-                Console.WriteLine("Type task and press enter when complete.");
-                var task = Console.ReadLine();
-                Console.Clear();
-                Console.WriteLine(task);
-                Console.ReadLine();
-                Data.Set(Data.Key.Points, points + 1);
-                Console.WriteLine("Point gained!");
-                Thread.Sleep(500);
-                Console.Clear();
+                if (QueudActions.Count != 0)
+                {
+                    ExecuteSubroutine(QueudActions.Dequeue());
+                }
+                else
+                {
+                    PromptPrestiegeOptions();
+                    ReadAny();
+                }
+
                 TryToLevelUp();
-                GrantCharacterBonus();
             }
         }
 
-        private static void GrantCharacterBonus()
+        private int PointsForNextLevel => Utility.ExperienceForLevel(Level + 1, 10, 75, 25);
+
+        private static void Main(string[] args) => new Program(int.Parse(args[0]));
+
+        private void PrintInfo()
+        {
+            Write($"Lifetime Prestiege = {LifetimePrestiege}");
+            Write($"Prestiege Points = {Prestiege}");
+            Write($"Current level: {Level}/{_maxLevel}");
+            Write($"Points: {Points}/{PointsForNextLevel}");
+            Write($"Character Bonus = {CharacterBonus}");
+            Write($"You have {Grass} blades of grass.");
+            Write($"Toxins = {Toxins}");
+            Write($"Length of the code = {LastCodeLength}");
+            ReadAny();
+        }
+
+        private void StartNewTask()
+        {
+            Write("Enter task: ");
+            ReadLine(DoTask);
+        }
+
+        private void DoTask(string task)
+        {
+            TaskList.Add(task);
+            Clear();
+            Write(task);
+            PromptOptions("Task complete?",
+                ('y', "yes", () => { TaskList.Remove(task); GrantPoints(1); }
+            ),
+                ('d', "delete", () => TaskList.Remove(task)),
+                ('p', "postpone", () => QueudActions.Enqueue(() => DoTask(task))));
+        }
+
+        private void UpdateCharacterBonus()
+        {
+            var lengthChange = Utility.GetCodeLength() - LastCodeLength;
+            LastCodeLength = Utility.GetCodeLength();
+            CharacterBonus -= lengthChange;
+            Write($"Code length increased by {lengthChange} characters.");
+            Write($"Character bonus {-lengthChange}");
+        }
+
+        private void GrantCharacterBonus()
         {
             if ((DateTime.Now - _lastCharacterBonusTime).TotalMinutes > 5)
             {
-                Console.WriteLine("Character bonus +5");
-                Data.Set(Data.Key.CharacterBonus, Data.Get(Data.Key.CharacterBonus) + 5);
+                Write("Character bonus +5");
+                CharacterBonus += 5;
                 _lastCharacterBonusTime = DateTime.Now;
             }
         }
 
-        private static void PromptPrestiegeOptions()
+        private void PromptPrestiegeOptions()
         {
-            var prestiegePoints = Data.Get(Data.Key.Prestiege);
-            if (prestiegePoints > 0)
+            if (Prestiege > 0)
             {
-                PromptToSpendPrestiegeOnGrass(prestiegePoints);
+                PromptOptions($"Would you like to spend 1/{Prestiege} on 10 blades of grass?", ('y', "yes", Buy10Grass), ('n', "n", () => { }));
             }
         }
 
-        private static void PromptToSpendPrestiegeOnGrass(int prestiegePoints)
+        private void Buy10Grass()
         {
-            Console.WriteLine($"You have {prestiegePoints} prestiege points.");
-            Console.WriteLine("would you like to spend one on 10 blades of grass? (y/n)");
-            while (Console.ReadLine() == "y" && prestiegePoints > 0)
-            {
-                Data.Set(Data.Key.Grass, Data.Get(Data.Key.Grass) + 10);
-                prestiegePoints--;
-                if (prestiegePoints == 0) break;
-                Console.WriteLine($"You now have {prestiegePoints} prestiege points.");
-                Console.WriteLine("would you like to spend one on 10 blades of grass? (y/n)");
-            }
-            Console.WriteLine($"You now have {Data.Get(Data.Key.Grass)} blades of grass.");
-            Console.WriteLine($"Each blade of grass will reduce added toxins by 1 per day.");
-            Data.Set(Data.Key.Prestiege, prestiegePoints);
+            Grass += 10;
+            Prestiege -= 1;
+            Write($"You now have {Grass} blades of grass.");
+            Write($"Each blade of grass reduces added toxins by 1 per day.");
         }
 
-        private static void Prestiege()
+        private void IncrementPrestiege()
         {
-            Data.Set(Data.Key.Level, 0);
-            Data.Set(Data.Key.Points, 0);
-            Data.Set(Data.Key.Prestiege, Data.Get(Data.Key.Prestiege) + 1);
+            Level = 0;
+            Points = 0;
+            Prestiege = 1;
+            LifetimePrestiege = 1;
             _exiting = true;
         }
 
-        private static void TryToLevelUp()
+        private void TryToLevelUp()
         {
-            var points = Data.Get(Data.Key.Points);
-            var level = Data.Get(Data.Key.Level);
-            var xpForNextLevel = Utility.ExperienceForLevel(level + 1, 10, 75, 25);
-            if (points >= xpForNextLevel)
+            if (Points >= PointsForNextLevel)
             {
-                if (level >= _maxLevel)
-                {
-                    PromptToPrestiege();
-                }
-                else
-                {
-                    PromptToLevelUp(points, level, xpForNextLevel);
-                }
+                PromptOptions("You have enough points to level up, want to?", ('y', "yes", LevelUp), ('n', "n", () => { }));
             }
         }
 
-        private static void PromptToLevelUp(int points, int level, int xpForNextLevel)
+        private void LevelUp()
         {
-            Console.WriteLine("You have enough points to level up, would you like to? (y/n)");
-            if (Console.ReadLine() == "y")
+            Points -= PointsForNextLevel;
+            if (Level >= _maxLevel || CharacterBonus < 0)
             {
-                LevelUp(points, level, xpForNextLevel);
+                PromptOptions("You have reached your max level. Restart and gain 1 prestiege point?", ('y', "yes", IncrementPrestiege), ('n', "n", () => { }));
+            }
+            else
+            {
+                Level++;
+                _exiting = true;
             }
         }
 
-        private static void PromptToPrestiege()
+        private void IncrementToxins()
         {
-            Console.WriteLine("You have reached the max level. Would you like to restart and gain 1 prestiege point? (y/n)");
-            if (Console.ReadLine() == "y")
+            var prestiegeBonus = (LifetimePrestiege / 1000f) + 1;
+            var grassAbsorption = (int)(Grass * prestiegeBonus);
+            var addedToxins = Math.Max(0, Utility.GetCodeLength() - grassAbsorption);
+            Write($"Added toxins per day = {addedToxins} ({grassAbsorption} toxins being absorbed by grass blades)");
+            Write($"Toxins = {Toxins}");
+            if (GetLastWriteTime("Toxins").Date != DateTime.Today.Date)
             {
-                Prestiege();
+                Toxins += addedToxins;
             }
         }
 
-        private static void LevelUp(int points, int level, int xpForNextLevel)
+        private void GrantPoints(int points)
         {
-            points -= xpForNextLevel;
-            Data.Set(Data.Key.Points, points);
-            Data.Set(Data.Key.Level, level + 1);
-            _exiting = true;
-        }
-
-        private static void IncrementToxins(int codeLength)
-        {
-            var grass = Data.Get(Data.Key.Grass);
-            var addedToxins = Math.Max(0, codeLength - grass);
-            Console.WriteLine($"Added toxins per day = {addedToxins}{(grass > 0 ? $" ({grass} toxins being absorbed by grass blades)" : "")}");
-            if (Data.GetLastWriteTime(Data.Key.Toxins).Date != DateTime.Today.Date)
-            {
-                Data.Set(Data.Key.Toxins, Data.Get(Data.Key.Toxins) + addedToxins);
-            }
+            var prestiegeBonus = (LifetimePrestiege / 1000f) + 1;
+            var newPoints = points * prestiegeBonus;
+            Points += (int)Math.Floor(newPoints);
+            Write($"Points +{points} ({prestiegeBonus}% from prestiege)");
+            GrantCharacterBonus();
+            Thread.Sleep(700);
+            Clear();
         }
     }
 }

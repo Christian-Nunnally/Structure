@@ -2,14 +2,20 @@
 using System.IO;
 using System.Linq;
 
-namespace Structure.Code
+namespace Structure
 {
     public static class Utility
     {
+        private static int? _cachedCodeLength;
+
         public static int GetCodeLength()
         {
-            var allCSFiles = Directory.GetFiles(Data.CodeDirectory, "*.cs", new EnumerationOptions() { RecurseSubdirectories = true });
-            return allCSFiles.Sum(f => File.ReadAllText(f).Length);
+            if (_cachedCodeLength == null)
+            {
+                var allCSFiles = Directory.GetFiles(Data.CodeDirectory, "*.cs", new EnumerationOptions() { RecurseSubdirectories = true });
+                _cachedCodeLength = allCSFiles.Sum(f => File.ReadAllText(f).Where(x => !char.IsWhiteSpace(x)).Count());
+            }
+            return _cachedCodeLength ?? 0;
         }
 
         public static int ExperienceForLevel(int level, int minimum, int factor, double doublingRate)
