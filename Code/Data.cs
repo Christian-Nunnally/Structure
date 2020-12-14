@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 
@@ -13,74 +14,84 @@ namespace Structure
 
         private static readonly Dictionary<string, int> _intCache = new Dictionary<string, int>();
         private static readonly Dictionary<string, ObservableCollection<string>> _collectionCache = new Dictionary<string, ObservableCollection<string>>();
-        private static string saveDirectory;
-        private static string codeDirectory;
+        private static string savePath;
+        private static string codePath;
+        private static string solutionFilePath;
 
-        public static string SaveDirectory => saveDirectory ?? (saveDirectory = GetOrCreateSavedDirectoryPath(nameof(SaveDirectory)));
-
-        public static string CodeDirectory => codeDirectory ?? (codeDirectory = GetOrCreateSavedDirectoryPath(nameof(CodeDirectory)));
-
+        public static int XP { get => Get(nameof(XP)); set => Set(nameof(XP), value); }
         public static int Points { get => Get(nameof(Points)); set => Set(nameof(Points), value); }
-
         public static int Toxins { get => Get(nameof(Toxins)); set => Set(nameof(Toxins), value); }
-
         public static int Prestiege { get => Get(nameof(Prestiege)); set => Set(nameof(Prestiege), value); }
-
         public static int Level { get => Get(nameof(Level)); set => Set(nameof(Level), value); }
-
         public static int Grass { get => Get(nameof(Grass)); set => Set(nameof(Grass), value); }
-
         public static int CharacterBonus { get => Get(nameof(CharacterBonus)); set => Set(nameof(CharacterBonus), value); }
-
         public static int LastCodeLength { get => Get(nameof(LastCodeLength)); set => Set(nameof(LastCodeLength), value); }
-
         public static int LifetimePrestiege { get => Get(nameof(LifetimePrestiege)); set => Set(nameof(LifetimePrestiege), value); }
+        public static int CharacterBonusPerFile { get => Get(nameof(CharacterBonusPerFile)); set => Set(nameof(CharacterBonusPerFile), value); }
+        public static IList<string> ActiveTaskList => GetCollection(nameof(ActiveTaskList));
+        public static IList<string> CompletedTaskList => GetCollection(nameof(CompletedTaskList));
+        public static IList<string> EnabledModules => GetCollection(nameof(EnabledModules));
+        public static string CodePath => codePath ?? (codePath = GetSavedDirectoryPath(nameof(CodePath)));
+        public static string SavePath => savePath ?? (savePath = GetSavedDirectoryPath(nameof(SavePath)));
 
-        public static IList<string> TaskList => GetCollectionFromFileOrCache(nameof(TaskList));
+        public static string SolutionFilePath => solutionFilePath ?? (solutionFilePath = GetSavedDirectoryPath(nameof(SolutionFilePath)));
 
-        public static DateTime GetLastWriteTime(string key) => File.GetLastWriteTime(GetSaveFileName(key));
+        public static DateTime GetLastWriteTime(string key) => File.GetLastWriteTime(GetFileName(key));
 
         public static int Get(string key)
         {
-            var fileName = GetSaveFileName(key);
-            if (_intCache.TryGetValue(key, out var value)) return value;
-            value = File.Exists(fileName) && int.TryParse(File.ReadAllText(fileName), out var points) ? points : 0;
-            _intCache[key] = value;
-            return value;
+            var fileName = GetFileName(key);
+            return _intCache.TryGetValue(key, out var value)
+                ? value
+                : (_intCache[key] = File.Exists(fileName) && int.TryParse(File.ReadAllText(fileName), out var x) ? x : 0);
         }
 
         public static void Set(string key, int value)
         {
-            _intCache[key] = value;
-            File.WriteAllText(GetSaveFileName(key), value.ToString());
+            var oldValue = Get(key);
+            if (oldValue != value)
+            {
+                var difference = value - oldValue;
+                var prefix = difference > 0 ? "+" : "";
+                IO.Write($"{prefix}{difference} {key}");
+                _intCache[key] = value;
+                File.WriteAllText(GetFileName(key), value.ToString());
+            }
         }
 
-        private static ObservableCollection<string> GetCollectionFromFileOrCache(string key)
+        private static ObservableCollection<string> GetCollection(string key)
         {
             if (!_collectionCache.TryGetValue(key, out var collection))
             {
-                var fileName = GetSaveFileName(key);
+                var fileName = GetFileName(key);
                 collection = File.Exists(fileName)
                    ? new ObservableCollection<string>(File.ReadAllText(fileName).Split(',').Where(x => !string.IsNullOrWhiteSpace(x)))
                    : new ObservableCollection<string>();
-                collection.CollectionChanged += (s, e) => CollectionChanged(key);
+                collection.CollectionChanged += (s, e) => CollectionChanged(key, e);
                 _collectionCache[key] = collection;
             }
             return collection;
         }
 
-        private static void CollectionChanged(string key) => File.WriteAllText(GetSaveFileName(key), string.Join(",", _collectionCache[key]));
-
-        private static string GetOrCreateSavedDirectoryPath(string fileKey)
+        private static void CollectionChanged(string key, NotifyCollectionChangedEventArgs e)
         {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var pathToSavePath = $"{appData}\\{AppDataSettingsFolderName}\\{fileKey}{SaveFileExtension}";
-            if (!File.Exists(pathToSavePath))
+            if (e.OldItems == null && (e.NewItems?.Count ?? 0) > 0)
             {
-                var userResult = GetPathFromUser(fileKey);
-                SaveToFile(pathToSavePath, userResult);
+                var newItems = new string[e.NewItems.Count];
+                e.NewItems.CopyTo(newItems, 0);
+                File.AppendAllText(GetFileName(key), "," + string.Join(",", newItems));
             }
-            return File.ReadAllText(pathToSavePath);
+            else
+            {
+                File.WriteAllText(GetFileName(key), string.Join(",", _collectionCache[key]));
+            }
+        }
+
+        private static string GetSavedDirectoryPath(string fileKey)
+        {
+            var settingsPath = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\{AppDataSettingsFolderName}\\{fileKey}{SaveFileExtension}";
+            if (!File.Exists(settingsPath)) SaveToFile(settingsPath, GetPathFromUser(fileKey));
+            return File.ReadAllText(settingsPath);
         }
 
         private static void SaveToFile(string path, string @string)
@@ -93,10 +104,9 @@ namespace Structure
         private static string GetPathFromUser(string pathKey)
         {
             Console.WriteLine($"Enter the path for {pathKey}:");
-            var userResult = Console.ReadLine();
-            return userResult.EndsWith("\\") ? userResult : $"{userResult}\\";
+            return Console.ReadLine();
         }
 
-        private static string GetSaveFileName(string key) => $"{SaveDirectory}{key}{SaveFileExtension}";
+        private static string GetFileName(string key) => $"{SavePath}{key}{SaveFileExtension}";
     }
 }
