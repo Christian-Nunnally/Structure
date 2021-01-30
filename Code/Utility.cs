@@ -7,21 +7,16 @@ namespace Structure
 {
     public static class Utility
     {
-        private static IEnumerable<int> _cachedCodeLengths;
-        private static int _cachedNumberOfFiles;
+        private static IEnumerable<(string FileName, int Length)> _codeLengths;
 
-        public static int CodeLength => CodeLengths.Sum();
+        public static int CodeLength => CodeLengths.Select(x => x.Length).Sum();
 
-        public static IEnumerable<int> CodeLengths => _cachedCodeLengths is null
-            ? (_cachedCodeLengths = Directory.GetFiles(Data.CodePath, "*.cs", new EnumerationOptions() { RecurseSubdirectories = true })
-                .Select(f => File.ReadAllText(f)
+        public static IEnumerable<(string FileName, int Length)> CodeLengths => _codeLengths is null
+            ? (_codeLengths = Directory.GetFiles(FileIO.CodePath, "*.cs", new EnumerationOptions() { RecurseSubdirectories = true })
+                .Select(f => (Path.GetFileName(f).Split('.').First(), File.ReadAllText(f)
                                 .Where(x => !char.IsWhiteSpace(x))
-                                .Count()))
-            : _cachedCodeLengths;
-
-        public static int NumberOfCodeFiles => _cachedNumberOfFiles == 0
-            ? (_cachedNumberOfFiles = Directory.GetFiles(Data.CodePath, "*.cs", new EnumerationOptions() { RecurseSubdirectories = true }).Count())
-            : _cachedNumberOfFiles;
+                                .Count())))
+            : _codeLengths;
 
         public static int XPForNextLevel => ExperienceForLevel(Data.Level + 1, 10, 75, 25);
 

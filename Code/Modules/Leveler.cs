@@ -3,10 +3,8 @@ using static Structure.IO;
 
 namespace Structure
 {
-    internal class LevelUpModule : Module
+    internal class Leveler : Module
     {
-        public override int RequiredLevel => 0;
-
         public override void Enable()
         {
             Program.RegularActions.Add(TryToLevelUp);
@@ -16,15 +14,15 @@ namespace Structure
         {
             if (XP >= Utility.XPForNextLevel)
             {
-                Run(() => PromptYesNo("You have enough XP to level up, want to?", LevelUp), 5);
+                Run(() => PromptYesNo("You have enough XP to level up, want to?", LevelUp));
             }
         }
 
         private void LevelUp()
         {
             XP -= Utility.XPForNextLevel;
-            Level++;
-            CharacterBonus += Level * Level;
+            Data.Level++;
+            CharacterBonus += Data.Level * Data.Level;
         }
     }
 }

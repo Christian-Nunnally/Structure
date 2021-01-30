@@ -4,32 +4,30 @@ using static Structure.IO;
 
 namespace Structure
 {
-    internal class InfoModule : Module
+    internal class Information : Module
     {
-        public override int RequiredLevel => 1;
+        private UserAction _userAction;
 
         public override void Disable()
         {
-            Hotkeys.Remove(ConsoleKey.I);
+            Hotkey.Remove(ConsoleKey.I, _userAction);
         }
 
         public override void Enable()
         {
-            Hotkeys.Add(ConsoleKey.I, (PrintInfo, "Info"));
+            _userAction = Hotkey.Add(ConsoleKey.I, new UserAction("Info", PrintInfo));
         }
 
         private void PrintInfo()
         {
-            Write($"Lifetime Prestiege = {LifetimePrestiege}");
-            Write($"Prestiege = {Prestiege}");
-            Write($"Level = {Level}");
+            Write($"Prestiege = {Data.Prestiege}");
+            Write($"Level = {Data.Level}");
             Write($"XP = {XP}/{Utility.XPForNextLevel}");
             Write($"Points = {Points}");
             Write($"Character Bonus = {CharacterBonus}");
             Write($"Character Bonus/File = {CharacterBonusPerFile}");
-            Write($"You have {Grass} blades of grass.");
             Write($"Toxins = {Toxins}");
-            Write($"Length of the code = {LastCodeLength}");
+            Write($"Characters = {LastCodeLength}");
             ReadAny();
         }
     }

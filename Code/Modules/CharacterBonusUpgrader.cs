@@ -1,17 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using static Structure.Data;
 using static Structure.IO;
 
 namespace Structure
 {
-    internal class CharacterBonusPerFileModule : Module
+    internal class CharacterBonusUpgrader : Module
     {
-        public override int RequiredLevel => 1;
+        private UserAction _action;
 
-        public override IEnumerable<(char, string, Action)> GetOptions()
+        public override void Enable()
         {
-            return new List<(char, string, Action)> { ('c', "character bonus", IncreaseCharacterBonusPerFile) };
+            _action = Hotkey.Add(ConsoleKey.Q, new UserAction("Increase character bonus", IncreaseCharacterBonusPerFile));
+        }
+
+        public override void Disable()
+        {
+            Hotkey.Remove(ConsoleKey.Q, _action);
         }
 
         private void IncreaseCharacterBonusPerFile()
@@ -28,7 +32,7 @@ namespace Structure
             var costOfNextLevel = Utility.ExperienceForLevel(bonusLevel, 10, 65, 50);
             if (costOfNextLevel <= Points)
             {
-                PromptYesNo($"Spend {costOfNextLevel}/{Points} points on +{increaseAmount} character bonus per file?", () => Run(() => IncreaseCharacterBonusPerFile(increaseAmount, costOfNextLevel), 3));
+                PromptYesNo($"Spend {costOfNextLevel}/{Points} points on +{increaseAmount} character bonus per file?", () => IncreaseCharacterBonusPerFile(increaseAmount, costOfNextLevel));
             }
             else
             {

@@ -8,111 +8,181 @@ namespace Structure
 {
     public static class IO
     {
-        private static readonly Stack<string> _textBuffers = new Stack<string>();
-        private static readonly StringBuilder _textBuffer = new StringBuilder();
-        private static bool _performingRegularActions = false;
-        public static Dictionary<ConsoleKey, (Action Action, string Description)> Hotkeys { get; } = new Dictionary<ConsoleKey, (Action, string)>();
+        public static PersistedList<string> NewsArchive = new PersistedList<string>("NewsArchive");
 
-        public static void WriteHotkeys() => Hotkeys.All(x => Write($"ctrl + {$"{x.Key}".ToLower()}: {x.Value.Description}"));
+        private static Stack<string> _buffers = new Stack<string>();
+        private static StringBuilder _buffer = new StringBuilder();
+        private static Queue<string> _newsQueue = new Queue<string>();
+        private static bool _doingActions = false;
+        private static string _currentNews;
+        private static int _newsCursorLeft = 40;
 
         public static void Write(string text = "") => WriteNoLine($"{text}\n");
 
-        public static void Write(char character) => Write($"{character}");
-
         public static void WriteNoLine(string text = "")
         {
-            _textBuffer.Append(text);
+            _buffer.Append(text);
             Console.Write(text);
         }
 
-        public static void WriteNoLine(char character) => WriteNoLine($"{character}");
-
-        public static void Clear()
+        public static void Clear(bool clearConsole = true)
         {
-            _textBuffer.Clear();
-            Console.Clear();
+            _buffer.Clear();
+            if (clearConsole) Console.Clear();
+            Console.SetCursorPosition(0, 1);
         }
 
         public static void ReadAny() => Read((line, key) => true, x => { }, false);
 
-        public static void ReadLine(Action<string> continuation) => Read((line, key) => key.Key == ConsoleKey.Enter, continuation);
+        public static void Read(Action<string> continuation, params ConsoleKey[] submitKeys) => Read((line, key) => submitKeys.Contains(key.Key), continuation, false);
 
-        public static void ReadKey(Action<string> continuation) => Read((line, key) => !IsModifierPressed(key), continuation);
+        public static void Read(Action<string> continuation) => Read(continuation, ConsoleKey.Enter);
 
-        public static void PromptYesNo(string prompt, Action action) => PromptOptions(prompt, false, ('y', "yes", action), ('n', "no", null));
+        public static void ReadKey(Action<string> continuation) => Read((line, key) => !IsModifierPressed(key), continuation, true, false);
 
-        public static void PromptOptions(string prompt, bool useDefault, params (char key, string description, Action action)[] options)
+        public static void PromptYesNo(string prompt, Action action) => PromptOptions(prompt, false, new UserAction("yes", action), new UserAction("no", null));
+
+        public static void PromptOptions(string prompt, bool useDefault, params UserAction[] options)
         {
+            var keyedOptions = CreateOptionKeys(options);
             Write($"{prompt}\n");
-            options.All(x => Write($"{x.key}: {x.description}"));
+            keyedOptions.All(x => Write($"{x.Key}: {x.Action.Description}"));
             ReadKey(PickOption);
             void PickOption(string result)
             {
-                var (key, description, action) = options.FirstOrDefault(x => $"{x.key}" == result);
+                result = result.ToLower();
+                var (key, userAction) = keyedOptions.FirstOrDefault(x => $"{x.Key}" == result);
+                var action = userAction?.Action;
                 if (useDefault)
                 {
-                    action ??= options.Last().action;
+                    action ??= options.Last().Action;
                 }
                 action?.Invoke();
             }
         }
 
-        public static void Run(Action action) => Run(action, 0);
-
-        public static void Run(Action action, int delay)
+        public static (char Key, UserAction Action)[] CreateOptionKeys(UserAction[] options)
         {
-            if (action is object)
+            var keys = new List<(char Key, UserAction Action)>();
+            foreach (var option in options)
             {
-                _textBuffers.Push(_textBuffer.ToString());
-                Clear();
-                action();
-                Thread.Sleep(delay * 1000);
-                Clear();
-                WriteNoLine(_textBuffers.Pop());
+                var possibleKeys = $"{option.Description.ToLower()}abcdefghijklmnopqrstuvwxyz1234567890";
+                for (int i = 0; i < possibleKeys.Length; i++)
+                {
+                    if (!keys.Any(x => x.Key == possibleKeys[i]))
+                    {
+                        keys.Add((possibleKeys[i], option));
+                        break;
+                    }
+                }
             }
+            return keys.ToArray();
         }
 
-        private static void Read(Func<string, ConsoleKeyInfo, bool> shouldExit, Action<string> continuation, bool echo = true)
+        public static void News(string news)
+        {
+            _newsQueue.Enqueue(news);
+            NewsArchive.Add(news);
+        }
+
+        public static void Run(Action action)
+        {
+            if (action is null) return;
+            _buffers.Push($"{_buffer}");
+            Clear(true);
+            action();
+            Clear(true);
+            WriteNoLine(_buffers.Pop());
+        }
+
+        private static void Read(Func<string, ConsoleKeyInfo, bool> shouldExit, Action<string> continuation, bool allowMiscKeys, bool echo = true)
         {
             ConsoleKeyInfo key;
             var line = new StringBuilder();
             do
             {
-                if (!_performingRegularActions)
+                if (!_doingActions)
                 {
-                    _performingRegularActions = true;
+                    _doingActions = true;
                     Program.RegularActions.All(x => x());
-                    _performingRegularActions = false;
+                    _doingActions = false;
                 }
+
+                while (!Console.KeyAvailable)
+                {
+                    PrintNews();
+                    Thread.Sleep(10);
+                }
+
                 key = Console.ReadKey(true);
-                ProcessReadKeyIntoLine(key, line, echo);
+                ProcessReadKeyIntoLine(key, line, allowMiscKeys, echo);
             } while (!shouldExit(line.ToString(), key));
             if (echo) Write();
             continuation(line.ToString());
         }
 
-        private static void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo)
+        private static void PrintNews()
         {
-            if (IsModifierPressed(key)) ExecuteHotkey(key);
-            else if (IsAlphanumeric(key)) ReadKeyIntoLine(key, line, echo);
-            else if (key.Key == ConsoleKey.Backspace) RemoveKeyFromLine(line, echo);
-            else if (key.Key == ConsoleKey.Enter && echo) Write();
+            if (!_newsQueue.Any() && _currentNews == null) return;
+            _currentNews ??= _newsQueue.Dequeue();
+            var cursorLeft = Console.CursorLeft;
+            var cursorTop = Console.CursorTop;
+            Console.CursorLeft = Math.Max(0, _newsCursorLeft);
+            _newsCursorLeft -= 2;
+            Console.CursorTop = 0;
+
+            Console.Write(_currentNews + "  ");
+
+            Console.CursorLeft = cursorLeft;
+            Console.CursorTop = cursorTop;
+            if (_newsCursorLeft < -80)
+            {
+                if (_currentNews.Length == 0)
+                {
+                    _currentNews = null;
+                    _newsCursorLeft = 40;
+                }
+                else if (_currentNews.Length == 1) _currentNews = _currentNews[1..];
+                else _currentNews = _currentNews[2..];
+            }
         }
 
-        private static void RemoveKeyFromLine(StringBuilder line, bool echo)
+        private static void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool allowMiscKeys, bool echo)
+        {
+            if (IsModifierPressed(key))
+            {
+                Hotkey.Execute(key);
+                return;
+            }
+            if (IsAlphanumeric(key)) ReadKeyIntoLine(key, line, echo);
+            else if (allowMiscKeys)
+            {
+                var allowedKeys = new[] { ConsoleKey.Enter, ConsoleKey.UpArrow, ConsoleKey.DownArrow, ConsoleKey.RightArrow, ConsoleKey.LeftArrow, ConsoleKey.Delete, ConsoleKey.Escape };
+                if (allowedKeys.Contains(key.Key)) ReadStringIntoLine($"{{{key.Key}}}", line, echo);
+            }
+            else
+            {
+                if (key.Key == ConsoleKey.Backspace) BackspaceFromLine(line, echo);
+                else if (key.Key == ConsoleKey.Enter && echo) Write();
+            }
+        }
+
+        private static void BackspaceFromLine(StringBuilder line, bool echo)
         {
             if (line.Length > 0)
             {
                 if (echo) Console.Write("\b \b");
-                _textBuffer.Remove(_textBuffer.Length - 1, 1);
+                _buffer.Remove(_buffer.Length - 1, 1);
                 line.Remove(line.Length - 1, 1);
             }
         }
 
-        private static void ReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo)
+        private static void ReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo) => ReadStringIntoLine($"{key.KeyChar}", line, echo);
+
+        private static void ReadStringIntoLine(string text, StringBuilder line, bool echo)
         {
-            if (echo) WriteNoLine(key.KeyChar);
-            line.Append(key.KeyChar);
+            if (echo) WriteNoLine(text);
+            line.Append(text);
         }
 
         private static bool IsAlphanumeric(ConsoleKeyInfo key) => char.IsLetterOrDigit(key.KeyChar) || key.KeyChar == ' ';
@@ -120,12 +190,5 @@ namespace Structure
         private static bool IsModifierPressed(ConsoleKeyInfo key) =>
             key.Modifiers.HasFlag(ConsoleModifiers.Control)
             || key.Modifiers.HasFlag(ConsoleModifiers.Alt);
-
-        private static void ExecuteHotkey(ConsoleKeyInfo key)
-        {
-            if (key.Modifiers.HasFlag(ConsoleModifiers.Control)
-                && Hotkeys.TryGetValue(key.Key, out var action))
-                Run(action.Action);
-        }
     }
 }
