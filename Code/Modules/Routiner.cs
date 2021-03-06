@@ -1,46 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using static Structure.Data;
 using static Structure.IO;
 
 namespace Structure
 {
     internal class Routiner : Module
     {
-        private List<string> _activeRoutines = new List<string>();
-
-        private Dictionary<string, string[]> _routines = new Dictionary<string, string[]>
-        {
-            { "Morning", new string[]
-                { "Drink glass of water",
-                  "Shower",
-                  "Brush teeth", } },
-            { "Night", new string[]
-                { "Brush teeth",
-                  "Wash face",
-                  "Drink a glass of water",
-                  "Prepare a glass of water for the morning" } },
-            { "Start work", new string[]
-                { "Drink a glass of water",
-                  "Check email",
-                  "Check teams",
-                  "Add calander items to todo list" } },
-            { "End work", new string[]
-                { "Drink a glass of water",
-                  "Check email",
-                  "Check teams",
-                  "Close unneeded windows"} },
-        };
-
+        public static PersistedTree<TaskItem> Routines = new PersistedTree<TaskItem>("Routines");
+        public static PersistedTree<TaskItem> ActiveRoutines = new PersistedTree<TaskItem>("ActiveRoutines");
+        public static PersistedTree<TaskItem> FinishedRoutines = new PersistedTree<TaskItem>("FinishedRoutines");
+        private static PersistedInt _routinePoints = new PersistedInt("RoutinePoints");
         private UserAction _action;
-
-        public Routiner()
-        {
-            ActiveTaskTree.ItemRemoved += TaskCompleted;
-        }
-
-        private UserAction[] RoutineOptions => _routines.Select(r => new UserAction(r.Key, () => StartRoutine(r.Key, r.Value))).ToArray();
+        public static int RoutinePoints { get => _routinePoints.Get(); set => _routinePoints.Set(value); }
 
         public override void Disable()
         {
@@ -49,62 +20,46 @@ namespace Structure
 
         public override void Enable()
         {
-            _action = Hotkey.Add(ConsoleKey.R, new UserAction("Routines", DoRoutine));
+            _action = Hotkey.Add(ConsoleKey.R, new UserAction("Routines", PromptRoutinerOptions));
         }
 
-        private void DoRoutine()
+        private void DoRoutine() => DoRoutine(null);
+
+        private void DoRoutine(TaskItem routine)
         {
-            if (_activeRoutines.Any())
+            Run(() => new RoutineExecutor(routine).Edit());
+        }
+
+        private void PromptRoutinerOptions()
+        {
+            var start = new UserAction("Start routine", PickRoutine);
+            var edit = new UserAction("Edit routines", EditRoutines);
+            var resume = new UserAction("Resume routines", DoRoutine);
+            var options = ActiveRoutines.Any() ? new[] { start, edit, resume } : new[] { start, edit };
+            PromptOptions("Routines", false, options);
+        }
+
+        private void EditRoutines()
+        {
+            Run(() => new RoutineEditor(Routines).Edit());
+        }
+
+        private void PickRoutine()
+        {
+            Run(() => new TaskPicker("Pick routine to start", "Start", false, true, true, Routines, StartRoutine).Edit());
+        }
+
+        private void StartRoutine(TaskItem task)
+        {
+            var children = Routines.Where(x => x.Value.ParentID == task.ID);
+            var routine = new TaskItem { Task = task.Task };
+            ActiveRoutines.Set(routine);
+            foreach (var child in children.OrderBy(x => x.Value.Rank))
             {
-                Write("Active routines:");
-                _activeRoutines.All(r => Write($"{r} in progress"));
-                Write();
+                var routineTask = new TaskItem { Task = child.Value.Task, ParentID = routine.ID, Rank = child.Value.Rank };
+                ActiveRoutines.Set(routineTask);
             }
-            PromptOptions("Pick a routine", false, RoutineOptions);
-        }
-
-        private void StartRoutine(string name, string[] tasks)
-        {
-            name = $"{name} routine";
-            _activeRoutines.Add(name);
-            Write($"Starting {name}");
-
-            ActiveTaskTree.Set(name, new TaskItem { ID = name, Task = name, Rank = 300 });
-            for (int i = 0; i < tasks.Count(); i++)
-            {
-                var guid = Guid.NewGuid().ToString();
-                ActiveTaskTree.Set(guid, new TaskItem { ID = guid, ParentID = name, Rank = i, Task = tasks[i] });
-            }
-            Run(() => StartTreeTaskForRoutine(name));
-        }
-
-        private void StartTreeTaskForRoutine(string name)
-        {
-            var tree = new TreeEditor(ActiveTaskTree);
-            tree.FocusTask(name);
-            tree.DoTasks();
-        }
-
-        private void TaskCompleted(string taskID, TaskItem removedTask)
-        {
-            if (removedTask.CompletedDate == new DateTime())
-            {
-                return;
-            }
-            if (_activeRoutines.Contains(removedTask.ID))
-            {
-                FinishRoutine(removedTask.ID);
-            }
-        }
-
-        private void FinishRoutine(string routine)
-        {
-            _activeRoutines.Remove(routine);
-            News($"Finished {routine}.");
-            Points += 2;
-            XP += 5;
-            CharacterBonus += 5;
-            FinishedRoutines.Add($"{DateTime.Now} {routine}");
+            DoRoutine(routine);
         }
     }
 }

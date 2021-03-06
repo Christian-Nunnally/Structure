@@ -1,11 +1,10 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Structure
 {
-    public class PersistedDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>> where TValue : class
+    public class PersistedDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>> where TValue : Node
     {
         protected string _name;
         private Dictionary<TKey, TValue> _dictionary;
@@ -14,8 +13,6 @@ namespace Structure
         {
             _name = name;
         }
-
-        public event Action<TKey, TValue> ItemRemoved;
 
         protected Dictionary<TKey, TValue> Dictionary => _dictionary ?? (_dictionary = JsonConvert.DeserializeObject<Dictionary<TKey, TValue>>(FileIO.Get(_name)) ?? new Dictionary<TKey, TValue>());
 
@@ -31,8 +28,9 @@ namespace Structure
         {
             if (Get(key) != value)
             {
+                value.PropertyChanged += ItemPropertyChanged;
                 Dictionary[key] = value;
-                FileIO.Set(_name, JsonConvert.SerializeObject(Dictionary));
+                Save();
             }
         }
 
@@ -42,12 +40,15 @@ namespace Structure
 
         internal void Remove(TKey key)
         {
-            if (Dictionary.TryGetValue(key, out var removed))
+            if (Dictionary.ContainsKey(key))
             {
                 Dictionary.Remove(key);
-                FileIO.Set(_name, JsonConvert.SerializeObject(Dictionary));
-                ItemRemoved?.Invoke(key, removed);
+                Save();
             }
         }
+
+        private void Save() => FileIO.Set(_name, JsonConvert.SerializeObject(Dictionary));
+
+        private void ItemPropertyChanged() => Save();
     }
 }

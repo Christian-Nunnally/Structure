@@ -1,27 +1,17 @@
 ﻿namespace Structure
 {
-    public class PersistedInt
+    public class PersistedInt : PersistedValue<int>
     {
-        private string _name;
-        private int? cachedValue;
-
-        public PersistedInt(string name)
+        public PersistedInt(string name) : base(name)
         {
-            _name = name;
+            ValueChanged += IntChanged;
         }
 
-        public int Get() => cachedValue ?? (cachedValue = int.TryParse(FileIO.Get(_name), out var x) ? x : 0) ?? 0;
-
-        public void Set(int value)
+        private void IntChanged((int OldValue, int NewValue) obj)
         {
-            if (Get() != value)
-            {
-                var difference = value - Get();
-                var prefix = difference > 0 ? "+" : "";
-                IO.News($"{prefix}{difference} {_name}");
-                cachedValue = value;
-                FileIO.Set(_name, $"{value}");
-            }
+            var difference = obj.NewValue - obj.OldValue;
+            var prefix = difference > 0 ? "+" : "";
+            IO.News($"{prefix}{difference} {Name}");
         }
     }
 }

@@ -1,6 +1,4 @@
 ﻿using System;
-using static Structure.Data;
-using static Structure.IO;
 
 namespace Structure
 {
@@ -18,6 +16,6 @@ namespace Structure
             _doTasks = Hotkey.Add(ConsoleKey.T, new UserAction("Do tasks", Start));
         }
 
-        private void Start() => Run(() => new TreeEditor(ActiveTaskTree).DoTasks());
+        private void Start() => IO.Run(() => new TaskEditor().Edit());
     }
 }

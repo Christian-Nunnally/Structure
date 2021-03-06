@@ -10,19 +10,17 @@
         {
             new TreeTask(),
             new Information(),
-            new CharacterBonusUpgrader(),
-            new Prestieger(),
             new CodeEditor(),
             new Routiner(),
             new Diagnostics(),
             new Leveler(),
             new Weight(),
+            new NewsArchive(),
         });
 
         public static IModule[] SystemModules => _system ?? (_system = new Module[]
         {
             new Toxin(),
-            new CharacterBonusModule(),
             new ModuleManager(),
             new Backup(),
             new StartupStatistics(),

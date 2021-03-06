@@ -154,7 +154,10 @@ namespace Structure
                 Hotkey.Execute(key);
                 return;
             }
-            if (IsAlphanumeric(key)) ReadKeyIntoLine(key, line, echo);
+            if (IsAlphanumeric(key) || key.Key == ConsoleKey.OemPeriod || key.Key == ConsoleKey.Decimal)
+            {
+                ReadStringIntoLine($"{key.KeyChar}", line, echo);
+            }
             else if (allowMiscKeys)
             {
                 var allowedKeys = new[] { ConsoleKey.Enter, ConsoleKey.UpArrow, ConsoleKey.DownArrow, ConsoleKey.RightArrow, ConsoleKey.LeftArrow, ConsoleKey.Delete, ConsoleKey.Escape };
