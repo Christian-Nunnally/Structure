@@ -20,7 +20,6 @@
 
         public static IModule[] SystemModules => _system ?? (_system = new Module[]
         {
-            new Toxin(),
             new ModuleManager(),
             new Backup(),
             new StartupStatistics(),

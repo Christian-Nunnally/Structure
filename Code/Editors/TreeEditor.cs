@@ -75,7 +75,7 @@ namespace Structure
         {
             for (int i = 0; i < tasks.Count; i++)
             {
-                var prefix = spaces.Length == 0 ? $"{i}{(i == _cursor ? " > " : "   ")}" : spaces;
+                var prefix = spaces.Length == 0 ? $"{i}{(i == cursorIndex ? " > " : "   ")}" : spaces;
                 Write($"{prefix}{tasks[i]}");
                 if (ShowChildren) WriteTasks(-1, GetChildren(tasks[i].ID), spaces + "    ");
             }

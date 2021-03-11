@@ -21,7 +21,6 @@
         {
             IO.News($"Finished {routineItem}.");
             Data.XP += 5;
-            Data.CharacterBonus += 5;
             Routiner.RoutinePoints++;
         }
     }

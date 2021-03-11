@@ -22,7 +22,6 @@ namespace Structure
         {
             XP -= Utility.XPForNextLevel;
             Data.Level++;
-            CharacterBonus += Data.Level * Data.Level;
         }
     }
 }

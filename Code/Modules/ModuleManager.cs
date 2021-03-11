@@ -45,11 +45,6 @@ namespace Structure
                 var name = module.Name;
                 if (!EnabledModules.Contains(name))
                 {
-                    if (CharacterBonus < 0)
-                    {
-                        News($"CharacterBonus ({CharacterBonus}) must be positive to enable a module.");
-                        return;
-                    }
                     EnabledModules.Add(name);
                     module.Enable();
                     News($"+{name} enabled.");

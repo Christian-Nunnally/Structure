@@ -39,7 +39,6 @@ namespace Structure
                     IO.News($"Weight recorded: {weight} (lbs)");
                     Data.Points += 2;
                     Data.XP += 2;
-                    Data.CharacterBonus += 5;
                     if (_weights.Count % 5 == 0)
                     {
                         IO.News($"{_weights.Count} weights recorded! Bonus reward.");

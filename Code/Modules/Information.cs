@@ -20,14 +20,9 @@ namespace Structure
 
         private void PrintInfo()
         {
-            Write($"Prestiege = {Data.Prestiege}");
             Write($"Level = {Data.Level}");
             Write($"XP = {XP}/{Utility.XPForNextLevel}");
             Write($"Points = {Points}");
-            Write($"Character Bonus = {CharacterBonus}");
-            Write($"Character Bonus/File = {CharacterBonusPerFile}");
-            Write($"Toxins = {Toxins}");
-            Write($"Characters = {LastCodeLength}");
             ReadAny();
         }
     }

@@ -25,7 +25,6 @@ namespace Structure
             _tree.Remove(task.ID);
             _completedTaskTree.Set(task);
             Data.Points++;
-            Data.CharacterBonus++;
             Data.XP++;
             TaskCompletedAction(task);
         }

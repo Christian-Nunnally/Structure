@@ -20,7 +20,14 @@ namespace Structure
         {
             if (_isCacheValid) return _cachedValue;
             _isCacheValid = true;
-            return _cachedValue = JsonConvert.DeserializeObject<T>(FileIO.Get(Name));
+            try
+            {
+                return _cachedValue = JsonConvert.DeserializeObject<T>(FileIO.Get(Name));
+            }
+            catch
+            {
+                return _cachedValue = default;
+            }
         }
 
         public void Set(T value)
