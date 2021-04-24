@@ -1,6 +1,6 @@
 ﻿namespace Structure
 {
-    public class PersistedTree<TValue> : PersistedDictionary<string, TValue> where TValue : Node
+    public class PersistedTree<TValue> : PersistedDictionary<TValue> where TValue : Node
     {
         public PersistedTree(string name) : base(name)
         {

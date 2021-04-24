@@ -16,6 +16,7 @@
             new Leveler(),
             new Weight(),
             new NewsArchive(),
+            new CompletedTasks(),
         });
 
         public static IModule[] SystemModules => _system ?? (_system = new Module[]

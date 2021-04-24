@@ -33,7 +33,7 @@ namespace Structure
         private void ToggleModule(string module)
         {
             if (string.IsNullOrWhiteSpace(module)) return;
-            if (Level < EnabledModules.Count) News($"{EnabledModules.Count}/{Level} modules enabled. Level up to enable more.");
+            // if (Level < EnabledModules.Count) News($"{EnabledModules.Count}/{Level} modules enabled. Level up to enable more.");
             else if (int.TryParse(module, out var index) && index >= 0 && index < UserModules.Length) ToggleModule(index);
         }
 

@@ -110,7 +110,7 @@ namespace Structure
 
                 while (!Console.KeyAvailable)
                 {
-                    PrintNews();
+                    if (!PrintNews()) break;
                     Thread.Sleep(10);
                 }
 
@@ -121,9 +121,9 @@ namespace Structure
             continuation(line.ToString());
         }
 
-        private static void PrintNews()
+        private static bool PrintNews()
         {
-            if (!_newsQueue.Any() && _currentNews == null) return;
+            if (!_newsQueue.Any() && _currentNews == null) return false;
             _currentNews ??= _newsQueue.Dequeue();
             var cursorLeft = Console.CursorLeft;
             var cursorTop = Console.CursorTop;
@@ -145,6 +145,7 @@ namespace Structure
                 else if (_currentNews.Length == 1) _currentNews = _currentNews[1..];
                 else _currentNews = _currentNews[2..];
             }
+            return true;
         }
 
         private static void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool allowMiscKeys, bool echo)
