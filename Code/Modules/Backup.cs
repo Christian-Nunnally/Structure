@@ -5,11 +5,10 @@ namespace Structure
 {
     public class Backup : Module
     {
-        private string _backupDirectory = "Backups";
+        private readonly string _backupDirectory = "Backups";
 
         public override void Enable()
         {
-            Program.RegularActions.Add(TryBackup);
         }
 
         private void TryBackup()

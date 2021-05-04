@@ -5,8 +5,8 @@ namespace Structure
     public class TaskPicker : TreeEditor<TaskItem>
     {
         protected Action<TaskItem> PickedAction;
-        private string _pickPrompt;
-        private bool _exitAfterPick;
+        private readonly string _pickPrompt;
+        private readonly bool _exitAfterPick;
 
         public TaskPicker(
             string prompt,

@@ -7,7 +7,8 @@ namespace Structure
     {
         public override void Enable()
         {
-            Program.RegularActions.Add(TryToLevelUp);
+            // TODO: renable
+            // Program.RegularActions.Add(TryToLevelUp);
         }
 
         private void TryToLevelUp()

@@ -4,8 +4,8 @@ namespace Structure
 {
     public class TaskExecutor : TaskPicker
     {
+        protected readonly PersistedTree<TaskItem> _tree;
         protected Action<TaskItem> TaskCompletedAction = x => { };
-        private readonly PersistedTree<TaskItem> _tree;
         private readonly PersistedTree<TaskItem> _completedTaskTree;
 
         public TaskExecutor(
@@ -21,7 +21,7 @@ namespace Structure
 
         private void CompleteTask(TaskItem task)
         {
-            task.CompletedDate = DateTime.Now;
+            task.CompletedDate = CurrentTime.GetCurrentTime();
             _tree.Remove(task.ID);
             _completedTaskTree.Set(task);
             Data.Points++;

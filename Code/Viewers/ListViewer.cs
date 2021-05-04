@@ -4,10 +4,10 @@ namespace Structure
 {
     internal class ListViewer
     {
-        private List<object> _orignalList;
-        private int _itemsAtATime;
+        private readonly List<object> _orignalList;
+        private readonly int _itemsAtATime;
+        private readonly string _title;
         private List<object> _listCopy;
-        private string _title;
 
         public ListViewer(string title, List<object> list, int itemsAtATime)
         {

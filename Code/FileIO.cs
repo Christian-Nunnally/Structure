@@ -19,18 +19,18 @@ namespace Structure
 
         public static DateTime GetLastWriteTime(string key) => File.GetLastWriteTime(GetFileName(key));
 
-        public static string Get(string key) => _cache.TryGetValue(key, out var value) ? value
-                : (_cache[key] = File.Exists(GetFileName(key)) ? File.ReadAllText(GetFileName(key)) : string.Empty);
+        public static string ReadFromFile(string key) => _cache.TryGetValue(key, out var value) ? value
+            : (_cache[key] = File.Exists(GetFileName(key)) ? File.ReadAllText(GetFileName(key)) : string.Empty);
 
         public static void Set(string key, string value)
         {
-            if (Get(key) != value) File.WriteAllText(GetFileName(key), value);
+            if (ReadFromFile(key) != value) File.WriteAllText(GetFileName(key), value);
             _cache[key] = value;
         }
 
         public static void Append(string key, string value)
         {
-            _cache[key] = Get(key) + value;
+            _cache[key] = ReadFromFile(key) + value;
             File.AppendAllText(GetFileName(key), _cache[key]);
         }
 

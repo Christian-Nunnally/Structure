@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Structure.Code;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,10 +11,14 @@ namespace Structure
     {
         public static PersistedList<string> NewsArchive = new PersistedList<string>("NewsArchive");
 
-        private static Stack<string> _buffers = new Stack<string>();
-        private static StringBuilder _buffer = new StringBuilder();
-        private static Queue<string> _newsQueue = new Queue<string>();
-        private static bool _doingActions = false;
+        public static IKeyboardInput KeyboardInput = new ConsoleKeyboardInput();
+
+        // TODO: Extract the console into an object that can be swapped out.
+        public static bool SupressConsoleCalls = false;
+
+        private static readonly Stack<string> _buffers = new Stack<string>();
+        private static readonly StringBuilder _buffer = new StringBuilder();
+        private static readonly Queue<string> _newsQueue = new Queue<string>();
         private static string _currentNews;
         private static int _newsCursorLeft = 40;
 
@@ -22,14 +27,14 @@ namespace Structure
         public static void WriteNoLine(string text = "")
         {
             _buffer.Append(text);
-            Console.Write(text);
+            if (!SupressConsoleCalls) Console.Write(text);
         }
 
         public static void Clear(bool clearConsole = true)
         {
             _buffer.Clear();
-            if (clearConsole) Console.Clear();
-            Console.SetCursorPosition(0, 1);
+            if (clearConsole && !SupressConsoleCalls) if (!SupressConsoleCalls) Console.Clear();
+            if (!SupressConsoleCalls) Console.SetCursorPosition(0, 1);
         }
 
         public static void ReadAny() => Read((line, key) => true, x => { }, false);
@@ -81,7 +86,10 @@ namespace Structure
 
         public static void News(string news)
         {
-            _newsQueue.Enqueue(news);
+            if (!SupressConsoleCalls)
+            {
+                _newsQueue.Enqueue(news);
+            }
             NewsArchive.Add(news);
         }
 
@@ -90,9 +98,23 @@ namespace Structure
             if (action is null) return;
             _buffers.Push($"{_buffer}");
             Clear(true);
-            action();
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
             Clear(true);
             WriteNoLine(_buffers.Pop());
+        }
+
+        public static void Refresh()
+        {
+            var buffer = _buffer.ToString();
+            Clear(true);
+            WriteNoLine(buffer);
         }
 
         private static void Read(Func<string, ConsoleKeyInfo, bool> shouldExit, Action<string> continuation, bool allowMiscKeys, bool echo = true)
@@ -101,20 +123,13 @@ namespace Structure
             var line = new StringBuilder();
             do
             {
-                if (!_doingActions)
-                {
-                    _doingActions = true;
-                    Program.RegularActions.All(x => x());
-                    _doingActions = false;
-                }
-
-                while (!Console.KeyAvailable)
+                while (!KeyboardInput.IsKeyAvailable())
                 {
                     if (!PrintNews()) break;
                     Thread.Sleep(10);
                 }
 
-                key = Console.ReadKey(true);
+                key = KeyboardInput.ReadKey();
                 ProcessReadKeyIntoLine(key, line, allowMiscKeys, echo);
             } while (!shouldExit(line.ToString(), key));
             if (echo) Write();
@@ -175,7 +190,7 @@ namespace Structure
         {
             if (line.Length > 0)
             {
-                if (echo) Console.Write("\b \b");
+                if (echo && !SupressConsoleCalls) Console.Write("\b \b");
                 _buffer.Remove(_buffer.Length - 1, 1);
                 line.Remove(line.Length - 1, 1);
             }

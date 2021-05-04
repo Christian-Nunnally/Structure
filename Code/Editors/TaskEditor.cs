@@ -7,9 +7,15 @@ namespace Structure
         public TaskEditor() : base("Task tree", Data.ActiveTaskTree, Data.CompletedTaskTree)
         {
             CustomActions.Add(("i", PromptToInsertTask));
+            CustomActions.Add(("o", TaskEditorOptions));
             CustomActions.Add(("g", () => new Beeper().Beep()));
             CustomActions.Add(("v", () => ShowChildren = !ShowChildren));
             NoChildrenAction = PromptToInsertTask;
+        }
+
+        private void TaskEditorOptions()
+        {
+            throw new NotImplementedException();
         }
 
         private void PromptToInsertTask()

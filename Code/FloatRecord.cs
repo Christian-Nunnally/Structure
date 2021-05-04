@@ -5,7 +5,7 @@ namespace Structure
     public class FloatRecord
     {
         public float Value;
-        public DateTime Date = DateTime.Now;
+        public DateTime Date = CurrentTime.GetCurrentTime();
         public string Description;
 
         public override string ToString()

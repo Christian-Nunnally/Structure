@@ -1,17 +1,17 @@
 ﻿namespace Structure
 {
-    public class PersistedInt : PersistedValue<int>
+    public class PersistedInt : SerializeableValue<int>
     {
         public PersistedInt(string name) : base(name)
         {
-            ValueChanged += IntChanged;
         }
 
-        private void IntChanged((int OldValue, int NewValue) obj)
+        public override void Set(int value)
         {
-            var difference = obj.NewValue - obj.OldValue;
+            var difference = value - _value;
             var prefix = difference > 0 ? "+" : "";
-            IO.News($"{prefix}{difference} {Name}");
+            IO.News($"{prefix}{difference} {Name} ({_value})");
+            base.Set(value);
         }
     }
 }

@@ -5,7 +5,7 @@ namespace Structure
 {
     public class Weight : Module
     {
-        private static PersistedList<FloatRecord> _weights = new PersistedList<FloatRecord>("Weights");
+        private static readonly PersistedList<FloatRecord> _weights = new PersistedList<FloatRecord>("Weights");
 
         private UserAction _action;
 
