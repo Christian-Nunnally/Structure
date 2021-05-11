@@ -2,7 +2,7 @@
 
 namespace Structure.Code
 {
-    public interface IKeyboardInput
+    public interface IProgramInput
     {
         public ConsoleKeyInfo ReadKey();
 

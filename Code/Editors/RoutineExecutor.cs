@@ -3,7 +3,7 @@
     public class RoutineExecutor : TaskExecutor
     {
         public RoutineExecutor(TaskItem routineItem)
-            : base($"Doing {routineItem?.Task ?? "routines"}", Routiner.ActiveRoutines, Routiner.FinishedRoutines)
+            : base($"Doing {routineItem?.Task ?? "routines"}", Routiner.ActiveRoutines)
         {
             TaskCompletedAction = TaskCompleted;
             SetParent(routineItem);

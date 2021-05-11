@@ -11,7 +11,7 @@ namespace Structure
     {
         public static PersistedList<string> NewsArchive = new PersistedList<string>("NewsArchive");
 
-        public static IKeyboardInput KeyboardInput = new ConsoleKeyboardInput();
+        public static IProgramInput KeyboardInput = new StructureProgramInput();
 
         // TODO: Extract the console into an object that can be swapped out.
         public static bool SupressConsoleCalls = false;

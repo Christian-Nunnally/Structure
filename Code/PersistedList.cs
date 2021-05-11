@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 namespace Structure
 {
-    // TODO: Get rid of this class and make the persisted stuff a dectorator.
     public class PersistedList<T> : IEnumerable<T>
     {
         private readonly string _name;

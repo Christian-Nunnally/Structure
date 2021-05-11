@@ -3,9 +3,9 @@
 namespace Structure.Code
 {
     [Serializable]
-    public class KeyboardInputData
+    public class ProgramInputData
     {
-        public KeyboardInputData(ConsoleKeyInfo keyInfo, DateTime time)
+        public ProgramInputData(ConsoleKeyInfo keyInfo, DateTime time)
         {
             Key = (int)keyInfo.Key;
             Char = keyInfo.KeyChar;

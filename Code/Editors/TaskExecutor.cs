@@ -6,16 +6,13 @@ namespace Structure
     {
         protected readonly PersistedTree<TaskItem> _tree;
         protected Action<TaskItem> TaskCompletedAction = x => { };
-        private readonly PersistedTree<TaskItem> _completedTaskTree;
 
         public TaskExecutor(
             string prompt,
-            PersistedTree<TaskItem> tree,
-            PersistedTree<TaskItem> completedTaskTree)
+            PersistedTree<TaskItem> tree)
             : base(prompt, "Complete", true, false, false, tree)
         {
             _tree = tree;
-            _completedTaskTree = completedTaskTree;
             PickedAction = CompleteTask;
         }
 
@@ -23,7 +20,6 @@ namespace Structure
         {
             task.CompletedDate = CurrentTime.GetCurrentTime();
             _tree.Remove(task.ID);
-            _completedTaskTree.Set(task);
             Data.Points++;
             Data.XP++;
             TaskCompletedAction(task);

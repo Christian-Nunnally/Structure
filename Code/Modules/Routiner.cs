@@ -8,7 +8,6 @@ namespace Structure
     {
         public static PersistedTree<TaskItem> Routines = new PersistedTree<TaskItem>("Routines");
         public static PersistedTree<TaskItem> ActiveRoutines = new PersistedTree<TaskItem>("ActiveRoutines");
-        public static PersistedTree<TaskItem> FinishedRoutines = new PersistedTree<TaskItem>("FinishedRoutines");
         private static readonly PersistedInt _routinePoints = new PersistedInt("RoutinePoints");
         private UserAction _action;
         public static int RoutinePoints { get => _routinePoints.Get(); set => _routinePoints.Set(value); }

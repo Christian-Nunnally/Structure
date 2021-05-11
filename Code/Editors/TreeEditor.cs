@@ -69,7 +69,20 @@ namespace Structure
                 .OrderBy(x => x.Rank)
                 .ToList();
 
+        protected void EnableDefaultInsertFunctionality(string insertPrompt)
+        {
+            CustomActions.Add(("i", (Action)(() => IO.Run(PromptToInsertNode(insertPrompt, DefaultNodeFactory)))));
+            NoChildrenAction = PromptToInsertNode(insertPrompt, DefaultNodeFactory);
+        }
+
         private static void ConsolidateRank(List<ItemType> tasks) => tasks.All(t => t.Rank = tasks.IndexOf(t));
+
+        private Node DefaultNodeFactory(string task, string parentId, int rank) => new TaskItem
+        {
+            Task = task,
+            ParentID = parentId,
+            Rank = rank,
+        };
 
         private void WriteTasks(int cursorIndex, List<ItemType> tasks, string spaces)
         {
@@ -183,6 +196,24 @@ namespace Structure
         {
             SetCursor(_cursor - 1);
             _refreshDisplay = false;
+        }
+
+        private Action PromptToInsertNode(string insertPrompt, Func<string, string, int, Node> nodeFactory) => () =>
+        {
+            var index = NumberOfVisibleTasks;
+            IO.WriteNoLine($"\n{insertPrompt}: ");
+            IO.Read(s => AddNode(nodeFactory, s, _currentParent, index), ConsoleKey.Enter, ConsoleKey.LeftArrow);
+            if (NumberOfVisibleTasks == 0) ViewParent();
+        };
+
+        private void AddNode(Func<string, string, int, Node> nodeFactory, string description, string parentID, int rank)
+        {
+            if (string.IsNullOrEmpty(description))
+            {
+                return;
+            }
+            var node = nodeFactory(description, parentID, rank);
+            Tree.Set(node as ItemType);
         }
     }
 }

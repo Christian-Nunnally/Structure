@@ -30,7 +30,7 @@ namespace Structure
         private void Search(string searchTerm)
         {
             var count = 0;
-            foreach (var task in Data.CompletedTaskTree)
+            foreach (var task in Data.ActiveTaskTree)
             {
                 if (task.Value.Task.ToLower().Contains(searchTerm.ToLower()))
                 {
