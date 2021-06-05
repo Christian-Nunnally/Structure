@@ -20,6 +20,7 @@ namespace Structure
 
         public void Beep()
         {
+            if (IO.SupressConsoleCalls) return;
             _beepThread = new Thread(() =>
             {
                 var thisThread = _beepThread;

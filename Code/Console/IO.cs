@@ -13,7 +13,6 @@ namespace Structure
 
         public static IProgramInput KeyboardInput = new StructureProgramInput();
 
-        // TODO: Extract the console into an object that can be swapped out.
         public static bool SupressConsoleCalls = false;
 
         private static readonly Stack<string> _buffers = new Stack<string>();

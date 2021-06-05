@@ -7,10 +7,7 @@ namespace Structure
     internal class Routiner : Module
     {
         public static PersistedTree<TaskItem> Routines = new PersistedTree<TaskItem>("Routines");
-        public static PersistedTree<TaskItem> ActiveRoutines = new PersistedTree<TaskItem>("ActiveRoutines");
-        private static readonly PersistedInt _routinePoints = new PersistedInt("RoutinePoints");
         private UserAction _action;
-        public static int RoutinePoints { get => _routinePoints.Get(); set => _routinePoints.Set(value); }
 
         public override void Disable()
         {
@@ -22,19 +19,32 @@ namespace Structure
             _action = Hotkey.Add(ConsoleKey.R, new UserAction("Routines", PromptRoutinerOptions));
         }
 
-        private void DoRoutine() => DoRoutine(null);
+        private static void CopyChildren(TaskItem routine, TaskItem task)
+        {
+            var children = Routines.Where(x => x.Value.ParentID == task.ID);
+            foreach (var child in children.OrderBy(x => x.Value.Rank))
+            {
+                var routineTask = new TaskItem { Task = child.Value.Task, ParentID = routine.ID, Rank = child.Value.Rank };
+                Data.ActiveTaskTree.Set(routineTask);
+                CopyChildren(routineTask, child.Value);
+            }
+        }
 
         private void DoRoutine(TaskItem routine)
         {
-            Run(() => new RoutineExecutor(routine).Edit());
+            Run(() =>
+            {
+                var editor = new TaskEditor();
+                editor.SetParent(routine);
+                editor.Edit();
+            });
         }
 
         private void PromptRoutinerOptions()
         {
             var start = new UserAction("Start routine", PickRoutine);
             var edit = new UserAction("Edit routines", EditRoutines);
-            var resume = new UserAction("Resume routines", DoRoutine);
-            var options = ActiveRoutines.Any() ? new[] { start, edit, resume } : new[] { start, edit };
+            var options = new[] { start, edit };
             PromptOptions("Routines", false, options);
         }
 
@@ -50,14 +60,10 @@ namespace Structure
 
         private void StartRoutine(TaskItem task)
         {
-            var children = Routines.Where(x => x.Value.ParentID == task.ID);
             var routine = new TaskItem { Task = task.Task };
-            ActiveRoutines.Set(routine);
-            foreach (var child in children.OrderBy(x => x.Value.Rank))
-            {
-                var routineTask = new TaskItem { Task = child.Value.Task, ParentID = routine.ID, Rank = child.Value.Rank };
-                ActiveRoutines.Set(routineTask);
-            }
+            var children = Routines.Where(x => x.Value.ParentID == task.ID);
+            Data.ActiveTaskTree.Set(routine);
+            CopyChildren(routine, task);
             DoRoutine(routine);
         }
     }

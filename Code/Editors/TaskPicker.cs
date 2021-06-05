@@ -27,7 +27,7 @@ namespace Structure
 
         private void ConfirmPick(TaskItem task) => IO.PromptOptions($"{_pickPrompt} {task}?", true,
             new UserAction("no", () => { }),
-            new UserAction("yes", () =>
+            new UserAction("yes (Enter)", () =>
             {
                 PickedAction(task);
                 if (_exitAfterPick) ShouldExit = true;

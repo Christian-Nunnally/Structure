@@ -5,7 +5,6 @@
         public RoutineEditor(PersistedTree<TaskItem> routineTree) : base("Edit routines", routineTree)
         {
             EnableDefaultInsertFunctionality("Insert routine item");
-            EnableReparenting = false;
         }
     }
 }

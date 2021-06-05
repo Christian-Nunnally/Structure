@@ -17,8 +17,8 @@ namespace Structure
         protected PersistedTree<ItemType> Tree;
         protected bool ShowChildren;
         protected bool ShouldExit;
+        protected int _cursor = 0;
         private readonly string _prompt;
-        private int _cursor = 0;
         private bool _refreshDisplay;
         private bool _goBackIfNoChild;
 
@@ -39,7 +39,7 @@ namespace Structure
         {
             var children = GetChildren(_currentParent);
             ConsolidateRank(children);
-            if (!string.IsNullOrWhiteSpace(_prompt)) Write(_prompt);
+            WriteHeader();
             WriteTasks(_cursor, children, "");
             if (ShouldExit) return;
             if (children.Count == 0) { NoChildrenAction(); Clear(); Edit(); }
@@ -76,6 +76,30 @@ namespace Structure
         }
 
         private static void ConsolidateRank(List<ItemType> tasks) => tasks.All(t => t.Rank = tasks.IndexOf(t));
+
+        private void WriteHeader()
+        {
+            if (!string.IsNullOrWhiteSpace(_prompt))
+            {
+                Write(_prompt);
+                Write();
+            }
+
+            var atParentKey = _currentParent;
+            var parents = new List<string>();
+            while (!string.IsNullOrWhiteSpace(atParentKey))
+            {
+                var atParent = Tree.Get(atParentKey);
+                parents.Add(atParent.ToString());
+                atParentKey = atParent.ParentID;
+            }
+            parents.Reverse();
+            foreach (var parent in parents)
+            {
+                WriteNoLine($"{parent} > ");
+            }
+            Write();
+        }
 
         private Node DefaultNodeFactory(string task, string parentId, int rank) => new TaskItem
         {
