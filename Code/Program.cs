@@ -11,6 +11,8 @@ namespace Structure
 
         private static void Start()
         {
+            Console.WriteLine(ConsoleKey.Enter);
+
             Write("Structure v1.1.0");
             Hotkey.Print();
             ReadAny();
