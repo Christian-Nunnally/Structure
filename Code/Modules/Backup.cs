@@ -9,6 +9,7 @@ namespace Structure
 
         public override void Enable()
         {
+            TryBackup();
         }
 
         private void TryBackup()
@@ -30,6 +31,7 @@ namespace Structure
 
         private bool IsBackedUp()
         {
+            if (IO.ThrowExceptions) return true;
             var today = DateTime.Now.Date;
             return Directory.Exists(Path.Combine(FileIO.SavePath, _backupDirectory, today.ToString("yyyy-dd-MM")));
         }

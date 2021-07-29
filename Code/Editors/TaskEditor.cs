@@ -1,10 +1,13 @@
 ﻿namespace Structure
 {
-    internal class TaskEditor : TaskExecutor
+    public class TaskEditor : TaskExecutor
     {
-        public TaskEditor() : base("Task tree", Data.ActiveTaskTree)
+        public const string InsertTaskPrompt = "Insert task";
+        public const string TitlePrompt = "Task tree";
+
+        public TaskEditor() : base(TitlePrompt, Data.ActiveTaskTree)
         {
-            EnableDefaultInsertFunctionality("Insert task");
+            EnableDefaultInsertFunctionality(InsertTaskPrompt);
             CustomActions.Add(("o", TaskEditorOptions));
             CustomActions.Add(("g", () => new Beeper().Beep()));
             CustomActions.Add(("v", () => ShowChildren = !ShowChildren));

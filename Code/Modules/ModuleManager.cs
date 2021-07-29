@@ -6,8 +6,9 @@ using static Structure.Modules;
 
 namespace Structure
 {
-    internal class ModuleManager : Module
+    public class ModuleManager : Module
     {
+        public const string ManageModulesPrompt = "Enable/disable modules:";
         private UserAction _action;
 
         public override void Disable()
@@ -17,13 +18,15 @@ namespace Structure
 
         public override void Enable()
         {
-            _action = Hotkey.Add(ConsoleKey.L, new UserAction("Manage modules", ManageModules));
+            _action = new UserAction("Manage modules", ManageModules);
+            Hotkey.Add(ConsoleKey.L, _action);
             EnabledModules.All(x => UserModules.FirstOrDefault(y => x == y.Name)?.Enable());
         }
 
         private void ManageModules()
         {
-            Write("Enable/disable modules:");
+            Write(ManageModulesPrompt);
+            // TODO: Make this show pages at a time.
             UserModules.All(m => Write(ModuleString(m)));
             Read(ToggleModule);
         }
@@ -33,7 +36,6 @@ namespace Structure
         private void ToggleModule(string module)
         {
             if (string.IsNullOrWhiteSpace(module)) return;
-            // if (Level < EnabledModules.Count) News($"{EnabledModules.Count}/{Level} modules enabled. Level up to enable more.");
             else if (int.TryParse(module, out var index) && index >= 0 && index < UserModules.Length) ToggleModule(index);
         }
 

@@ -11,7 +11,8 @@ namespace Structure
     {
         public static PersistedList<string> NewsArchive = new PersistedList<string>("NewsArchive");
 
-        public static IProgramInput KeyboardInput = new StructureProgramInput();
+        public static IProgramInput ProgramInput = new StructureProgramInput();
+        public static IProgramOutput ProgramOutput = new ConsoleOutput();
 
         public static bool SupressConsoleCalls = false;
 
@@ -21,19 +22,21 @@ namespace Structure
         private static string _currentNews;
         private static int _newsCursorLeft = 40;
 
+        public static bool ThrowExceptions { get; set; }
+
         public static void Write(string text = "") => WriteNoLine($"{text}\n");
 
         public static void WriteNoLine(string text = "")
         {
             _buffer.Append(text);
-            if (!SupressConsoleCalls) Console.Write(text);
+            if (!SupressConsoleCalls) ProgramOutput.Write(text);
         }
 
         public static void Clear(bool clearConsole = true)
         {
             _buffer.Clear();
-            if (clearConsole && !SupressConsoleCalls) if (!SupressConsoleCalls) Console.Clear();
-            if (!SupressConsoleCalls) Console.SetCursorPosition(0, 1);
+            if (clearConsole && !SupressConsoleCalls) if (!SupressConsoleCalls) ProgramOutput.Clear();
+            if (!SupressConsoleCalls) ProgramOutput.SetCursorPosition(0, 1);
         }
 
         public static void ReadAny() => Read((line, key) => true, x => { }, false);
@@ -103,7 +106,8 @@ namespace Structure
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                if (ThrowExceptions) throw new Exception("Exception" + e.Message, e);
+                ProgramOutput.WriteLine(e.Message);
             }
             Clear(true);
             WriteNoLine(_buffers.Pop());
@@ -122,13 +126,13 @@ namespace Structure
             var line = new StringBuilder();
             do
             {
-                while (!KeyboardInput.IsKeyAvailable())
+                while (!ProgramInput.IsKeyAvailable())
                 {
                     if (!PrintNews()) break;
                     Thread.Sleep(10);
                 }
 
-                key = KeyboardInput.ReadKey();
+                key = ProgramInput.ReadKey();
                 ProcessReadKeyIntoLine(key, line, allowMiscKeys, echo);
             } while (!shouldExit(line.ToString(), key));
             if (echo) Write();
@@ -139,16 +143,16 @@ namespace Structure
         {
             if (!_newsQueue.Any() && _currentNews == null) return false;
             _currentNews ??= _newsQueue.Dequeue();
-            var cursorLeft = Console.CursorLeft;
-            var cursorTop = Console.CursorTop;
-            Console.CursorLeft = Math.Max(0, _newsCursorLeft);
+            var cursorLeft = ProgramOutput.CursorLeft;
+            var cursorTop = ProgramOutput.CursorTop;
+            ProgramOutput.CursorLeft = Math.Max(0, _newsCursorLeft);
             _newsCursorLeft -= 2;
-            Console.CursorTop = 0;
+            ProgramOutput.CursorTop = 0;
 
-            Console.Write(_currentNews + "  ");
+            ProgramOutput.Write(_currentNews + "  ");
 
-            Console.CursorLeft = cursorLeft;
-            Console.CursorTop = cursorTop;
+            ProgramOutput.CursorLeft = cursorLeft;
+            ProgramOutput.CursorTop = cursorTop;
             if (_newsCursorLeft < -80)
             {
                 if (_currentNews.Length == 0)
@@ -189,7 +193,7 @@ namespace Structure
         {
             if (line.Length > 0)
             {
-                if (echo && !SupressConsoleCalls) Console.Write("\b \b");
+                if (echo && !SupressConsoleCalls) ProgramOutput.Write("\b \b");
                 _buffer.Remove(_buffer.Length - 1, 1);
                 line.Remove(line.Length - 1, 1);
             }

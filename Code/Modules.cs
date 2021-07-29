@@ -4,8 +4,6 @@
     {
         private static IModule[] _user;
 
-        private static IModule[] _system;
-
         public static IModule[] UserModules => _user ?? (_user = new Module[]
         {
             new TreeTask(),
@@ -17,13 +15,9 @@
             new Weight(),
             new NewsArchive(),
             new CompletedTasks(),
-        });
-
-        public static IModule[] SystemModules => _system ?? (_system = new Module[]
-        {
-            new ModuleManager(),
             new Backup(),
             new StartupStatistics(),
+            new ModuleManager(),
         });
     }
 }

@@ -19,14 +19,14 @@ namespace Structure
             _action = Hotkey.Add(ConsoleKey.R, new UserAction("Routines", PromptRoutinerOptions));
         }
 
-        private static void CopyChildren(TaskItem routine, TaskItem task)
+        private static void CopyChildren(TaskItem task, string parentId = null)
         {
+            var copy = new TaskItem { Task = task.Task, Rank = task.Rank, ParentID = parentId };
+            Data.ActiveTaskTree.Set(copy);
             var children = Routines.Where(x => x.Value.ParentID == task.ID);
             foreach (var child in children.OrderBy(x => x.Value.Rank))
             {
-                var routineTask = new TaskItem { Task = child.Value.Task, ParentID = routine.ID, Rank = child.Value.Rank };
-                Data.ActiveTaskTree.Set(routineTask);
-                CopyChildren(routineTask, child.Value);
+                CopyChildren(child.Value, copy.ID);
             }
         }
 
@@ -61,9 +61,8 @@ namespace Structure
         private void StartRoutine(TaskItem task)
         {
             var routine = new TaskItem { Task = task.Task };
-            var children = Routines.Where(x => x.Value.ParentID == task.ID);
             Data.ActiveTaskTree.Set(routine);
-            CopyChildren(routine, task);
+            CopyChildren(routine);
             DoRoutine(routine);
         }
     }
