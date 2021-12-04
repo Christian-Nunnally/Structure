@@ -6,14 +6,14 @@ namespace Structure.Code
 {
     public class StructureProgramInput : IProgramInput
     {
-        private readonly ChainedProgramInput _inputSource;
+        private readonly ChainedInput _inputSource;
 
         public StructureProgramInput()
         {
-            _inputSource = new ChainedProgramInput();
+            _inputSource = new ChainedInput();
             _inputSource.AddAction(SetToLoadMode);
             var (savedDataSessions, nextDataSession) = SavedSessionUtilities.LoadSavedDataSessions();
-            var sessionsInputs = savedDataSessions.Select(x => new PredeterminedProgramInput(x));
+            var sessionsInputs = savedDataSessions.Select(x => new PredeterminedInput(x));
             sessionsInputs.All(x => _inputSource.AddInput(x));
             var recordedUserInputSource = new RecordingProgramInput(new ConsoleProgramInput(), nextDataSession);
             _inputSource.AddAction(SetToUserMode);
