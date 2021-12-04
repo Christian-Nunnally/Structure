@@ -8,12 +8,12 @@ namespace Structure
     {
         private UserAction _userAction;
 
-        public override void Disable()
+        protected override void OnDisable()
         {
             Hotkey.Remove(ConsoleKey.I, _userAction);
         }
 
-        public override void Enable()
+        protected override void OnEnable()
         {
             _userAction = Hotkey.Add(ConsoleKey.I, new UserAction("Info", PrintInfo));
         }

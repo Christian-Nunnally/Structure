@@ -7,7 +7,7 @@ namespace Structure
     {
         private readonly string _backupDirectory = "Backups";
 
-        public override void Enable()
+        protected override void OnEnable()
         {
             TryBackup();
         }

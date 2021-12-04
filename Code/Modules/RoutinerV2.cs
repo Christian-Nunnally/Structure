@@ -5,31 +5,35 @@ using static Structure.IO;
 
 namespace Structure
 {
-    internal class Routiner : Module, IObsoleteModule
+    public class RoutinerV2 : Module, IObsoleteModule
     {
-        private UserAction _action;
+        private UserAction _pickAction;
+        private UserAction _editAction;
 
-        public IModule UpgradedModule => new RoutinerV2();
+        public IModule UpgradedModule => new RoutinerV3();
 
         protected override void OnDisable()
         {
-            Hotkey.Remove(ConsoleKey.R, _action);
+            Hotkey.Remove(ConsoleKey.R, _pickAction);
+            Hotkey.Remove(ConsoleKey.E, _editAction);
         }
 
         protected override void OnEnable()
         {
-            _action = Hotkey.Add(ConsoleKey.R, new UserAction("Routines", PromptRoutinerOptions));
+            _pickAction = Hotkey.Add(ConsoleKey.R, new UserAction("Do routine", PickRoutine));
+            _editAction = Hotkey.Add(ConsoleKey.E, new UserAction("Edit routines", EditRoutines));
         }
 
-        private static void CopyRoutineToTaskList(TaskItem task, string parentId = null)
+        private static TaskItem CopyRoutineToTaskList(TaskItem task, string parentId = null)
         {
-            var copy = task.Copy();
+            var copy = new TaskItem { Name = task.Name, Rank = task.Rank, ParentID = parentId };
             Data.ActiveTaskTree.Set(copy);
             var children = Data.Routines.Where(x => x.Value.ParentID == task.ID);
             foreach (var child in children.OrderBy(x => x.Value.Rank))
             {
                 CopyRoutineToTaskList(child.Value, copy.ID);
             }
+            return copy;
         }
 
         private void DoRoutine(TaskItem routine)
@@ -40,14 +44,6 @@ namespace Structure
                 editor.SetParent(routine);
                 editor.Edit();
             });
-        }
-
-        private void PromptRoutinerOptions()
-        {
-            var start = new UserAction("Start routine", PickRoutine);
-            var edit = new UserAction("Edit routines", EditRoutines);
-            var options = new[] { start, edit };
-            PromptOptions("Routines", false, options);
         }
 
         private void EditRoutines()
@@ -62,8 +58,8 @@ namespace Structure
 
         private void StartRoutine(TaskItem routine)
         {
-            CopyRoutineToTaskList(routine);
-            DoRoutine(routine);
+            var task = CopyRoutineToTaskList(routine);
+            DoRoutine(task);
         }
     }
 }

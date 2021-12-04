@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Structure.Code.ProgramInput;
+using System;
 using System.Linq;
 
 namespace Structure.Code
@@ -6,19 +7,15 @@ namespace Structure.Code
     public class StructureProgramInput : IProgramInput
     {
         private readonly ChainedProgramInput _inputSource;
-        private int _loadedSession;
 
         public StructureProgramInput()
         {
             _inputSource = new ChainedProgramInput();
             _inputSource.AddAction(SetToLoadMode);
-            var consoleKeyInfos = LoadNextInputDataSet();
-            while (consoleKeyInfos.Any())
-            {
-                _inputSource.AddInput(new PredeterminedProgramInput(consoleKeyInfos));
-                consoleKeyInfos = LoadNextInputDataSet();
-            }
-            var recordedUserInputSource = new RecordingProgramInput(new ConsoleProgramInput(), consoleKeyInfos);
+            var (savedDataSessions, nextDataSession) = SavedSessionUtilities.LoadSavedDataSessions();
+            var sessionsInputs = savedDataSessions.Select(x => new PredeterminedProgramInput(x));
+            sessionsInputs.All(x => _inputSource.AddInput(x));
+            var recordedUserInputSource = new RecordingProgramInput(new ConsoleProgramInput(), nextDataSession);
             _inputSource.AddAction(SetToUserMode);
             _inputSource.AddInput(recordedUserInputSource);
         }
@@ -37,11 +34,6 @@ namespace Structure.Code
             IO.SupressConsoleCalls = false;
             CurrentTime.SetToRealTime();
             IO.Refresh();
-        }
-
-        private PersistedList<ProgramInputData> LoadNextInputDataSet()
-        {
-            return new PersistedList<ProgramInputData>($"session-{_loadedSession++}", true);
         }
     }
 }

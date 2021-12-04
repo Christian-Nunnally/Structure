@@ -7,12 +7,12 @@ namespace Structure
     {
         private UserAction _action;
 
-        public override void Enable()
+        protected override void OnEnable()
         {
             _action = Hotkey.Add(ConsoleKey.Q, new UserAction("Edit code", () => IO.Run(EditCode)));
         }
 
-        public override void Disable()
+        protected override void OnDisable()
         {
             Hotkey.Remove(ConsoleKey.Q, _action);
         }

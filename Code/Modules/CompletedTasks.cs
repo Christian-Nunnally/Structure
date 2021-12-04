@@ -10,12 +10,12 @@ namespace Structure
         {
         }
 
-        public override void Disable()
+        protected override void OnDisable()
         {
             Hotkey.Remove(ConsoleKey.S, _doTasks);
         }
 
-        public override void Enable()
+        protected override void OnEnable()
         {
             _doTasks = Hotkey.Add(ConsoleKey.S, new UserAction("Search tasks", Search));
         }
@@ -32,9 +32,9 @@ namespace Structure
             var count = 0;
             foreach (var task in Data.ActiveTaskTree)
             {
-                if (task.Value.Task.ToLower().Contains(searchTerm.ToLower()))
+                if (task.Value.Name.ToLower().Contains(searchTerm.ToLower()))
                 {
-                    IO.Write($"{task.Value.CompletedDate} {task.Value.Task}");
+                    IO.Write($"{task.Value.CompletedDate} {task.Value.Name}");
                     count++;
                 }
             }

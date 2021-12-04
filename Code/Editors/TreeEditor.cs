@@ -11,7 +11,7 @@ namespace Structure
         public Action<ItemType> EnterPressedOnParentAction;
         public Action<ItemType> EnterPressedOnLeafAction;
         public Action NoChildrenAction;
-
+        protected Dictionary<Type, Dictionary<Type, Func<ItemType, ItemType>>> ItemConversionMap = new Dictionary<Type, Dictionary<Type, Func<ItemType, ItemType>>>();
         protected string _currentParent;
         protected bool EnableReparenting = true;
         protected PersistedTree<ItemType> Tree;
@@ -27,6 +27,7 @@ namespace Structure
             EnterPressedOnParentAction = SetParent;
             EnterPressedOnLeafAction = SetParent;
             NoChildrenAction = () => { News("No children"); ViewParent(); };
+            CustomActions.Add(("t", ChangeItemType));
             _prompt = prompt;
             Tree = tree;
         }
@@ -69,13 +70,70 @@ namespace Structure
                 .OrderBy(x => x.Rank)
                 .ToList();
 
-        protected void EnableDefaultInsertFunctionality(string insertPrompt)
+        protected bool TryGetSelectedTask(out ItemType selectedTask)
         {
-            CustomActions.Add(("i", (Action)(() => IO.Run(PromptToInsertNode(insertPrompt, DefaultNodeFactory)))));
-            NoChildrenAction = PromptToInsertNode(insertPrompt, DefaultNodeFactory);
+            selectedTask = null;
+            var children = GetChildren(_currentParent);
+            if (children.Count > 0 && children.Count > _cursor)
+            {
+                selectedTask = children[_cursor];
+            }
+            return selectedTask is object;
+        }
+
+        protected void EnableDefaultInsertFunctionality(string insertPrompt, Func<string, string, int, Node> nodeFactory)
+        {
+            CustomActions.Add(("i", (Action)(() => Run(PromptToInsertNode(insertPrompt, nodeFactory)))));
+            NoChildrenAction = PromptToInsertNode(insertPrompt, nodeFactory);
+        }
+
+        protected Node DefaultNodeFactory(string task, string parentId, int rank) => new TaskItem
+        {
+            Name = task,
+            ParentID = parentId,
+            Rank = rank,
+        };
+
+        protected bool TryGetSelectedItem(out ItemType selectedTask)
+        {
+            selectedTask = null;
+            var children = GetChildren(_currentParent);
+            if (children.Count > 0 && children.Count > _cursor)
+            {
+                selectedTask = children[_cursor];
+            }
+            return selectedTask is object;
         }
 
         private static void ConsolidateRank(List<ItemType> tasks) => tasks.All(t => t.Rank = tasks.IndexOf(t));
+
+        private void ChangeItemType()
+        {
+            if (TryGetSelectedItem(out var selectedTask))
+            {
+                if (ItemConversionMap.ContainsKey(selectedTask.GetType()))
+                {
+                    var possibleConversionsMap = ItemConversionMap[selectedTask.GetType()];
+                    var actions = new List<UserAction>();
+                    foreach (var keyValuePair in possibleConversionsMap)
+                    {
+                        var newItem = keyValuePair.Value(selectedTask);
+                        void action() => ReplaceItem(selectedTask, newItem);
+                        var description = $"Convert to {keyValuePair.Key.Name}";
+                        var userAction = new UserAction(description, action);
+                        actions.Add(userAction);
+                    }
+                    PromptOptions($"Change the type of '{selectedTask.ToString()}'", false, actions.ToArray());
+                }
+            }
+        }
+
+        private void ReplaceItem(ItemType itemToReplace, ItemType newItem)
+        {
+            newItem.ID = itemToReplace.ID;
+            Tree.Remove(itemToReplace);
+            Tree.Set(newItem);
+        }
 
         private void WriteHeader()
         {
@@ -87,7 +145,7 @@ namespace Structure
 
             var atParentKey = _currentParent;
             var parents = new List<string>();
-            while (!string.IsNullOrWhiteSpace(atParentKey))
+            while (!string.IsNullOrWhiteSpace(atParentKey) && Tree.Get(atParentKey) != null)
             {
                 var atParent = Tree.Get(atParentKey);
                 parents.Add(atParent.ToString());
@@ -100,13 +158,6 @@ namespace Structure
             }
             Write();
         }
-
-        private Node DefaultNodeFactory(string task, string parentId, int rank) => new TaskItem
-        {
-            Task = task,
-            ParentID = parentId,
-            Rank = rank,
-        };
 
         private void WriteTasks(int cursorIndex, List<ItemType> tasks, string spaces)
         {
@@ -237,6 +288,10 @@ namespace Structure
                 return;
             }
             var node = nodeFactory(description, parentID, rank);
+            if (node is null)
+            {
+                return;
+            }
             Tree.Set(node as ItemType);
         }
     }

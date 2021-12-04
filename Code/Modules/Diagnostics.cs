@@ -7,16 +7,6 @@ namespace Structure
     {
         private UserAction _action;
 
-        public override void Disable()
-        {
-            Hotkey.Remove(ConsoleKey.D, _action);
-        }
-
-        public override void Enable()
-        {
-            _action = Hotkey.Add(ConsoleKey.D, new UserAction("Diagnostics", DiagnosticOptions));
-        }
-
         public void DiagnosticOptions()
         {
             IO.PromptOptions("Diagnostics", false, new UserAction("Open save file", OpenSaveFile));
@@ -25,6 +15,16 @@ namespace Structure
         public void OpenSaveFile()
         {
             Process.Start(new ProcessStartInfo($"explorer", FileIO.SavePath));
+        }
+
+        protected override void OnDisable()
+        {
+            Hotkey.Remove(ConsoleKey.D, _action);
+        }
+
+        protected override void OnEnable()
+        {
+            _action = Hotkey.Add(ConsoleKey.D, new UserAction("Diagnostics", DiagnosticOptions));
         }
     }
 }

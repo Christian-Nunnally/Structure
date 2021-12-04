@@ -7,7 +7,7 @@
 
         public TaskEditor() : base(TitlePrompt, Data.ActiveTaskTree)
         {
-            EnableDefaultInsertFunctionality(InsertTaskPrompt);
+            EnableDefaultInsertFunctionality(InsertTaskPrompt, DefaultNodeFactory);
             CustomActions.Add(("o", TaskEditorOptions));
             CustomActions.Add(("g", () => new Beeper().Beep()));
             CustomActions.Add(("v", () => ShowChildren = !ShowChildren));
@@ -17,15 +17,13 @@
 
         private void CopyCurrentTask()
         {
-            var children = GetChildren(_currentParent);
-            if (children.Count > 0 && children.Count > _cursor)
+            if (TryGetSelectedTask(out var selectedTask))
             {
-                var taskToCopy = children[_cursor];
                 var newTask = new TaskItem
                 {
-                    Task = taskToCopy.Task,
-                    Rank = taskToCopy.Rank + 1,
-                    ParentID = taskToCopy.ParentID,
+                    Name = selectedTask.Name,
+                    Rank = selectedTask.Rank + 1,
+                    ParentID = selectedTask.ParentID,
                 };
                 _tree.Set(newTask);
             }

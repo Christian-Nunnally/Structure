@@ -1,61 +1,89 @@
-﻿using System;
+﻿using Structure.Code.Modules;
+using System;
+using System.Collections.Generic;
 using System.Linq;
-using static Structure.Data;
 using static Structure.IO;
-using static Structure.Modules;
 
 namespace Structure
 {
     public class ModuleManager : Module
     {
         public const string ManageModulesPrompt = "Enable/disable modules:";
+        private readonly List<IModule> _listedModules = new List<IModule>();
         private UserAction _action;
 
-        public override void Disable()
+        internal void RegisterModules(IModule[] modules)
+        {
+            _listedModules.AddRange(modules);
+        }
+
+        protected override void OnDisable()
         {
             Hotkey.Remove(ConsoleKey.L, _action);
         }
 
-        public override void Enable()
+        protected override void OnEnable()
         {
             _action = new UserAction("Manage modules", ManageModules);
             Hotkey.Add(ConsoleKey.L, _action);
-            EnabledModules.All(x => UserModules.FirstOrDefault(y => x == y.Name)?.Enable());
         }
 
         private void ManageModules()
         {
             Write(ManageModulesPrompt);
+            Write("Type '1' to enable or disable module 1");
+            Write("Type 'upgrade 1' to upgrade module 1");
             // TODO: Make this show pages at a time.
-            UserModules.All(m => Write(ModuleString(m)));
+            _listedModules.All(m => Write(ModuleString(m)));
             Read(ToggleModule);
         }
 
-        private string ModuleString(IModule x) => $"{UserModules.ToList().IndexOf(x)}: {x.Name} {(EnabledModules.Contains(x.Name) ? "(enabled)" : "(disabled)")}";
+        private string ModuleString(IModule module)
+        {
+            var enabledDisabledString = module is IObsoleteModule
+                ? "(upgradable)"
+                : module.Enabled ? "(enabled)" : "(disabled)";
+            return $"{_listedModules.ToList().IndexOf(module)}: {module.Name} {enabledDisabledString}";
+        }
 
         private void ToggleModule(string module)
         {
             if (string.IsNullOrWhiteSpace(module)) return;
-            else if (int.TryParse(module, out var index) && index >= 0 && index < UserModules.Length) ToggleModule(index);
+            bool upgrade = module.Contains("upgrade ");
+            var length = "upgrade ".Length;
+            module = upgrade ? module[length..] : module;
+            if (int.TryParse(module, out var index) && index >= 0 && index < _listedModules.Count) ToggleModule(index, upgrade);
         }
 
-        private void ToggleModule(int index)
+        private void ToggleModule(int index, bool upgrade)
         {
-            if (index >= 0 && index < UserModules.Length)
+            if (index >= 0 && index < _listedModules.Count)
             {
-                var module = UserModules[index];
+                var module = _listedModules[index];
                 var name = module.Name;
-                if (!EnabledModules.Contains(name))
+                if (!module.Enabled)
                 {
-                    EnabledModules.Add(name);
+                    if (module is IObsoleteModule obsoleteModule && upgrade)
+                    {
+                        var upgradedModule = obsoleteModule.UpgradedModule;
+                        _listedModules[index] = upgradedModule;
+                        News($"Upgraded {name} to {upgradedModule.Name}");
+                        module = upgradedModule;
+                    }
+
                     module.Enable();
                     News($"+{name} enabled.");
                 }
                 else
                 {
-                    EnabledModules.Remove(name);
                     module.Disable();
                     News($"+{name} disabled.");
+
+                    if (module is IObsoleteModule obsoleteModule && upgrade)
+                    {
+                        _listedModules[index] = obsoleteModule.UpgradedModule;
+                        News($"Upgraded {name} to {obsoleteModule.UpgradedModule.Name}");
+                    }
                 }
             }
         }

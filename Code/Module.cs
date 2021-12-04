@@ -2,13 +2,29 @@
 {
     public abstract class Module : IModule
     {
+        private bool _enabled;
+
         public string Name => GetType().Name;
 
-        public virtual void Disable()
+        public bool Enabled => _enabled;
+
+        public void Enable()
+        {
+            _enabled = true;
+            OnEnable();
+        }
+
+        public void Disable()
+        {
+            _enabled = false;
+            OnDisable();
+        }
+
+        protected virtual void OnDisable()
         {
         }
 
-        public virtual void Enable()
+        protected virtual void OnEnable()
         {
         }
     }

@@ -55,6 +55,10 @@ namespace Structure
                     _currentInput = input;
                 }
             }
+            else
+            {
+                _currentInput = new PredeterminedProgramInput(new[] { new ProgramInputData(new ConsoleKeyInfo('\u001b', ConsoleKey.Escape, false, false, false), DateTime.Now) });
+            }
         }
     }
 }

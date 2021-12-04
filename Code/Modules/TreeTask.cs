@@ -8,12 +8,12 @@ namespace Structure
         public static List<TaskEditor> OpenEditors = new List<TaskEditor>();
         private UserAction _doTasks;
 
-        public override void Disable()
+        protected override void OnDisable()
         {
             Hotkey.Remove(ConsoleKey.T, _doTasks);
         }
 
-        public override void Enable()
+        protected override void OnEnable()
         {
             _doTasks = Hotkey.Add(ConsoleKey.T, new UserAction("Do tasks", Start));
         }

@@ -9,12 +9,12 @@ namespace Structure
 
         private UserAction _action;
 
-        public override void Disable()
+        protected override void OnDisable()
         {
             Hotkey.Remove(ConsoleKey.W, _action);
         }
 
-        public override void Enable()
+        protected override void OnEnable()
         {
             _action = Hotkey.Add(ConsoleKey.W, new UserAction("Record weight", Prompt));
         }

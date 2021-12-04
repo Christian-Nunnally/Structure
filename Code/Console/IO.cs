@@ -134,6 +134,7 @@ namespace Structure
 
                 key = ProgramInput.ReadKey();
                 ProcessReadKeyIntoLine(key, line, allowMiscKeys, echo);
+
             } while (!shouldExit(line.ToString(), key));
             if (echo) Write();
             continuation(line.ToString());
@@ -186,6 +187,7 @@ namespace Structure
             {
                 if (key.Key == ConsoleKey.Backspace) BackspaceFromLine(line, echo);
                 else if (key.Key == ConsoleKey.Enter && echo) Write();
+                else if (key.Key == ConsoleKey.Escape) Write();
             }
         }
 

@@ -16,7 +16,9 @@ namespace Structure
 
         public static void Main()
         {
-            Modules.UserModules.OfType<ModuleManager>().All(x => x.Enable());
+            var moduleManager = Modules.UserModules.OfType<ModuleManager>().First();
+            moduleManager.RegisterModules(Modules.UserModules);
+            moduleManager.Enable();
             while (!Exit) Run(Start);
         }
 

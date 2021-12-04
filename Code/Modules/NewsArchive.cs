@@ -7,12 +7,12 @@ namespace Structure
     {
         private UserAction _action;
 
-        public override void Enable()
+        protected override void OnEnable()
         {
             _action = Hotkey.Add(ConsoleKey.N, new UserAction("News", BrowseNews));
         }
 
-        public override void Disable()
+        protected override void OnDisable()
         {
             Hotkey.Remove(ConsoleKey.N, _action);
         }

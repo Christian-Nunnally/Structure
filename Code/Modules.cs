@@ -11,7 +11,6 @@
             new CodeEditor(),
             new Routiner(),
             new Diagnostics(),
-            new Leveler(),
             new Weight(),
             new NewsArchive(),
             new CompletedTasks(),

@@ -5,7 +5,7 @@ namespace Structure
 {
     public class StartupStatistics : Module
     {
-        public override void Enable()
+        protected override void OnEnable()
         {
             var currentSaveSize = Directory.GetFiles(FileIO.SavePath).Select(x => new FileInfo(x).Length).Sum();
             currentSaveSize /= 1024;

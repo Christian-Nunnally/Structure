@@ -6,16 +6,16 @@ namespace Structure
     public class TaskItem : Node
     {
         private DateTime _completedDate;
-        private string _task;
+        private string _name;
 
-        public string Task
+        public string Name
         {
-            get => _task;
+            get => _name;
             set
             {
-                if (_task != value)
+                if (_name != value)
                 {
-                    _task = value;
+                    _name = value;
                     OnPropertyChanged();
                 }
             }
@@ -34,6 +34,21 @@ namespace Structure
             }
         }
 
-        public override string ToString() => Task;
+        public override string ToString() => Name;
+
+        public virtual TaskItem Copy()
+        {
+            var copy = new TaskItem();
+            CopyTo(copy);
+            return copy;
+        }
+
+        public void CopyTo(TaskItem item)
+        {
+            item.Name = Name;
+            item.CompletedDate = CompletedDate;
+            item.ParentID = ParentID;
+            item.Rank = Rank;
+        }
     }
 }

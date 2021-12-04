@@ -16,13 +16,16 @@ namespace Structure
             PickedAction = CompleteTask;
         }
 
-        private void CompleteTask(TaskItem task)
+        public void CompleteTask(TaskItem task)
         {
             task.CompletedDate = CurrentTime.GetCurrentTime();
             _tree.Remove(task.ID);
             Data.Points++;
             Data.XP++;
-            TaskCompletedAction(task);
+            if (task is ActionTaskItem actionTask)
+            {
+                IO.Run(() => actionTask.DoAction(_tree));
+            }
         }
     }
 }
