@@ -2,12 +2,12 @@
 
 namespace Structure.Code
 {
-    public class RecordingInput : IProgramInput
+    public class RecordingProgramInput : IProgramInput
     {
         private readonly IProgramInput _inputSource;
         private readonly PersistedList<ProgramInputData> _logDestiation;
 
-        public RecordingInput(IProgramInput inputSource, PersistedList<ProgramInputData> logDestiation)
+        public RecordingProgramInput(IProgramInput inputSource, PersistedList<ProgramInputData> logDestiation)
         {
             _inputSource = inputSource;
             _logDestiation = logDestiation;
