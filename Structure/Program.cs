@@ -6,7 +6,7 @@ using static Structure.IO;
 
 namespace Structure
 {
-    public class Program
+    public static class Program
     {
         public static bool Exit = false;
         public static List<Action> RegularActions = new List<Action>();
