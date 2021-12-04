@@ -4,18 +4,18 @@ using System.Linq;
 
 namespace Structure.Code
 {
-    public class StructureProgramInput : IProgramInput
+    public class StructureInput : IProgramInput
     {
         private readonly ChainedInput _inputSource;
 
-        public StructureProgramInput()
+        public StructureInput()
         {
             _inputSource = new ChainedInput();
             _inputSource.AddAction(SetToLoadMode);
             var (savedDataSessions, nextDataSession) = SavedSessionUtilities.LoadSavedDataSessions();
             var sessionsInputs = savedDataSessions.Select(x => new PredeterminedInput(x));
             sessionsInputs.All(x => _inputSource.AddInput(x));
-            var recordedUserInputSource = new RecordingProgramInput(new ConsoleProgramInput(), nextDataSession);
+            var recordedUserInputSource = new RecordingInput(new ConsoleInput(), nextDataSession);
             _inputSource.AddAction(SetToUserMode);
             _inputSource.AddInput(recordedUserInputSource);
         }
