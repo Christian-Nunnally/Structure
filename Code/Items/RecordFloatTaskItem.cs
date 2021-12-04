@@ -4,17 +4,13 @@ using System.Collections.Generic;
 namespace Structure
 {
     [Serializable]
-    public class RecordFloatTaskItem : ActionTaskItem
+    public class RecordFloatTaskItem : TaskItem
     {
         private static readonly List<RecordFloatTaskItem> _recordedFloatMetrics = new List<RecordFloatTaskItem>();
 
-        public RecordFloatTaskItem() : base(NoOp)
-        {
-        }
-
         public float RecordedFloat { get; set; }
 
-        public override void DoAction(PersistedTree<TaskItem> tree)
+        public override void DoTask(PersistedTree<TaskItem> tree)
         {
             IO.Write($"Record float metric for: {Name}");
             IO.Read(s => RecordFloat(Name, s));
@@ -26,10 +22,6 @@ namespace Structure
             CopyTo(copy);
             copy.RecordedFloat = RecordedFloat;
             return copy;
-        }
-
-        private static void NoOp(TaskItem _)
-        {
         }
 
         private void RecordFloat(string metricName, string result)

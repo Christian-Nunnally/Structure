@@ -4,17 +4,13 @@ using System.Collections.Generic;
 namespace Structure
 {
     [Serializable]
-    public class RecordIntegerTaskItem : ActionTaskItem
+    public class RecordIntegerTaskItem : TaskItem
     {
         private static readonly List<RecordIntegerTaskItem> _recordedIntegerMetrics = new List<RecordIntegerTaskItem>();
 
-        public RecordIntegerTaskItem() : base(NoOp)
-        {
-        }
-
         public int RecordedInteger { get; set; }
 
-        public override void DoAction(PersistedTree<TaskItem> tree)
+        public override void DoTask(PersistedTree<TaskItem> tree)
         {
             IO.Read(s => RecordInteger(Name, s));
         }
@@ -25,10 +21,6 @@ namespace Structure
             CopyTo(copy);
             copy.RecordedInteger = RecordedInteger;
             return copy;
-        }
-
-        private static void NoOp(TaskItem _)
-        {
         }
 
         private void RecordInteger(string metricName, string result)

@@ -22,10 +22,8 @@ namespace Structure
             _tree.Remove(task.ID);
             Data.Points++;
             Data.XP++;
-            if (task is ActionTaskItem actionTask)
-            {
-                IO.Run(() => actionTask.DoAction(_tree));
-            }
+            if (task.GetType() != typeof(TaskItem))
+            IO.Run(() => task.DoTask(_tree));
         }
     }
 }

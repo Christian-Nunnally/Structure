@@ -50,5 +50,9 @@ namespace Structure
             item.ParentID = ParentID;
             item.Rank = Rank;
         }
+
+        public virtual void DoTask(PersistedTree<TaskItem> tree)
+        {
+        }
     }
 }

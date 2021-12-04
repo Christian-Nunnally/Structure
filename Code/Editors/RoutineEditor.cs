@@ -8,7 +8,11 @@ namespace Structure
         public RoutineEditor(PersistedTree<TaskItem> routineTree) : base("Edit routines", routineTree)
         {
             EnableDefaultInsertFunctionality("Insert routine item", DefaultNodeFactory);
+            AddTaskConversionStrategies();
+        }
 
+        private void AddTaskConversionStrategies()
+        {
             var conversionMap = new Dictionary<Type, Func<TaskItem, TaskItem>>
             {
                 { typeof(RecordFloatTaskItem), ConvertToFloatTaskItem },
