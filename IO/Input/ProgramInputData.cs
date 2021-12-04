@@ -8,14 +8,14 @@ namespace Structure.Code
         public ProgramInputData(ConsoleKeyInfo keyInfo, DateTime time)
         {
             Key = (int)keyInfo.Key;
-            Char = keyInfo.KeyChar;
+            Character = keyInfo.KeyChar;
             Modifiers = (int)keyInfo.Modifiers;
             Time = time;
         }
 
         public int Key { get; set; }
 
-        public char Char { get; set; }
+        public char Character { get; set; }
 
         public int Modifiers { get; set; }
 
@@ -25,7 +25,7 @@ namespace Structure.Code
         {
             var modifiers = (ConsoleModifiers)Modifiers;
             return new ConsoleKeyInfo(
-                Char,
+                Character,
                 (ConsoleKey)Key,
                 modifiers.HasFlag(ConsoleModifiers.Shift),
                 modifiers.HasFlag(ConsoleModifiers.Alt),

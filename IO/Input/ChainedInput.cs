@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Structure
 {
-    public class ChainedProgramInput : IProgramInput
+    public class ChainedInput : IProgramInput
     {
         private readonly Queue<object> _chainedInputs = new Queue<object>();
         private IProgramInput _currentInput;

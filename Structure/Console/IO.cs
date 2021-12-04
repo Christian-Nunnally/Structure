@@ -11,7 +11,7 @@ namespace Structure
     {
         public static PersistedList<string> NewsArchive = new PersistedList<string>("NewsArchive");
 
-        public static IProgramInput ProgramInput = new StructureProgramInput();
+        public static IProgramInput ProgramInput = new StructureInput();
         public static IProgramOutput ProgramOutput = new ConsoleOutput();
 
         public static bool SupressConsoleCalls = false;
