@@ -14,7 +14,6 @@
             new Weight(),
             new NewsArchive(),
             new CompletedTasks(),
-            new Backup(),
             new StartupStatistics(),
             new ModuleManager(),
         });

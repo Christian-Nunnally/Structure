@@ -9,7 +9,6 @@
         {
             EnableDefaultInsertFunctionality(InsertTaskPrompt, DefaultNodeFactory);
             CustomActions.Add(("o", TaskEditorOptions));
-            CustomActions.Add(("g", () => new Beeper().Beep()));
             CustomActions.Add(("v", () => ShowChildren = !ShowChildren));
             CustomActions.Add(("c", CopyCurrentTask));
             CustomActions.Add(("n", GoToNextActiveTask));
