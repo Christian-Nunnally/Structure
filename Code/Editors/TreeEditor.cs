@@ -173,6 +173,10 @@ namespace Structure
         {
             SetCursor(_cursor);
             var tasks = GetChildren(_currentParent);
+            if (_cursor < 0 || _cursor >= tasks.Count)
+            {
+                return;
+            }
             var task = tasks[_cursor];
 
             _refreshDisplay = true;
