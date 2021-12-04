@@ -4,13 +4,13 @@ using System.Linq;
 
 namespace Structure.Code
 {
-    public class PredeterminedInput : IProgramInput
+    public class PredeterminedProgramInput : IProgramInput
     {
         private readonly IEnumerator<ProgramInputData> _enumerator;
         private readonly int _numberOfInputs;
         private int _currentInputIndex;
 
-        public PredeterminedInput(IEnumerable<ProgramInputData> inputData)
+        public PredeterminedProgramInput(IEnumerable<ProgramInputData> inputData)
         {
             _numberOfInputs = inputData.Count();
             _enumerator = inputData.GetEnumerator();

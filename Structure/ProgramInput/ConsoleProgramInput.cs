@@ -2,7 +2,7 @@
 
 namespace Structure.Code
 {
-    public class ConsoleInput : IProgramInput
+    public class ConsoleProgramInput : IProgramInput
     {
         public bool IsKeyAvailable() => Console.KeyAvailable;
 
