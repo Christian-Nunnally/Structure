@@ -53,7 +53,10 @@ namespace Structure
 
         public virtual void DoTask(PersistedTree<TaskItem> tree)
         {
-            //tree?.Remove(ID);
+            CommonData.Points++;
+            CommonData.XP++;
+            CompletedDate = CurrentTime.GetCurrentTime();
+            tree.Remove(ID);
         }
     }
 }

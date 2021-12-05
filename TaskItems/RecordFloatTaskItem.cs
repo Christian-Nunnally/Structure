@@ -14,6 +14,7 @@ namespace Structure
         {
             IO.Write($"Record float metric for: {Name}");
             IO.Read(s => RecordFloat(Name, s));
+            base.DoTask(tree);
         }
 
         public override TaskItem Copy()

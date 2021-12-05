@@ -1,11 +1,8 @@
-﻿using System;
-
-namespace Structure
+﻿namespace Structure
 {
     public class TaskExecutor : TaskPicker
     {
         protected readonly PersistedTree<TaskItem> _tree;
-        protected Action<TaskItem> TaskCompletedAction = x => { };
 
         public TaskExecutor(
             string prompt,
@@ -18,13 +15,6 @@ namespace Structure
 
         public void CompleteTask(TaskItem task)
         {
-            task.CompletedDate = CurrentTime.GetCurrentTime();
-            
-            CommonData.Points++;
-            CommonData.XP++;
-            _tree?.Remove(task.ID);
-            //task?.DoTask(_tree);
-            //if (task.GetType() == typeof(TaskItem))
             IO.Run(() => task?.DoTask(_tree));
         }
     }

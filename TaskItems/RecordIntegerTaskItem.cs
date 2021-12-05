@@ -13,6 +13,7 @@ namespace Structure
         public override void DoTask(PersistedTree<TaskItem> tree)
         {
             IO.Read(s => RecordInteger(Name, s));
+            base.DoTask(tree);
         }
 
         public override TaskItem Copy()
