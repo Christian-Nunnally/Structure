@@ -2,12 +2,12 @@
 
 namespace Structure
 {
-    public static class Data
+    public static class CommonData
     {
-        public static PersistedTree<TaskItem> ActiveTaskTree = new PersistedTree<TaskItem>("ActiveTaskTree");
-        public static List<IModule> EnabledModules = new List<IModule>();
-        public static PersistedTree<TaskItem> Routines = new PersistedTree<TaskItem>("Routines");
-        public static PersistedTree<TaskItem> Metrics = new PersistedTree<TaskItem>("Metrics");
+        public static readonly PersistedTree<TaskItem> ActiveTaskTree = new PersistedTree<TaskItem>("ActiveTaskTree");
+        public static readonly List<IModule> EnabledModules = new List<IModule>();
+        public static readonly PersistedTree<TaskItem> Routines = new PersistedTree<TaskItem>("Routines");
+        public static readonly PersistedTree<TaskItem> Metrics = new PersistedTree<TaskItem>("Metrics");
         private static readonly PersistedInt _xp = new PersistedInt("XP");
         private static readonly PersistedInt _points = new PersistedInt("Points");
         private static readonly PersistedInt _level = new PersistedInt("Level");

@@ -19,11 +19,13 @@ namespace Structure
         public void CompleteTask(TaskItem task)
         {
             task.CompletedDate = CurrentTime.GetCurrentTime();
-            _tree.Remove(task.ID);
-            Data.Points++;
-            Data.XP++;
-            if (task.GetType() != typeof(TaskItem))
-            IO.Run(() => task.DoTask(_tree));
+            
+            CommonData.Points++;
+            CommonData.XP++;
+            _tree?.Remove(task.ID);
+            //task?.DoTask(_tree);
+            //if (task.GetType() == typeof(TaskItem))
+            IO.Run(() => task?.DoTask(_tree));
         }
     }
 }

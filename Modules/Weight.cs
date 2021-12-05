@@ -37,13 +37,13 @@ namespace Structure
                         Description = "Weight (lbs)"
                     });
                     IO.News($"Weight recorded: {weight} (lbs)");
-                    Data.Points += 2;
-                    Data.XP += 2;
+                    CommonData.Points += 2;
+                    CommonData.XP += 2;
                     if (_weights.Count % 5 == 0)
                     {
                         IO.News($"{_weights.Count} weights recorded! Bonus reward.");
-                        Data.XP += 5;
-                        Data.Points += 5;
+                        CommonData.XP += 5;
+                        CommonData.Points += 5;
                     }
                 }
             }

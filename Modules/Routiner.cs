@@ -24,8 +24,8 @@ namespace Structure
         private static void CopyRoutineToTaskList(TaskItem task, string parentId = null)
         {
             var copy = task.Copy();
-            Data.ActiveTaskTree.Set(copy);
-            var children = Data.Routines.Where(x => x.Value.ParentID == task.ID);
+            CommonData.ActiveTaskTree.Set(copy);
+            var children = CommonData.Routines.Where(x => x.Value.ParentID == task.ID);
             foreach (var child in children.OrderBy(x => x.Value.Rank))
             {
                 CopyRoutineToTaskList(child.Value, copy.ID);
@@ -52,12 +52,12 @@ namespace Structure
 
         private void EditRoutines()
         {
-            Run(() => new RoutineEditor(Data.Routines).Edit());
+            Run(() => new RoutineEditor(CommonData.Routines).Edit());
         }
 
         private void PickRoutine()
         {
-            Run(() => new TaskPicker("Pick routine to start", "Start", false, true, true, Data.Routines, StartRoutine).Edit());
+            Run(() => new TaskPicker("Pick routine to start", "Start", false, true, true, CommonData.Routines, StartRoutine).Edit());
         }
 
         private void StartRoutine(TaskItem routine)

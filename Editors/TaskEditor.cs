@@ -5,7 +5,7 @@
         public const string InsertTaskPrompt = "Insert task";
         public const string TitlePrompt = "Task tree";
 
-        public TaskEditor() : base(TitlePrompt, Data.ActiveTaskTree)
+        public TaskEditor() : base(TitlePrompt, CommonData.ActiveTaskTree)
         {
             EnableDefaultInsertFunctionality(InsertTaskPrompt, DefaultNodeFactory);
             CustomActions.Add(("o", TaskEditorOptions));

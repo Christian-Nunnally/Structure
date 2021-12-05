@@ -41,7 +41,7 @@ namespace Structure
             FileIO.Set(_name, JsonConvert.SerializeObject(Dictionary));
         }
 
-        internal void Remove(string key)
+        public void Remove(string key)
         {
             if (Dictionary.ContainsKey(key))
             {

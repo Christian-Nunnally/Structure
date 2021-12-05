@@ -1,5 +1,5 @@
 ﻿using System;
-using static Structure.Data;
+using static Structure.CommonData;
 using static Structure.IO;
 
 namespace Structure
@@ -20,7 +20,7 @@ namespace Structure
 
         private void PrintInfo()
         {
-            Write($"Level = {Data.Level}");
+            Write($"Level = {Level}");
             Write($"XP = {XP}/{Utility.XPForNextLevel}");
             Write($"Points = {Points}");
             ReadAny();

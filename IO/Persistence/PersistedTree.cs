@@ -8,6 +8,6 @@
 
         public void Set(TValue value) => Set(value.ID, value);
 
-        internal void Remove(TValue value) => Remove(value.ID);
+        public void Remove(TValue value) => Remove(value.ID);
     }
 }

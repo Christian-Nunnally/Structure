@@ -18,7 +18,7 @@ namespace Structure
                                 .Count())))
             : _codeLengths;
 
-        public static int XPForNextLevel => ExperienceForLevel(Data.Level + 1, 10, 75, 25);
+        public static int XPForNextLevel => ExperienceForLevel(CommonData.Level + 1, 10, 75, 25);
 
         public static int ExperienceForLevel(int level, int minimum, int factor, double doublingRate)
         {

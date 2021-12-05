@@ -53,6 +53,7 @@ namespace Structure
 
         public virtual void DoTask(PersistedTree<TaskItem> tree)
         {
+            //tree?.Remove(ID);
         }
     }
 }
