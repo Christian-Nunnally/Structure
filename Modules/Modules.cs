@@ -8,10 +8,8 @@
         {
             new TreeTask(),
             new Information(),
-            new CodeEditor(),
-            new Routiner(),
             new Diagnostics(),
-            new Weight(),
+            new Routiner(),
             new NewsArchive(),
             new CompletedTasks(),
             new StartupStatistics(),

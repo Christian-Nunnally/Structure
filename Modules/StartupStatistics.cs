@@ -7,15 +7,17 @@ namespace Structure
     {
         protected override void OnEnable()
         {
-            var currentSaveSize = Directory.GetFiles(FileIO.SavePath).Select(x => new FileInfo(x).Length).Sum();
-            currentSaveSize /= 1024;
+            var allSaveFiles = Directory.GetFiles(FileIO.SavePath);
+            var saveFileSizes = allSaveFiles.Select(x => new FileInfo(x).Length);
+            var totalSize = saveFileSizes.Sum();
+            totalSize /= 1024;
             var unit = "kb";
-            if (currentSaveSize > 1024)
+            if (totalSize > 1024)
             {
-                currentSaveSize /= 1024;
+                totalSize /= 1024;
                 unit = "mb";
             }
-            IO.News($"Data = {currentSaveSize} {unit}");
+            IO.News($"Data = {totalSize} {unit}");
         }
     }
 }

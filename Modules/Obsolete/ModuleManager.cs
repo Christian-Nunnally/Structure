@@ -6,11 +6,13 @@ using static Structure.IO;
 
 namespace Structure
 {
-    public class ModuleManager : Module
+    public class ModuleManager : Module, IObsoleteModule
     {
         public const string ManageModulesPrompt = "Enable/disable modules:";
         private readonly List<IModule> _listedModules = new List<IModule>();
         private UserAction _action;
+
+        public IModule UpgradedModule => new ModuleManagerV2();
 
         internal void RegisterModules(IModule[] modules)
         {
