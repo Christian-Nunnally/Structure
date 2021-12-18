@@ -36,11 +36,6 @@ namespace Structure
 
         IEnumerator IEnumerable.GetEnumerator() => Dictionary.GetEnumerator();
 
-        public void Save()
-        {
-            FileIO.Set(_name, JsonConvert.SerializeObject(Dictionary));
-        }
-
         public void Remove(string key)
         {
             if (Dictionary.ContainsKey(key))

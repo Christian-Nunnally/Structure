@@ -1,6 +1,6 @@
 ﻿namespace Structure
 {
-    public static class Modules
+    public static class StartingModules
     {
         private static IModule[] _user;
 
