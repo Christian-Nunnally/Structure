@@ -20,6 +20,7 @@ namespace Structure
         {
             if (allowLeafs) EnterPressedOnLeafAction = ConfirmPick;
             if (allowParents) EnterPressedOnParentAction = ConfirmPick;
+
             _pickPrompt = pickPrompt;
             _exitAfterPick = exitAfterPick;
             PickedAction = pickedAction;
