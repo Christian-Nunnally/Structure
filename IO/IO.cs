@@ -51,20 +51,32 @@ namespace Structure
 
         public static void PromptOptions(string prompt, bool useDefault, params UserAction[] options)
         {
-            var keyedOptions = CreateOptionKeys(options);
+            var keyedOptions = CreateOptionKeysDictionary(options);
             Write($"{prompt}\n");
-            keyedOptions.All(x => Write($"{x.Key}: {x.Action.Description}"));
+            keyedOptions.All(x => Write($"{x.Key}: {x.Value.Description}"));
             ReadKey(PickOption);
             void PickOption(string result)
             {
                 result = result.ToLower();
+                if (keyedOptions.ContainsKey(result.FirstOrDefault()))
+                {
+                    //todo finish.
+                }
+
                 var (key, userAction) = keyedOptions.FirstOrDefault(x => $"{x.Key}" == result);
                 var action = userAction?.Action;
                 if (useDefault)
                 {
                     action ??= options.Last().Action;
                 }
-                action?.Invoke();
+                if (action is object)
+                {
+                    action();
+                }
+                else
+                {
+
+                }
             }
         }
 
@@ -84,6 +96,11 @@ namespace Structure
                 }
             }
             return keys.ToArray();
+        }
+
+        public static Dictionary<char, UserAction> CreateOptionKeysDictionary(UserAction[] options)
+        {
+            return CreateOptionKeys(options).ToDictionary(x => x.Key, x=>x.Action);
         }
 
         public static void News(string news)
