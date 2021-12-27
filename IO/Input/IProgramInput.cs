@@ -4,7 +4,9 @@ namespace Structure.Code
 {
     public interface IProgramInput
     {
-        public ConsoleKeyInfo ReadKey();
+        public ProgramInputData ReadKey();
+
+        public ProgramInputData ReadKey(ConsoleKeyInfo[] allowedKeys);
 
         public bool IsKeyAvailable();
     }

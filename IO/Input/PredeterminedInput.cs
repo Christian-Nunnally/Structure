@@ -18,13 +18,18 @@ namespace Structure.Code
 
         public bool IsKeyAvailable() => _currentInputIndex < _numberOfInputs;
 
-        public ConsoleKeyInfo ReadKey()
+        public ProgramInputData ReadKey()
         {
             _currentInputIndex++;
             _enumerator.MoveNext();
-            // TODO: return the whole input object and set the time elsewhere.
-            CurrentTime.SetToArtificialTime(_enumerator.Current.Time);
-            return _enumerator.Current.GetKeyInfo();
+            return _enumerator.Current;
+        }
+
+        public ProgramInputData ReadKey(ConsoleKeyInfo[] allowedKeys)
+        {
+            var key = ReadKey();
+            while (!allowedKeys.Contains(key.GetKeyInfo())) key = ReadKey();
+            return key;
         }
     }
 }

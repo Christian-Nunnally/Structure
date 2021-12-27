@@ -14,7 +14,7 @@ namespace Structure
                 : DateTime.Now;
         }
 
-        public static void SetToArtificialTime(DateTime time)
+        public static void SetArtificialTime(DateTime time)
         {
             _artificialCurrentTime = time;
             _useArtificalTime = true;

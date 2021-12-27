@@ -30,7 +30,7 @@ namespace Structure
             return _currentInput.IsKeyAvailable();
         }
 
-        public ConsoleKeyInfo ReadKey()
+        public ProgramInputData ReadKey()
         {
             if (!_currentInput.IsKeyAvailable())
             {
@@ -55,6 +55,13 @@ namespace Structure
                     _currentInput = input;
                 }
             }
+        }
+
+        public ProgramInputData ReadKey(ConsoleKeyInfo[] allowedKeys)
+        {
+            var key = ReadKey();
+            while (!allowedKeys.Contains(key.GetKeyInfo())) key = ReadKey();
+            return key;
         }
     }
 }

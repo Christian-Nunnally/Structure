@@ -22,7 +22,15 @@ namespace Structure.Code
 
         public bool IsKeyAvailable() => _inputSource.IsKeyAvailable();
 
-        public ConsoleKeyInfo ReadKey() => _inputSource.ReadKey();
+        public ProgramInputData ReadKey(ConsoleKeyInfo[] allowedKeys)
+        {
+            return _inputSource.ReadKey(allowedKeys);
+        }
+
+        public ProgramInputData ReadKey()
+        {
+            return _inputSource.ReadKey();
+        }
 
         private void SetToLoadMode()
         {

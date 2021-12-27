@@ -39,13 +39,13 @@ namespace Structure
             if (!SupressConsoleCalls) ProgramOutput.SetCursorPosition(0, 1);
         }
 
-        public static void ReadAny() => Read((line, key) => true, x => { }, false);
+        public static void ReadAny() => Read((line, key) => true, x => { }, KeyGroups.NoKeys, echo: true);
 
-        public static void Read(Action<string> continuation, params ConsoleKey[] submitKeys) => Read((line, key) => submitKeys.Contains(key.Key), continuation, false);
+        public static void Read(Action<string> continuation, params ConsoleKey[] submitKeys) => Read((line, key) => submitKeys.Contains(key.Key), continuation, KeyGroups.NoKeys, echo: true);
 
         public static void Read(Action<string> continuation) => Read(continuation, ConsoleKey.Enter);
 
-        public static void ReadKey(Action<string> continuation) => Read((line, key) => !IsModifierPressed(key), continuation, true, false);
+        public static void ReadKey(Action<string> continuation) => Read((line, key) => !IsModifierPressed(key), continuation, KeyGroups.MiscKeys, echo: false);
 
         public static void PromptYesNo(string prompt, Action action) => PromptOptions(prompt, false, new UserAction("yes", action), new UserAction("no", null));
 
@@ -58,10 +58,6 @@ namespace Structure
             void PickOption(string result)
             {
                 result = result.ToLower();
-                if (keyedOptions.ContainsKey(result.FirstOrDefault()))
-                {
-                    //todo finish.
-                }
 
                 var (key, userAction) = keyedOptions.FirstOrDefault(x => $"{x.Key}" == result);
                 var action = userAction?.Action;
@@ -75,7 +71,7 @@ namespace Structure
                 }
                 else
                 {
-
+                    //throw new InvalidOperationException("Invalid input.");
                 }
             }
         }
@@ -137,9 +133,13 @@ namespace Structure
             WriteNoLine(buffer);
         }
 
-        private static void Read(Func<string, ConsoleKeyInfo, bool> shouldExit, Action<string> continuation, bool allowMiscKeys, bool echo = true)
+        private static void Read(
+            Func<string, ConsoleKeyInfo, bool> shouldExit, 
+            Action<string> continuation, 
+            ConsoleKey[] allowedKeys,
+            bool echo)
         {
-            ConsoleKeyInfo key;
+            ProgramInputData key;
             var line = new StringBuilder();
             do
             {
@@ -149,10 +149,12 @@ namespace Structure
                     Thread.Sleep(10);
                 }
 
+                // TODO: Pass allowed keys in here all the time.
                 key = ProgramInput.ReadKey();
-                ProcessReadKeyIntoLine(key, line, allowMiscKeys, echo);
+                CurrentTime.SetArtificialTime(key.Time);
+                ProcessReadKeyIntoLine(key.GetKeyInfo(), line, echo, allowedKeys);
 
-            } while (!shouldExit(line.ToString(), key));
+            } while (!shouldExit(line.ToString(), key.GetKeyInfo()));
             if (echo) Write();
             continuation(line.ToString());
         }
@@ -184,21 +186,19 @@ namespace Structure
             return true;
         }
 
-        private static void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool allowMiscKeys, bool echo)
+        private static void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo, ConsoleKey[] allowedKeys)
         {
             if (IsModifierPressed(key))
             {
                 Hotkey.Execute(key);
-                return;
             }
-            if (IsAlphanumeric(key) || key.Key == ConsoleKey.OemPeriod || key.Key == ConsoleKey.Decimal)
+            else if (IsAlphanumeric(key) || key.Key == ConsoleKey.OemPeriod || key.Key == ConsoleKey.Decimal)
             {
                 ReadStringIntoLine($"{key.KeyChar}", line, echo);
             }
-            else if (allowMiscKeys)
+            else if (allowedKeys.Contains(key.Key))
             {
-                var allowedKeys = new[] { ConsoleKey.Enter, ConsoleKey.UpArrow, ConsoleKey.DownArrow, ConsoleKey.RightArrow, ConsoleKey.LeftArrow, ConsoleKey.Delete, ConsoleKey.Escape };
-                if (allowedKeys.Contains(key.Key)) ReadStringIntoLine($"{{{key.Key}}}", line, echo);
+                ReadStringIntoLine($"{{{key.Key}}}", line, echo);
             }
             else
             {
@@ -217,8 +217,6 @@ namespace Structure
                 line.Remove(line.Length - 1, 1);
             }
         }
-
-        private static void ReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo) => ReadStringIntoLine($"{key.KeyChar}", line, echo);
 
         private static void ReadStringIntoLine(string text, StringBuilder line, bool echo)
         {

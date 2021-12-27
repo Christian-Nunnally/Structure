@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Structure.Code
 {
@@ -6,6 +7,17 @@ namespace Structure.Code
     {
         public bool IsKeyAvailable() => Console.KeyAvailable;
 
-        public ConsoleKeyInfo ReadKey() => Console.ReadKey(true);
+        public ProgramInputData ReadKey(ConsoleKeyInfo[] allowedKeys)
+        {
+            var key = ReadKey();
+            while (!allowedKeys.Contains(key.GetKeyInfo())) key = ReadKey();
+            return key;
+        }
+
+        public ProgramInputData ReadKey()
+        {
+            var key = Console.ReadKey(true);
+            return new ProgramInputData(key, DateTime.Now);
+        }
     }
 }
