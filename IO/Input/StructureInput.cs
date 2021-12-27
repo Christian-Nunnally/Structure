@@ -6,6 +6,8 @@ namespace Structure.Code
 {
     public class StructureInput : IProgramInput
     {
+        private const bool DEVELOPMENT_MODE = true;
+
         private readonly ChainedInput _inputSource;
 
         public StructureInput()
@@ -15,7 +17,8 @@ namespace Structure.Code
             var (savedDataSessions, nextDataSession) = SavedSessionUtilities.LoadSavedDataSessions();
             var sessionsInputs = savedDataSessions.Select(x => new PredeterminedInput(x));
             sessionsInputs.All(x => _inputSource.AddInput(x));
-            var recordedUserInputSource = new RecordingInput(new ConsoleInput(), nextDataSession);
+            var recordedUserInputSource = (IProgramInput)new RecordingInput(new ConsoleInput(), nextDataSession);
+            if (DEVELOPMENT_MODE) recordedUserInputSource = new ConsoleInput();
             _inputSource.AddAction(SetToUserMode);
             _inputSource.AddInput(recordedUserInputSource);
         }
