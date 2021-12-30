@@ -1,8 +1,13 @@
-﻿namespace Structure
+﻿using System.Collections.Generic;
+
+namespace Structure
 {
     public class TaskExecutor : TaskPicker
     {
         protected readonly PersistedTree<TaskItem> _tree;
+        public static IReadOnlyList<TaskItem> CompletedTasks => _completedTasks;
+
+        private static readonly List<TaskItem> _completedTasks = new List<TaskItem>();
 
         public TaskExecutor(
             string prompt,
@@ -16,6 +21,7 @@
         public void CompleteTask(TaskItem task)
         {
             IO.Run(() => task?.DoTask(_tree));
+            _completedTasks.Add(task);
         }
     }
 }

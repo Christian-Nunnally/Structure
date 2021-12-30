@@ -45,6 +45,23 @@ namespace Structure
 
         public static void Read(Action<string> continuation) => Read(continuation, ConsoleKey.Enter);
 
+        public static void ReadInteger(string prompt, Action<int> continuation)
+        {
+            Write(prompt);
+            Read(x =>
+            {
+                if (int.TryParse(x, out var integer))
+                {
+                    continuation(integer);
+                }
+                else
+                {
+                    Write($"'{x}' is not a valid integer.");
+                    ReadInteger(prompt, continuation);
+                }
+            });
+        }
+
         public static void ReadKey(Action<string> continuation) => Read((line, key) => !IsModifierPressed(key), continuation, KeyGroups.MiscKeys, echo: false);
 
         public static void PromptYesNo(string prompt, Action action) => PromptOptions(prompt, false, new UserAction("yes", action), new UserAction("no", null));

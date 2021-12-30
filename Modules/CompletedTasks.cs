@@ -2,6 +2,7 @@
 
 namespace Structure
 {
+    // TODO: Remove.
     public class CompletedTasks : Module
     {
         private UserAction _doTasks;

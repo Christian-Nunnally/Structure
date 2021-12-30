@@ -7,6 +7,7 @@ namespace Structure
     {
         private DateTime _completedDate;
         private string _name;
+        public string CopiedFromID = null;
 
         public string Name
         {
@@ -49,6 +50,7 @@ namespace Structure
             item.CompletedDate = CompletedDate;
             item.ParentID = ParentID;
             item.Rank = Rank;
+            item.CopiedFromID = ID;
         }
 
         public virtual void DoTask(PersistedTree<TaskItem> tree)

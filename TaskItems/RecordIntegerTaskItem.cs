@@ -12,7 +12,7 @@ namespace Structure
 
         public override void DoTask(PersistedTree<TaskItem> tree)
         {
-            IO.Read(s => RecordInteger(Name, s));
+            IO.ReadInteger($"Record integer metric for: {Name}", RecordInteger);
             base.DoTask(tree);
         }
 
@@ -24,19 +24,10 @@ namespace Structure
             return copy;
         }
 
-        private void RecordInteger(string metricName, string result)
+        private void RecordInteger(int result)
         {
-            IO.Write($"Record integer metric for: {metricName}");
-            if (int.TryParse(result, out var integer))
-            {
-                RecordedInteger = integer;
-                _recordedIntegerMetrics.Add(this);
-            }
-            else
-            {
-                IO.Write($"{result} is not a valid integer.");
-                IO.Read(s => RecordInteger(metricName, s));
-            }
+            RecordedInteger = result;
+            _recordedIntegerMetrics.Add(this);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Structure
 
         public override void DoTask(PersistedTree<TaskItem> tree)
         {
-            IO.Read(s => RecordString(Name, s));
+            IO.Read(RecordString);
             base.DoTask(tree);
         }
 
@@ -24,7 +24,7 @@ namespace Structure
             return copy;
         }
 
-        private void RecordString(string metricName, string result)
+        private void RecordString(string result)
         {
             RecordedString = result;
             _recordedStringMetrics.Add(this);

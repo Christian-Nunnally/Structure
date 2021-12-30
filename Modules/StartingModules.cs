@@ -1,4 +1,6 @@
-﻿namespace Structure
+﻿using Structure.Modules;
+
+namespace Structure
 {
     public static class StartingModules
     {
@@ -14,6 +16,7 @@
             new CompletedTasks(),
             new StartupStatistics(),
             new ModuleManager(),
+            new TaskHistoryInformation(),
         });
     }
 }
