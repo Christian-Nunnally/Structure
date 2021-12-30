@@ -12,6 +12,7 @@ namespace Structure.Code
 
         public PredeterminedInput(IEnumerable<ProgramInputData> inputData)
         {
+            if (inputData is null) return;
             _numberOfInputs = inputData.Count();
             _enumerator = inputData.GetEnumerator();
         }

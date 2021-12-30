@@ -6,14 +6,12 @@ namespace Structure
     [Serializable]
     public class RecordIntegerTaskItem : TaskItem
     {
-        private static readonly List<RecordIntegerTaskItem> _recordedIntegerMetrics = new List<RecordIntegerTaskItem>();
-
         public int RecordedInteger { get; set; }
 
-        public override void DoTask(PersistedTree<TaskItem> tree)
+        public override void DoTask(StructureIO io, NodeTreeCollection<TaskItem> tree)
         {
-            IO.ReadInteger($"Record integer metric for: {Name}", RecordInteger);
-            base.DoTask(tree);
+            io.ReadInteger($"Record integer metric for: {Name}", RecordInteger);
+            base.DoTask(io, tree);
         }
 
         public override TaskItem Copy()
@@ -27,7 +25,6 @@ namespace Structure
         private void RecordInteger(int result)
         {
             RecordedInteger = result;
-            _recordedIntegerMetrics.Add(this);
         }
     }
 }

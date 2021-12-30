@@ -1,7 +1,6 @@
 ﻿using Structure.Code.Modules;
 using System;
 using System.Collections.Generic;
-using static Structure.IO;
 
 namespace Structure
 {
@@ -47,7 +46,7 @@ namespace Structure
                 }
             }
 
-            PromptOptions(ManageModulesPrompt, false, options.ToArray());
+            IO.PromptOptions(ManageModulesPrompt, false, options.ToArray());
         }
 
         private string ModuleString(IModule module)
@@ -61,8 +60,8 @@ namespace Structure
         {
             if (_listedModules.Contains(module))
             {
-                module.Enable();
-                News($"+{module.Name} enabled.");
+                module.Enable(IO, Hotkey, CurrentData);
+                IO.News($"+{module.Name} enabled.");
             }
         }
 
@@ -71,7 +70,7 @@ namespace Structure
             if (_listedModules.Contains(module))
             {
                 module.Disable();
-                News($"+{module.Name} disabled.");
+                IO.News($"+{module.Name} disabled.");
             }
         }
 
@@ -84,7 +83,7 @@ namespace Structure
                 {
                     var upgradedModule = obsoleteModule.UpgradedModule;
                     _listedModules[index] = upgradedModule;
-                    News($"Upgraded {module.Name} to {upgradedModule.Name}");
+                    IO.News($"Upgraded {module.Name} to {upgradedModule.Name}");
                 }
             }
         }

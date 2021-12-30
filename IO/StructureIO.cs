@@ -7,45 +7,62 @@ using System.Threading;
 
 namespace Structure
 {
-    public static class IO
+    public class StructureIO
     {
-        public static PersistedList<string> NewsArchive = new PersistedList<string>("NewsArchive");
+        private List<string> _newsArchive = new List<string>();
+        public IReadOnlyList<string> NewsArchive => _newsArchive;
 
-        public static IProgramInput ProgramInput = new StructureInput();
-        public static IProgramOutput ProgramOutput = new ConsoleOutput();
+        private IProgramInput _programInput;
+        private IProgramOutput _programOutput;
 
-        public static bool SupressConsoleCalls = false;
+        public CurrentTime CurrentTime { get; } = new CurrentTime();
 
-        private static readonly Stack<string> _buffers = new Stack<string>();
-        private static readonly StringBuilder _buffer = new StringBuilder();
-        private static readonly Queue<string> _newsQueue = new Queue<string>();
-        private static string _currentNews;
-        private static int _newsCursorLeft = 40;
+        private readonly Stack<string> _buffers = new Stack<string>();
+        private readonly StringBuilder _buffer = new StringBuilder();
+        private readonly Queue<string> _newsQueue = new Queue<string>();
+        private string _currentNews;
+        private  int _newsCursorLeft = 40;
+        private readonly Hotkey _hotkey;
 
-        public static bool ThrowExceptions { get; set; }
+        public bool ThrowExceptions { get; set; }
 
-        public static void Write(string text = "") => WriteNoLine($"{text}\n");
+        public StructureIO(Hotkey hotkey)
+        {
+            _hotkey = hotkey;
+        }
 
-        public static void WriteNoLine(string text = "")
+        public void SetInput(IProgramInput input)
+        {
+            _programInput = input;
+        }
+
+        public void SetOutput(IProgramOutput output)
+        {
+            _programOutput = output;
+        }
+
+        public void Write(string text = "") => WriteNoLine($"{text}\n");
+
+        public void WriteNoLine(string text = "")
         {
             _buffer.Append(text);
-            if (!SupressConsoleCalls) ProgramOutput.Write(text);
+            _programOutput.Write(text);
         }
 
-        public static void Clear(bool clearConsole = true)
+        public void Clear(bool clearConsole = true)
         {
             _buffer.Clear();
-            if (clearConsole && !SupressConsoleCalls) if (!SupressConsoleCalls) ProgramOutput.Clear();
-            if (!SupressConsoleCalls) ProgramOutput.SetCursorPosition(0, 1);
+            if (clearConsole) _programOutput.Clear();
+            _programOutput.SetCursorPosition(0, 1);
         }
 
-        public static void ReadAny() => Read((line, key) => true, x => { }, KeyGroups.NoKeys, echo: true);
+        public void ReadAny() => Read((line, key) => true, x => { }, KeyGroups.NoKeys, echo: true);
 
-        public static void Read(Action<string> continuation, params ConsoleKey[] submitKeys) => Read((line, key) => submitKeys.Contains(key.Key), continuation, KeyGroups.NoKeys, echo: true);
+        public void Read(Action<string> continuation, params ConsoleKey[] submitKeys) => Read((line, key) => submitKeys.Contains(key.Key), continuation, KeyGroups.NoKeys, echo: true);
 
-        public static void Read(Action<string> continuation) => Read(continuation, ConsoleKey.Enter);
+        public void Read(Action<string> continuation) => Read(continuation, ConsoleKey.Enter);
 
-        public static void ReadInteger(string prompt, Action<int> continuation)
+        public void ReadInteger(string prompt, Action<int> continuation)
         {
             Write(prompt);
             Read(x =>
@@ -62,11 +79,11 @@ namespace Structure
             });
         }
 
-        public static void ReadKey(Action<string> continuation) => Read((line, key) => !IsModifierPressed(key), continuation, KeyGroups.MiscKeys, echo: false);
+        public void ReadKey(Action<string> continuation) => Read((line, key) => !IsModifierPressed(key), continuation, KeyGroups.MiscKeys, echo: false);
 
-        public static void PromptYesNo(string prompt, Action action) => PromptOptions(prompt, false, new UserAction("yes", action), new UserAction("no", null));
+        public void PromptYesNo(string prompt, Action action) => PromptOptions(prompt, false, new UserAction("yes", action), new UserAction("no", null));
 
-        public static void PromptOptions(string prompt, bool useDefault, params UserAction[] options)
+        public void PromptOptions(string prompt, bool useDefault, params UserAction[] options)
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
             Write($"{prompt}\n");
@@ -93,7 +110,7 @@ namespace Structure
             }
         }
 
-        public static (char Key, UserAction Action)[] CreateOptionKeys(UserAction[] options)
+        public (char Key, UserAction Action)[] CreateOptionKeys(UserAction[] options)
         {
             var keys = new List<(char Key, UserAction Action)>();
             foreach (var option in options)
@@ -111,21 +128,21 @@ namespace Structure
             return keys.ToArray();
         }
 
-        public static Dictionary<char, UserAction> CreateOptionKeysDictionary(UserAction[] options)
+        public Dictionary<char, UserAction> CreateOptionKeysDictionary(UserAction[] options)
         {
             return CreateOptionKeys(options).ToDictionary(x => x.Key, x=>x.Action);
         }
 
-        public static void News(string news)
+        public void News(string news)
         {
-            if (!SupressConsoleCalls)
+            if (!(_programOutput is NoOpOutput))
             {
                 _newsQueue.Enqueue(news);
             }
-            NewsArchive.Add(news);
+            _newsArchive.Add(news);
         }
 
-        public static void Run(Action action)
+        public void Run(Action action)
         {
             if (action is null) return;
             _buffers.Push($"{_buffer}");
@@ -137,20 +154,20 @@ namespace Structure
             catch (Exception e)
             {
                 if (ThrowExceptions) throw new Exception("Exception" + e.Message, e);
-                ProgramOutput.WriteLine(e.Message);
+                _programOutput.WriteLine(e.Message);
             }
             Clear(true);
             WriteNoLine(_buffers.Pop());
         }
 
-        public static void Refresh()
+        public void Refresh()
         {
             var buffer = _buffer.ToString();
             Clear(true);
             WriteNoLine(buffer);
         }
 
-        private static void Read(
+        private void Read(
             Func<string, ConsoleKeyInfo, bool> shouldExit, 
             Action<string> continuation, 
             ConsoleKey[] allowedKeys,
@@ -160,14 +177,14 @@ namespace Structure
             var line = new StringBuilder();
             do
             {
-                while (!ProgramInput.IsKeyAvailable())
+                while (!_programInput.IsKeyAvailable())
                 {
                     if (!PrintNews()) break;
                     Thread.Sleep(10);
                 }
 
                 // TODO: Pass allowed keys in here all the time.
-                key = ProgramInput.ReadKey();
+                key = _programInput.ReadKey();
                 CurrentTime.SetArtificialTime(key.Time);
                 ProcessReadKeyIntoLine(key.GetKeyInfo(), line, echo, allowedKeys);
 
@@ -176,20 +193,20 @@ namespace Structure
             continuation(line.ToString());
         }
 
-        private static bool PrintNews()
+        private bool PrintNews()
         {
             if (!_newsQueue.Any() && _currentNews == null) return false;
             _currentNews ??= _newsQueue.Dequeue();
-            var cursorLeft = ProgramOutput.CursorLeft;
-            var cursorTop = ProgramOutput.CursorTop;
-            ProgramOutput.CursorLeft = Math.Max(0, _newsCursorLeft);
+            var cursorLeft = _programOutput.CursorLeft;
+            var cursorTop = _programOutput.CursorTop;
+            _programOutput.CursorLeft = Math.Max(0, _newsCursorLeft);
             _newsCursorLeft -= 2;
-            ProgramOutput.CursorTop = 0;
+            _programOutput.CursorTop = 0;
 
-            ProgramOutput.Write(_currentNews + "  ");
+            _programOutput.Write(_currentNews + "  ");
 
-            ProgramOutput.CursorLeft = cursorLeft;
-            ProgramOutput.CursorTop = cursorTop;
+            _programOutput.CursorLeft = cursorLeft;
+            _programOutput.CursorTop = cursorTop;
             if (_newsCursorLeft < -80)
             {
                 if (_currentNews.Length == 0)
@@ -203,15 +220,15 @@ namespace Structure
             return true;
         }
 
-        private static void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo, ConsoleKey[] allowedKeys)
+        private void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo, ConsoleKey[] allowedKeys)
         {
             if (IsModifierPressed(key))
             {
-                Hotkey.Execute(key);
+                _hotkey.Execute(key, this);
             }
             else if (IsAlphanumeric(key) || key.Key == ConsoleKey.OemPeriod || key.Key == ConsoleKey.Decimal)
             {
-                ReadStringIntoLine($"{key.KeyChar}", line, echo);
+                ReadStringIntoLine($"{GetCharFromKey(key)}", line, echo);
             }
             else if (allowedKeys.Contains(key.Key))
             {
@@ -225,25 +242,45 @@ namespace Structure
             }
         }
 
-        private static void BackspaceFromLine(StringBuilder line, bool echo)
+        private char GetCharFromKey(ConsoleKeyInfo key)
+        {
+            if (key.Key == ConsoleKey.D0) return '0';
+            if (key.Key == ConsoleKey.D1) return '1';
+            if (key.Key == ConsoleKey.D2) return '2';
+            if (key.Key == ConsoleKey.D3) return '3';
+            if (key.Key == ConsoleKey.D4) return '4';
+            if (key.Key == ConsoleKey.D5) return '5';
+            if (key.Key == ConsoleKey.D6) return '6';
+            if (key.Key == ConsoleKey.D7) return '7';
+            if (key.Key == ConsoleKey.D8) return '8';
+            if (key.Key == ConsoleKey.D9) return '9';
+            return key.KeyChar;
+        }
+
+        private void BackspaceFromLine(StringBuilder line, bool echo)
         {
             if (line.Length > 0)
             {
-                if (echo && !SupressConsoleCalls) ProgramOutput.Write("\b \b");
+                if (echo)
+                {
+                    const string DoubleBackspace = "\b \b";
+                    _programOutput.Write(DoubleBackspace);
+                }
+
                 _buffer.Remove(_buffer.Length - 1, 1);
                 line.Remove(line.Length - 1, 1);
             }
         }
 
-        private static void ReadStringIntoLine(string text, StringBuilder line, bool echo)
+        private void ReadStringIntoLine(string text, StringBuilder line, bool echo)
         {
             if (echo) WriteNoLine(text);
             line.Append(text);
         }
 
-        private static bool IsAlphanumeric(ConsoleKeyInfo key) => char.IsLetterOrDigit(key.KeyChar) || key.KeyChar == ' ';
+        private bool IsAlphanumeric(ConsoleKeyInfo key) => char.IsLetterOrDigit(GetCharFromKey(key)) || key.KeyChar == ' ';
 
-        private static bool IsModifierPressed(ConsoleKeyInfo key) =>
+        private bool IsModifierPressed(ConsoleKeyInfo key) =>
             key.Modifiers.HasFlag(ConsoleModifiers.Control)
             || key.Modifiers.HasFlag(ConsoleModifiers.Alt);
     }

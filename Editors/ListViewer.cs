@@ -16,23 +16,23 @@ namespace Structure
             _title = title;
         }
 
-        public void ViewList()
+        public void ViewList(StructureIO io)
         {
             if (_listCopy == null)
             {
                 _listCopy = new List<object>(_orignalList);
             }
-            IO.Write(_title);
+            io.Write(_title);
             for (int i = 0; i < _itemsAtATime && i < _listCopy.Count; i++)
             {
-                IO.Write($"{_listCopy[i]}");
+                io.Write($"{_listCopy[i]}");
             }
-            IO.ReadKey(ShowListInteraction);
+            io.ReadKey(k => ShowListInteraction(io, k));
         }
 
-        private void ShowListInteraction(string key)
+        private void ShowListInteraction(StructureIO io, string key)
         {
-            IO.Clear();
+            io.Clear();
             if (key == "{Escape}")
             {
                 _listCopy = null;
@@ -46,7 +46,7 @@ namespace Structure
                     return;
                 }
                 _listCopy.RemoveAt(0);
-                ViewList();
+                ViewList(io);
             }
         }
     }

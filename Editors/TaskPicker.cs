@@ -7,16 +7,18 @@ namespace Structure
         protected Action<TaskItem> PickedAction;
         private readonly string _pickPrompt;
         private readonly bool _exitAfterPick;
+        private readonly StructureIO _io;
 
         public TaskPicker(
+            StructureIO io,
             string prompt,
             string pickPrompt,
             bool allowLeafs,
             bool allowParents,
             bool exitAfterPick,
-            PersistedTree<TaskItem> tree,
+            NodeTreeCollection<TaskItem> tree,
             Action<TaskItem> pickedAction = null)
-            : base(prompt, tree)
+            : base(io, prompt, tree)
         {
             if (allowLeafs) EnterPressedOnLeafAction = ConfirmPick;
             if (allowParents) EnterPressedOnParentAction = ConfirmPick;
@@ -24,9 +26,10 @@ namespace Structure
             _pickPrompt = pickPrompt;
             _exitAfterPick = exitAfterPick;
             PickedAction = pickedAction;
+            _io = io;
         }
 
-        private void ConfirmPick(TaskItem task) => IO.PromptOptions($"{_pickPrompt} {task}?", true,
+        private void ConfirmPick(TaskItem task) => _io.PromptOptions($"{_pickPrompt} {task}?", true,
             new UserAction("no", () => { }),
             new UserAction("yes (Enter)", () =>
             {

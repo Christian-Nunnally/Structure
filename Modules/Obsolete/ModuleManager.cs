@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Structure.IO;
 
 namespace Structure
 {
@@ -32,12 +31,12 @@ namespace Structure
 
         private void ManageModules()
         {
-            Write(ManageModulesPrompt);
-            Write("Type '1' to enable or disable module 1");
-            Write("Type 'upgrade 1' to upgrade module 1");
+            IO.Write(ManageModulesPrompt);
+            IO.Write("Type '1' to enable or disable module 1");
+            IO.Write("Type 'upgrade 1' to upgrade module 1");
             // TODO: Make this show pages at a time.
-            _listedModules.All(m => Write(ModuleString(m)));
-            Read(ToggleModule);
+            _listedModules.All(m => IO.Write(ModuleString(m)));
+            IO.Read(ToggleModule);
         }
 
         private string ModuleString(IModule module)
@@ -69,22 +68,22 @@ namespace Structure
                     {
                         var upgradedModule = obsoleteModule.UpgradedModule;
                         _listedModules[index] = upgradedModule;
-                        News($"Upgraded {name} to {upgradedModule.Name}");
+                        IO.News($"Upgraded {name} to {upgradedModule.Name}");
                         module = upgradedModule;
                     }
 
-                    module.Enable();
-                    News($"+{name} enabled.");
+                    module.Enable(IO, Hotkey, CurrentData);
+                    IO.News($"+{name} enabled.");
                 }
                 else
                 {
                     module.Disable();
-                    News($"+{name} disabled.");
+                    IO.News($"+{name} disabled.");
 
                     if (module is IObsoleteModule obsoleteModule && upgrade)
                     {
                         _listedModules[index] = obsoleteModule.UpgradedModule;
-                        News($"Upgraded {name} to {obsoleteModule.UpgradedModule.Name}");
+                        IO.News($"Upgraded {name} to {obsoleteModule.UpgradedModule.Name}");
                     }
                 }
             }

@@ -20,7 +20,7 @@ namespace Structure
 
         private void Start()
         {
-            var editor = new TaskEditor();
+            var editor = new TaskEditor(IO, CurrentData);
             OpenEditors.Add(editor);
             IO.Run(() => editor.Edit());
             if (OpenEditors.Count > 0) OpenEditors.RemoveAt(OpenEditors.Count - 1);

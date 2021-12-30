@@ -17,22 +17,17 @@ namespace Structure.Graphing
             _height = height;
         }
 
-        public void Print(List<(string, double)> values)
-        {
-            ShowTerminalChart(values);
-        }
-
-        private void ShowTerminalChart(List<(string Label, double Value)> values)
+        public void Print(StructureIO io, List<(string, double)> values)
         {
             var chart = RenderChart(values);
             var yLabels = GenerateYLabels(values);
-            PrintChart(chart, yLabels);
+            PrintChart(io, chart, yLabels);
 
             var xLabelIndexes = GetXLabelIndexes(values);
-            PrintXAxis(xLabelIndexes);
+            PrintXAxis(io, xLabelIndexes);
 
             var xNamesCharacters = InitializeXNameCharacterMap(values);
-            PrintXNameCharacters(xNamesCharacters);
+            PrintXNameCharacters(io, xNamesCharacters);
         }
 
         private double[] InterpolateValues(List<(string Label, double Value)> values)
@@ -139,7 +134,7 @@ namespace Structure.Graphing
             return chart;
         }
 
-        private void PrintChart(char[,] chart, List<double> yLabels)
+        private void PrintChart(StructureIO io, char[,] chart, List<double> yLabels)
         {
             for (double y = _height - 1; y >= 0; y--)
             {
@@ -150,17 +145,17 @@ namespace Structure.Graphing
                         var yLabelString = string.Format("{0:0.##}", yLabels[(int)y]);
                         for (int i = 0; i < 10 - yLabelString.Length; i++)
                         {
-                            IO.WriteNoLine(" ");
+                            io.WriteNoLine(" ");
                         }
-                        IO.WriteNoLine(yLabelString);
-                        IO.WriteNoLine($" ┤");
+                        io.WriteNoLine(yLabelString);
+                        io.WriteNoLine($" ┤");
                     }
                     else
                     {
-                        IO.WriteNoLine(chart[(int)x, (int)y].ToString());
+                        io.WriteNoLine(chart[(int)x, (int)y].ToString());
                     }
                 }
-                IO.Write();
+                io.Write();
             }
         }
 
@@ -180,33 +175,33 @@ namespace Structure.Graphing
             return yLabels;
         }
 
-        private void PrintXAxis(List<int> xLabelIndexes)
+        private void PrintXAxis(StructureIO io, List<int> xLabelIndexes)
         {
-            IO.WriteNoLine("           └");
+            io.WriteNoLine("           └");
             for (int x = 0; x < _width; x++)
             {
                 if (xLabelIndexes.Contains(x))
                 {
-                    IO.WriteNoLine("┴");
+                    io.WriteNoLine("┴");
                 }
                 else
                 {
-                    IO.WriteNoLine("─");
+                    io.WriteNoLine("─");
                 }
             }
-            IO.Write();
+            io.Write();
         }
 
-        private void PrintXNameCharacters(char[,] xNamesCharacters)
+        private void PrintXNameCharacters(StructureIO io, char[,] xNamesCharacters)
         {
             for (int y = 0; y < XLabelRows; y++)
             {
-                IO.WriteNoLine("            ");
+                io.WriteNoLine("            ");
                 for (int x = 0; x < _width + XLabelRightPadding; x++)
                 {
-                    IO.WriteNoLine(xNamesCharacters[x, y].ToString());
+                    io.WriteNoLine(xNamesCharacters[x, y].ToString());
                 }
-                IO.Write();
+                io.Write();
             }
         }
 

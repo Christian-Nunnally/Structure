@@ -8,10 +8,10 @@ namespace Structure.Modules
     public class TaskHistoryInformation : Module
     {
         private UserAction _startAction;
-        private static int _range = 30;
-        private static int _grouping = 1;
-        private static Func<List<TaskItem>, double> _aggregationMode = CountAggregationFunction;
-        private static TaskItem _routineParent;
+        private int _range = 30;
+        private int _grouping = 1;
+        private Func<List<TaskItem>, double> _aggregationMode = CountAggregationFunction;
+        private TaskItem _routineParent;
 
         private static double CountAggregationFunction(List<TaskItem> list) => list.Count;
 
@@ -79,7 +79,7 @@ namespace Structure.Modules
 
         private void ShowHistory(Predicate<TaskItem> filter)
         {
-            var tasks = TaskExecutor.CompletedTasks.Where(x => x.CompletedDate + new TimeSpan(_range, 0, 0, 0, 0) > DateTime.Now && filter(x)).ToList();
+            var tasks = CurrentData.CompletedTasks.Where(x => x.CompletedDate + new TimeSpan(_range, 0, 0, 0, 0) > DateTime.Now && filter(x)).ToList();
             
             if (_routineParent is object)
             {
@@ -100,7 +100,7 @@ namespace Structure.Modules
             }
 
             var consoleGraph = new ConsoleGraph(80, 20);
-            consoleGraph.Print(values);
+            consoleGraph.Print(IO, values);
 
             var changeRangeOption = new UserAction("Change range", ChangeRange);
             var changeGroupingOption = new UserAction("Change grouping", ChangeGrouping);
@@ -119,7 +119,7 @@ namespace Structure.Modules
 
         private void SetRoutineParent()
         {
-            IO.Run(() => new TaskPicker("Pick routine parent", "Select", true, true, true, CommonData.Routines, SetRoutineParentToTask).Edit());
+            IO.Run(() => new TaskPicker(IO, "Pick routine parent", "Select", true, true, true, CurrentData.Routines, SetRoutineParentToTask).Edit());
             IO.Run(Start);
         }
 

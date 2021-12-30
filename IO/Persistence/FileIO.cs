@@ -8,16 +8,10 @@ namespace Structure
     {
         public const string SaveFileExtension = ".structure";
         public const string AppDataSettingsFolderName = "Structure";
-        private static Dictionary<string, string> _cache = new Dictionary<string, string>();
+        private static readonly Dictionary<string, string> _cache = new Dictionary<string, string>();
         private static string savePath;
-        private static string codePath;
-        private static string solutionFilePath;
 
-        public static string CodePath => codePath ?? (codePath = GetSavedDirectoryPath(nameof(CodePath)));
         public static string SavePath => savePath ?? (savePath = GetSavedDirectoryPath(nameof(SavePath)));
-        public static string SolutionFilePath => solutionFilePath ?? (solutionFilePath = GetSavedDirectoryPath(nameof(SolutionFilePath)));
-
-        public static DateTime GetLastWriteTime(string key) => File.GetLastWriteTime(GetFileName(key));
 
         public static string ReadFromFile(string key) => _cache.TryGetValue(key, out var value) ? value
             : (_cache[key] = File.Exists(GetFileName(key)) ? File.ReadAllText(GetFileName(key)) : string.Empty);
@@ -26,12 +20,6 @@ namespace Structure
         {
             if (ReadFromFile(key) != value) File.WriteAllText(GetFileName(key), value);
             _cache[key] = value;
-        }
-
-        public static void Append(string key, string value)
-        {
-            _cache[key] = ReadFromFile(key) + value;
-            File.AppendAllText(GetFileName(key), _cache[key]);
         }
 
         private static string GetSavedDirectoryPath(string fileKey)
@@ -43,7 +31,7 @@ namespace Structure
 
         private static void SaveToFile(string path, string @string)
         {
-            var directory = path.Substring(0, path.LastIndexOf("\\") + 1);
+            var directory = path.Substring(0, path.LastIndexOf("\\", StringComparison.InvariantCulture) + 1);
             if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
             File.WriteAllText(path, @string);
         }

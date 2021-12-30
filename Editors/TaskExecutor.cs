@@ -4,24 +4,23 @@ namespace Structure
 {
     public class TaskExecutor : TaskPicker
     {
-        protected readonly PersistedTree<TaskItem> _tree;
-        public static IReadOnlyList<TaskItem> CompletedTasks => _completedTasks;
-
-        private static readonly List<TaskItem> _completedTasks = new List<TaskItem>();
+        protected readonly NodeTreeCollection<TaskItem> _tree;
+        private readonly StructureIO _io;
 
         public TaskExecutor(
+            StructureIO io,
             string prompt,
-            PersistedTree<TaskItem> tree)
-            : base(prompt, "Complete", true, false, false, tree)
+            NodeTreeCollection<TaskItem> tree)
+            : base(io, prompt, "Complete", true, false, false, tree)
         {
             _tree = tree;
             PickedAction = CompleteTask;
+            _io = io;
         }
 
-        public void CompleteTask(TaskItem task)
+        public virtual void CompleteTask(TaskItem task)
         {
-            IO.Run(() => task?.DoTask(_tree));
-            _completedTasks.Add(task);
+            _io.Run(() => task?.DoTask(_io, _tree));
         }
     }
 }

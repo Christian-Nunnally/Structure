@@ -1,7 +1,6 @@
 ﻿using Structure.Code.Modules;
 using System;
 using System.Linq;
-using static Structure.IO;
 
 namespace Structure
 {
@@ -21,22 +20,22 @@ namespace Structure
             _action = Hotkey.Add(ConsoleKey.R, new UserAction("Routines", PromptRoutinerOptions));
         }
 
-        private static void CopyRoutineToTaskList(TaskItem task, string parentId = null)
+        private void CopyRoutineToTaskList(TaskItem task)
         {
             var copy = task.Copy();
-            CommonData.ActiveTaskTree.Set(copy);
-            var children = CommonData.Routines.Where(x => x.Value.ParentID == task.ID);
+            CurrentData.ActiveTaskTree.Set(copy);
+            var children = CurrentData.Routines.Where(x => x.Value.ParentID == task.ID);
             foreach (var child in children.OrderBy(x => x.Value.Rank))
             {
-                CopyRoutineToTaskList(child.Value, copy.ID);
+                CopyRoutineToTaskList(child.Value);
             }
         }
 
         private void DoRoutine(TaskItem routine)
         {
-            Run(() =>
+            IO.Run(() =>
             {
-                var editor = new TaskEditor();
+                var editor = new TaskEditor(IO, CurrentData);
                 editor.SetParent(routine);
                 editor.Edit();
             });
@@ -47,17 +46,17 @@ namespace Structure
             var start = new UserAction("Start routine", PickRoutine);
             var edit = new UserAction("Edit routines", EditRoutines);
             var options = new[] { start, edit };
-            PromptOptions("Routines", false, options);
+            IO.PromptOptions("Routines", false, options);
         }
 
         private void EditRoutines()
         {
-            Run(() => new RoutineEditor(CommonData.Routines).Edit());
+            IO.Run(() => new RoutineEditor(IO, CurrentData.Routines).Edit());
         }
 
         private void PickRoutine()
         {
-            Run(() => new TaskPicker("Pick routine to start", "Start", false, true, true, CommonData.Routines, StartRoutine).Edit());
+            IO.Run(() => new TaskPicker(IO, "Pick routine to start", "Start", false, true, true, CurrentData.Routines, StartRoutine).Edit());
         }
 
         private void StartRoutine(TaskItem routine)

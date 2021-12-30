@@ -6,9 +6,9 @@ namespace Structure.Code
     public class RecordingInput : IProgramInput
     {
         private readonly IProgramInput _inputSource;
-        private readonly PersistedList<ProgramInputData> _recordedInputs;
+        private readonly PersistedListCollection<ProgramInputData> _recordedInputs;
 
-        public RecordingInput(IProgramInput inputSource, PersistedList<ProgramInputData> logDestiation)
+        public RecordingInput(IProgramInput inputSource, PersistedListCollection<ProgramInputData> logDestiation)
         {
             _inputSource = inputSource;
             _recordedInputs = logDestiation;

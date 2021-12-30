@@ -4,40 +4,40 @@ using System.Linq;
 
 namespace Structure
 {
-    public static class Hotkey
+    public class Hotkey
     {
-        public static Dictionary<ConsoleKey, List<UserAction>> Hotkeys = new Dictionary<ConsoleKey, List<UserAction>>();
+        private readonly Dictionary<ConsoleKey, List<UserAction>> _hotkeys = new Dictionary<ConsoleKey, List<UserAction>>();
 
-        public static void Print() => Hotkeys.All(x => x.Value.All(y => IO.Write($"ctrl + {$"{x.Key}".ToLower()}: {y.Description}")));
+        public void Print(StructureIO io) => _hotkeys.All(x => x.Value.All(y => io.Write($"ctrl + {$"{x.Key}".ToLower()}: {y.Description}")));
 
-        public static void Execute(ConsoleKeyInfo key)
+        public void Execute(ConsoleKeyInfo key, StructureIO io)
         {
             if (key.Modifiers.HasFlag(ConsoleModifiers.Control)
-                && Hotkeys.TryGetValue(key.Key, out var actions))
+                && _hotkeys.TryGetValue(key.Key, out var actions))
             {
                 if (actions.Count == 1)
                 {
-                    IO.Run(actions.First().Action);
+                    io.Run(actions.First().Action);
                 }
                 else
                 {
-                    IO.Run(() => IO.PromptOptions($"ctrl + {$"{key.Key}".ToLower()} pressed, select option:", false, actions.ToArray()));
+                    io.Run(() => io.PromptOptions($"ctrl + {$"{key.Key}".ToLower()} pressed, select option:", false, actions.ToArray()));
                 }
             }
         }
 
-        public static UserAction Add(ConsoleKey key, UserAction action)
+        public UserAction Add(ConsoleKey key, UserAction action)
         {
-            if (Hotkeys.ContainsKey(key)) Hotkeys[key].Add(action);
-            else Hotkeys.Add(key, new List<UserAction> { action });
+            if (_hotkeys.ContainsKey(key)) _hotkeys[key].Add(action);
+            else _hotkeys.Add(key, new List<UserAction> { action });
             return action;
         }
 
-        public static void Remove(ConsoleKey key, UserAction action)
+        public void Remove(ConsoleKey key, UserAction action)
         {
-            if (!Hotkeys.TryGetValue(key, out var list)) return;
+            if (!_hotkeys.TryGetValue(key, out var list)) return;
             if (list.Contains(action)) list.Remove(action);
-            if (!list.Any()) Hotkeys.Remove(key);
+            if (!list.Any()) _hotkeys.Remove(key);
         }
     }
 }

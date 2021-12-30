@@ -22,7 +22,7 @@ namespace Structure
             var news = new List<object>();
             IO.NewsArchive.All(news.Add);
             news.Reverse();
-            new ListViewer("News archive:", news, 10).ViewList();
+            new ListViewer("News archive:", news, 10).ViewList(IO);
         }
     }
 }

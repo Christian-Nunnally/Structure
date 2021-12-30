@@ -5,7 +5,7 @@ namespace Structure
 {
     public class RoutineEditor : TreeEditor<TaskItem>
     {
-        public RoutineEditor(PersistedTree<TaskItem> routineTree) : base("Edit routines", routineTree)
+        public RoutineEditor(StructureIO io, NodeTreeCollection<TaskItem> routineTree) : base(io, "Edit routines", routineTree)
         {
             EnableDefaultInsertFunctionality("Insert routine item", DefaultNodeFactory);
             AddTaskConversionStrategies();

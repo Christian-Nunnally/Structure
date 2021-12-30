@@ -1,20 +1,11 @@
-﻿using Newtonsoft.Json;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 
 namespace Structure
 {
-    public class PersistedDictionary<TValue> : IEnumerable<KeyValuePair<string, TValue>> where TValue : Node
+    public class NodeTreeCollection<TValue> : IEnumerable<KeyValuePair<string, TValue>> where TValue : Node
     {
-        protected string _name;
-
-        public PersistedDictionary(string name)
-        {
-            _name = name;
-            Dictionary = JsonConvert.DeserializeObject<Dictionary<string, TValue>>(FileIO.ReadFromFile(_name)) ?? new Dictionary<string, TValue>();
-        }
-
-        protected Dictionary<string, TValue> Dictionary { get; }
+        protected Dictionary<string, TValue> Dictionary { get; } = new Dictionary<string, TValue>();
 
         public TValue this[string key]
         {
@@ -43,5 +34,9 @@ namespace Structure
                 Dictionary.Remove(key);
             }
         }
+
+        public void Set(TValue value) => Set(value?.ID, value);
+
+        public void Remove(TValue value) => Remove(value?.ID);
     }
 }

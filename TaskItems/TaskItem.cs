@@ -53,11 +53,9 @@ namespace Structure
             item.CopiedFromID = ID;
         }
 
-        public virtual void DoTask(PersistedTree<TaskItem> tree)
+        public virtual void DoTask(StructureIO io, NodeTreeCollection<TaskItem> tree)
         {
-            CommonData.Points++;
-            CommonData.XP++;
-            CompletedDate = CurrentTime.GetCurrentTime();
+            CompletedDate = io.CurrentTime.GetCurrentTime();
             tree.Remove(ID);
         }
     }

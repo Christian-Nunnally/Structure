@@ -4,14 +4,20 @@
     {
         public const string InsertTaskPrompt = "Insert task";
         public const string TitlePrompt = "Task tree";
+        private readonly CommonData _data;
+        private readonly StructureIO _io;
 
-        public TaskEditor() : base(TitlePrompt, CommonData.ActiveTaskTree)
+        public TaskEditor(StructureIO io, CommonData data) : base(io, TitlePrompt, data.ActiveTaskTree)
         {
             EnableDefaultInsertFunctionality(InsertTaskPrompt, DefaultNodeFactory);
             CustomActions.Add(("o", TaskEditorOptions));
             CustomActions.Add(("v", () => ShowChildren = !ShowChildren));
             CustomActions.Add(("c", CopyCurrentTask));
+
+            // TODO: Can remove?
             CustomActions.Add(("n", GoToNextActiveTask));
+            _data = data;
+            _io = io;
         }
 
         private void CopyCurrentTask()
@@ -41,9 +47,15 @@
                 {
                     var nextEditorIndex = (thisEditorsIndex + 1) % TreeTask.OpenEditors.Count;
                     var nextEditor = TreeTask.OpenEditors[nextEditorIndex];
-                    IO.Run(nextEditor.Edit);
+                    _io.Run(nextEditor.Edit);
                 }
             }
+        }
+
+        public override void CompleteTask(TaskItem task)
+        {
+            base.CompleteTask(task);
+            _data.CompletedTasks.Add(task);
         }
     }
 }

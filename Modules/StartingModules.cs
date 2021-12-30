@@ -4,9 +4,7 @@ namespace Structure
 {
     public static class StartingModules
     {
-        private static IModule[] _user;
-
-        public static IModule[] UserModules => _user ?? (_user = new Module[]
+        public static Module[] CreateStartingModules() => new Module[]
         {
             new TreeTask(),
             new Information(),
@@ -17,6 +15,6 @@ namespace Structure
             new StartupStatistics(),
             new ModuleManager(),
             new TaskHistoryInformation(),
-        });
+        };
     }
 }

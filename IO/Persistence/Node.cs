@@ -4,7 +4,7 @@ namespace Structure
 {
     public class Node
     {
-        public string ID = Guid.NewGuid().ToString();
+        public string ID { get; set; } = Guid.NewGuid().ToString();
         private int _rank;
         private string _parentID;
 

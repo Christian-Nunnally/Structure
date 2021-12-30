@@ -6,7 +6,8 @@
 
         bool Enabled { get; }
 
-        void Enable();
+        // TODO wrap these in ioc container;
+        public void Enable(StructureIO io, Hotkey hotkey, CommonData data);
 
         void Disable();
     }

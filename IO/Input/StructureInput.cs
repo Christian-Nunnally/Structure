@@ -6,20 +6,24 @@ namespace Structure.Code
 {
     public class StructureInput : IProgramInput
     {
-        private const bool DEVELOPMENT_MODE = false;
+        private const bool DEVELOPMENT_MODE = true;
 
-        private readonly ChainedInput _inputSource;
+        private ChainedInput _inputSource;
 
         public StructureInput()
         {
+        }
+
+        public void InitializeStructureInput(StructureIO io)
+        {
             _inputSource = new ChainedInput();
-            _inputSource.AddAction(SetToLoadMode);
+            _inputSource.AddAction(() => SetToLoadMode(io));
             var (savedDataSessions, nextDataSession) = SavedSessionUtilities.LoadSavedDataSessions();
             var sessionsInputs = savedDataSessions.Select(x => new PredeterminedInput(x));
             sessionsInputs.All(x => _inputSource.AddInput(x));
             var recordedUserInputSource = (IProgramInput)new RecordingInput(new ConsoleInput(), nextDataSession);
             if (DEVELOPMENT_MODE) recordedUserInputSource = new ConsoleInput();
-            _inputSource.AddAction(SetToUserMode);
+            _inputSource.AddAction(() => SetToUserMode(io));
             _inputSource.AddInput(recordedUserInputSource);
         }
 
@@ -35,16 +39,16 @@ namespace Structure.Code
             return _inputSource.ReadKey();
         }
 
-        private void SetToLoadMode()
+        private static void SetToLoadMode(StructureIO io)
         {
-            IO.SupressConsoleCalls = true;
+            io.SetOutput(new NoOpOutput());
         }
 
-        private void SetToUserMode()
+        private static void SetToUserMode(StructureIO io)
         {
-            IO.SupressConsoleCalls = false;
-            CurrentTime.SetToRealTime();
-            IO.Refresh();
+            io.SetOutput(new ConsoleOutput());
+            io.CurrentTime.SetToRealTime();
+            io.Refresh();
         }
     }
 }

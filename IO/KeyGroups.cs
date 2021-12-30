@@ -5,7 +5,7 @@ namespace Structure
 {
     public static class KeyGroups
     {
-        public static ConsoleKey[] MiscKeys = new ConsoleKey[]
+        public static readonly ConsoleKey[] MiscKeys = new ConsoleKey[]
         {
             ConsoleKey.Enter,
             ConsoleKey.UpArrow,
@@ -15,9 +15,9 @@ namespace Structure
             ConsoleKey.Delete,
             ConsoleKey.Escape
         };
-        public static ConsoleKey[] NoKeys = new ConsoleKey[0];
+        public static readonly ConsoleKey[] NoKeys = Array.Empty<ConsoleKey>();
 
-        public static ConsoleKey[] NumberKeys = new ConsoleKey[]
+        public static readonly ConsoleKey[] NumberKeys = new ConsoleKey[]
         {
             ConsoleKey.NumPad0,
             ConsoleKey.NumPad1,
@@ -43,7 +43,7 @@ namespace Structure
             ConsoleKey.Decimal,
         };
 
-        public static ConsoleKey[] LetterKeys = new ConsoleKey[]
+        public static readonly ConsoleKey[] LetterKeys = new ConsoleKey[]
         {
             ConsoleKey.A,
             ConsoleKey.B,
@@ -73,6 +73,6 @@ namespace Structure
             ConsoleKey.Z,
         };
 
-        public static ConsoleKey[] AlphanumericKeys = NumberKeys.Concat(LetterKeys).ToArray();
+        public static readonly ConsoleKey[] AlphanumericKeys = NumberKeys.Concat(LetterKeys).ToArray();
     }
 }

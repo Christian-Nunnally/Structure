@@ -2,25 +2,25 @@
 
 namespace Structure
 {
-    internal static class CurrentTime
+    public class CurrentTime
     {
-        private static DateTime _artificialCurrentTime;
-        private static bool _useArtificalTime;
+        private DateTime _artificialCurrentTime;
+        private bool _useArtificalTime;
 
-        public static DateTime GetCurrentTime()
+        public DateTime GetCurrentTime()
         {
             return _useArtificalTime
                 ? _artificialCurrentTime
                 : DateTime.Now;
         }
 
-        public static void SetArtificialTime(DateTime time)
+        public void SetArtificialTime(DateTime time)
         {
             _artificialCurrentTime = time;
             _useArtificalTime = true;
         }
 
-        public static void SetToRealTime()
+        public void SetToRealTime()
         {
             _useArtificalTime = false;
         }

@@ -4,12 +4,12 @@ using System.Collections.Generic;
 
 namespace Structure
 {
-    public class PersistedList<T> : IEnumerable<T>
+    public class PersistedListCollection<T> : IEnumerable<T>
     {
         private readonly string _name;
         private readonly bool autoSave;
 
-        public PersistedList(string name, bool autoSave = false)
+        public PersistedListCollection(string name, bool autoSave = false)
         {
             _name = name;
             this.autoSave = autoSave;

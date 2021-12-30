@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Structure
 {
     [Serializable]
     public class RecordFloatTaskItem : TaskItem
     {
-        private static readonly List<RecordFloatTaskItem> _recordedFloatMetrics = new List<RecordFloatTaskItem>();
-
         public float RecordedFloat { get; set; }
 
-        public override void DoTask(PersistedTree<TaskItem> tree)
+        public override void DoTask(StructureIO io, NodeTreeCollection<TaskItem> tree)
         {
-            IO.Write($"Record float metric for: {Name}");
-            IO.Read(s => RecordFloat(Name, s));
-            base.DoTask(tree);
+            io.Write($"Record float metric for: {Name}");
+            io.Read(s => RecordFloat(io, Name, s));
+            base.DoTask(io, tree);
         }
 
         public override TaskItem Copy()
@@ -25,17 +22,16 @@ namespace Structure
             return copy;
         }
 
-        private void RecordFloat(string metricName, string result)
+        private void RecordFloat(StructureIO io, string metricName, string result)
         {
             if (float.TryParse(result, out var number))
             {
                 RecordedFloat = number;
-                _recordedFloatMetrics.Add(this);
             }
             else
             {
-                IO.Write($"{result} is not a valid float.");
-                IO.Read(s => RecordFloat(metricName, s));
+                io.Write($"{result} is not a valid float.");
+                io.Read(s => RecordFloat(io, metricName, s));
             }
         }
     }
