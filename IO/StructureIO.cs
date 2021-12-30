@@ -228,7 +228,7 @@ namespace Structure
             }
             else if (IsAlphanumeric(key) || key.Key == ConsoleKey.OemPeriod || key.Key == ConsoleKey.Decimal)
             {
-                ReadStringIntoLine($"{GetCharFromKey(key)}", line, echo);
+                ReadStringIntoLine($"{key.KeyChar}", line, echo);
             }
             else if (allowedKeys.Contains(key.Key))
             {
@@ -242,20 +242,20 @@ namespace Structure
             }
         }
 
-        private char GetCharFromKey(ConsoleKeyInfo key)
-        {
-            if (key.Key == ConsoleKey.D0) return '0';
-            if (key.Key == ConsoleKey.D1) return '1';
-            if (key.Key == ConsoleKey.D2) return '2';
-            if (key.Key == ConsoleKey.D3) return '3';
-            if (key.Key == ConsoleKey.D4) return '4';
-            if (key.Key == ConsoleKey.D5) return '5';
-            if (key.Key == ConsoleKey.D6) return '6';
-            if (key.Key == ConsoleKey.D7) return '7';
-            if (key.Key == ConsoleKey.D8) return '8';
-            if (key.Key == ConsoleKey.D9) return '9';
-            return key.KeyChar;
-        }
+        //private char GetCharFromKey(ConsoleKeyInfo key)
+        //{
+        //    if (key.Key == ConsoleKey.D0) return '0';
+        //    if (key.Key == ConsoleKey.D1) return '1';
+        //    if (key.Key == ConsoleKey.D2) return '2';
+        //    if (key.Key == ConsoleKey.D3) return '3';
+        //    if (key.Key == ConsoleKey.D4) return '4';
+        //    if (key.Key == ConsoleKey.D5) return '5';
+        //    if (key.Key == ConsoleKey.D6) return '6';
+        //    if (key.Key == ConsoleKey.D7) return '7';
+        //    if (key.Key == ConsoleKey.D8) return '8';
+        //    if (key.Key == ConsoleKey.D9) return '9';
+        //    return key.KeyChar;
+        //}
 
         private void BackspaceFromLine(StringBuilder line, bool echo)
         {
@@ -278,7 +278,7 @@ namespace Structure
             line.Append(text);
         }
 
-        private bool IsAlphanumeric(ConsoleKeyInfo key) => char.IsLetterOrDigit(GetCharFromKey(key)) || key.KeyChar == ' ';
+        private bool IsAlphanumeric(ConsoleKeyInfo key) => char.IsLetterOrDigit(key.KeyChar) || key.KeyChar == ' ';
 
         private bool IsModifierPressed(ConsoleKeyInfo key) =>
             key.Modifiers.HasFlag(ConsoleModifiers.Control)
