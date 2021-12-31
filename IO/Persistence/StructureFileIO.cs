@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Structure
 {
-    public static class FileIO
+    public static class StructureFileIO
     {
         public const string SaveFileExtension = ".structure";
         public const string AppDataSettingsFolderName = "Structure";

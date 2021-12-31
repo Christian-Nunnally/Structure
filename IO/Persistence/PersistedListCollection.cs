@@ -7,13 +7,11 @@ namespace Structure
     public class PersistedListCollection<T> : IEnumerable<T>
     {
         private readonly string _name;
-        private readonly bool autoSave;
 
-        public PersistedListCollection(string name, bool autoSave = false)
+        public PersistedListCollection(string name)
         {
             _name = name;
-            this.autoSave = autoSave;
-            List = JsonConvert.DeserializeObject<List<T>>(FileIO.ReadFromFile(_name)) ?? new List<T>();
+            List = JsonConvert.DeserializeObject<List<T>>(StructureFileIO.ReadFromFile(_name)) ?? new List<T>();
         }
 
         public int Count => List.Count;
@@ -23,7 +21,7 @@ namespace Structure
         public void Add(T value)
         {
             List.Add(value);
-            if (autoSave) Save();
+            Save();
         }
 
         public void Remove(T value)
@@ -40,6 +38,6 @@ namespace Structure
 
         IEnumerator IEnumerable.GetEnumerator() => List.GetEnumerator();
 
-        public void Save() => FileIO.Set(_name, JsonConvert.SerializeObject(List));
+        public void Save() => StructureFileIO.Set(_name, JsonConvert.SerializeObject(List));
     }
 }

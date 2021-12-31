@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Structure
 {
-    internal class Routiner : Module, IObsoleteModule
+    internal class Routiner : StructureModule, IObsoleteModule
     {
         private UserAction _action;
 
@@ -23,8 +23,8 @@ namespace Structure
         private void CopyRoutineToTaskList(TaskItem task)
         {
             var copy = task.Copy();
-            CurrentData.ActiveTaskTree.Set(copy);
-            var children = CurrentData.Routines.Where(x => x.Value.ParentID == task.ID);
+            Data.ActiveTaskTree.Set(copy);
+            var children = Data.Routines.Where(x => x.Value.ParentID == task.ID);
             foreach (var child in children.OrderBy(x => x.Value.Rank))
             {
                 CopyRoutineToTaskList(child.Value);
@@ -35,7 +35,7 @@ namespace Structure
         {
             IO.Run(() =>
             {
-                var editor = new TaskEditor(IO, CurrentData);
+                var editor = new TaskEditor(IO, Data);
                 editor.SetParent(routine);
                 editor.Edit();
             });
@@ -51,12 +51,12 @@ namespace Structure
 
         private void EditRoutines()
         {
-            IO.Run(() => new RoutineEditor(IO, CurrentData.Routines).Edit());
+            IO.Run(() => new RoutineEditor(IO, Data.Routines).Edit());
         }
 
         private void PickRoutine()
         {
-            IO.Run(() => new TaskPicker(IO, "Pick routine to start", "Start", false, true, true, CurrentData.Routines, StartRoutine).Edit());
+            IO.Run(() => new TaskPicker(IO, "Pick routine to start", "Start", false, true, true, Data.Routines, StartRoutine).Edit());
         }
 
         private void StartRoutine(TaskItem routine)

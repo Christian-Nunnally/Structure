@@ -1,28 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace Structure
 {
-    public class TreeEditor<ItemType> where ItemType : Node
+    public class TreeEditor<T> where T : Node
     {
-        public readonly List<(string, Action)> CustomActions = new List<(string, Action)>();
-        public Action<ItemType> EnterPressedOnParentAction;
-        public Action<ItemType> EnterPressedOnLeafAction;
-        public Action NoChildrenAction;
-        protected Dictionary<Type, Dictionary<Type, Func<ItemType, ItemType>>> ItemConversionMap = new Dictionary<Type, Dictionary<Type, Func<ItemType, ItemType>>>();
-        protected string _currentParent;
-        protected bool EnableReparenting = true;
-        protected NodeTreeCollection<ItemType> Tree;
-        protected bool ShowChildren;
-        protected bool ShouldExit;
-        protected int _cursor = 0;
+        public List<(string, Action)> CustomActions { get; } = new List<(string, Action)>();
+        public Action<T> EnterPressedOnParentAction { get; set; }
+        public Action<T> EnterPressedOnLeafAction { get; set; }
+        public Action NoChildrenAction { get; set; }
+        protected Dictionary<Type, Dictionary<Type, Func<T, T>>> ItemConversionMap { get; } = new Dictionary<Type, Dictionary<Type, Func<T, T>>>();
+        protected string CurrentParentCached { get; set; }
+        protected bool EnableReparenting { get; set; } = true;
+        protected NodeTreeCollection<T> Tree { get; set; }
+        protected bool ShowChildren { get; set; }
+        protected bool ShouldExit { get; set; }
+        protected int Cursor { get; set; }
+
         private readonly string _prompt;
         private bool _refreshDisplay;
         private bool _goBackIfNoChild;
         private readonly StructureIO _io;
 
-        public TreeEditor(StructureIO io, string prompt, NodeTreeCollection<ItemType> tree)
+        public TreeEditor(StructureIO io, string prompt, NodeTreeCollection<T> tree)
         {
             EnterPressedOnParentAction = SetParent;
             EnterPressedOnLeafAction = SetParent;
@@ -33,51 +35,52 @@ namespace Structure
             _io = io;
         }
 
-        public ItemType CurrentParent => _currentParent == null ? null : Tree.Get(_currentParent);
+        public T CurrentParent => CurrentParentCached == null ? null : Tree.Get(CurrentParentCached);
 
-        public int NumberOfVisibleTasks => GetChildren(_currentParent).Count;
+        public int NumberOfVisibleTasks => GetChildren(CurrentParentCached).Count;
 
         public void Edit()
         {
-            var children = GetChildren(_currentParent);
+            var children = GetChildren(CurrentParentCached);
             ConsolidateRank(children);
             WriteHeader();
-            WriteTasks(_cursor, children, "");
+            WriteTasks(Cursor, children, "");
             if (ShouldExit) return;
             if (children.Count == 0) { NoChildrenAction(); _io.Clear(); Edit(); }
             else _io.ReadKey(x => DoTasksInteraction(x));
         }
 
-        public void SetParent(ItemType item)
+        public void SetParent(T item)
         {
-            _currentParent = item.ID;
+            Contract.Requires(item != null);
+            CurrentParentCached = item.ID;
             _goBackIfNoChild = false;
         }
 
         public void ViewParent()
         {
-            if (_currentParent == null)
+            if (CurrentParentCached == null)
             {
                 ShouldExit = true;
             }
-            var currentParent = Tree.Get(_currentParent);
-            _currentParent = currentParent?.ParentID;
-            SetCursor(GetChildren(_currentParent).IndexOf(currentParent));
+            var currentParent = Tree.Get(CurrentParentCached);
+            CurrentParentCached = currentParent?.ParentID;
+            SetCursor(GetChildren(CurrentParentCached).IndexOf(currentParent));
         }
 
-        public List<ItemType> GetChildren(string parent) =>
+        public List<T> GetChildren(string parent) =>
             Tree.Where(x => x.Value.ParentID == parent)
                 .Select(x => x.Value)
                 .OrderBy(x => x.Rank)
                 .ToList();
 
-        protected bool TryGetSelectedTask(out ItemType selectedTask)
+        protected bool TryGetSelectedTask(out T selectedTask)
         {
             selectedTask = null;
-            var children = GetChildren(_currentParent);
-            if (children.Count > 0 && children.Count > _cursor)
+            var children = GetChildren(CurrentParentCached);
+            if (children.Count > 0 && children.Count > Cursor)
             {
-                selectedTask = children[_cursor];
+                selectedTask = children[Cursor];
             }
             return selectedTask is object;
         }
@@ -95,18 +98,18 @@ namespace Structure
             Rank = rank,
         };
 
-        protected bool TryGetSelectedItem(out ItemType selectedTask)
+        protected bool TryGetSelectedItem(out T selectedTask)
         {
             selectedTask = null;
-            var children = GetChildren(_currentParent);
-            if (children.Count > 0 && children.Count > _cursor)
+            var children = GetChildren(CurrentParentCached);
+            if (children.Count > 0 && children.Count > Cursor)
             {
-                selectedTask = children[_cursor];
+                selectedTask = children[Cursor];
             }
             return selectedTask is object;
         }
 
-        private static void ConsolidateRank(List<ItemType> tasks) => tasks.All(t => t.Rank = tasks.IndexOf(t));
+        private static void ConsolidateRank(List<T> tasks) => tasks.All(t => t.Rank = tasks.IndexOf(t));
 
         private void ChangeItemType()
         {
@@ -129,7 +132,7 @@ namespace Structure
             }
         }
 
-        private void ReplaceItem(ItemType itemToReplace, ItemType newItem)
+        private void ReplaceItem(T itemToReplace, T newItem)
         {
             newItem.ID = itemToReplace.ID;
             Tree.Remove(itemToReplace);
@@ -144,7 +147,7 @@ namespace Structure
                 _io.Write();
             }
 
-            var atParentKey = _currentParent;
+            var atParentKey = CurrentParentCached;
             var parents = new List<string>();
             while (!string.IsNullOrWhiteSpace(atParentKey) && Tree.Get(atParentKey) != null)
             {
@@ -160,7 +163,7 @@ namespace Structure
             _io.Write();
         }
 
-        private void WriteTasks(int cursorIndex, List<ItemType> tasks, string spaces)
+        private void WriteTasks(int cursorIndex, List<T> tasks, string spaces)
         {
             for (int i = 0; i < tasks.Count; i++)
             {
@@ -172,13 +175,13 @@ namespace Structure
 
         private void DoTasksInteraction(string key)
         {
-            SetCursor(_cursor);
-            var tasks = GetChildren(_currentParent);
-            if (_cursor < 0 || _cursor >= tasks.Count)
+            SetCursor(Cursor);
+            var tasks = GetChildren(CurrentParentCached);
+            if (Cursor < 0 || Cursor >= tasks.Count)
             {
                 return;
             }
-            var task = tasks[_cursor];
+            var task = tasks[Cursor];
 
             _refreshDisplay = true;
 
@@ -207,7 +210,7 @@ namespace Structure
             if (key == "{Escape}") return;
             if (actions.ContainsKey(key)) actions[key]();
 
-            if (GetChildren(_currentParent).Count == 0 && _goBackIfNoChild)
+            if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {
                 ViewParent();
             }
@@ -216,14 +219,14 @@ namespace Structure
             Edit();
         }
 
-        private void SetCursor(int index) => _cursor = Math.Max(0, Math.Min(index, GetChildren(_currentParent).Count - 1));
+        private void SetCursor(int index) => Cursor = Math.Max(0, Math.Min(index, GetChildren(CurrentParentCached).Count - 1));
 
-        private void ReparentToGrandparent(ItemType task)
+        private void ReparentToGrandparent(T task)
         {
             task.ParentID = Tree[task.ParentID]?.ParentID;
         }
 
-        private void ParentUnderSibling(ItemType task, List<ItemType> siblings)
+        private void ParentUnderSibling(T task, List<T> siblings)
         {
             if (siblings.Contains(task)) siblings.Remove(task);
             if (!siblings.Any()) return;
@@ -231,11 +234,11 @@ namespace Structure
             _io.PromptOptions($"Select the new parent for {task}", false, siblings.Select(s => new UserAction($"{i++} {s}", () => task.ParentID = s.ID)).ToArray());
         }
 
-        private void EnterPressed(ItemType item) => (IsParent(item) ? EnterPressedOnParentAction : EnterPressedOnLeafAction)(item);
+        private void EnterPressed(T item) => (IsParent(item) ? EnterPressedOnParentAction : EnterPressedOnLeafAction)(item);
 
-        private bool IsParent(ItemType item) => GetChildren(item.ID).Any();
+        private bool IsParent(T item) => GetChildren(item.ID).Any();
 
-        private void LowerTaskRank(ItemType task)
+        private void LowerTaskRank(T task)
         {
             var tasks = GetChildren(task.ParentID);
             var thisTaskIndex = tasks.IndexOf(task);
@@ -244,11 +247,11 @@ namespace Structure
                 var otherTask = tasks[thisTaskIndex - 1];
                 otherTask.Rank++;
                 task.Rank--;
-                SetCursor(_cursor - 1);
+                SetCursor(Cursor - 1);
             }
         }
 
-        private void RaiseItemRank(ItemType item)
+        private void RaiseItemRank(T item)
         {
             var tasks = GetChildren(item.ParentID);
             var thisTaskIndex = tasks.IndexOf(item);
@@ -257,24 +260,24 @@ namespace Structure
                 var otherTask = tasks[thisTaskIndex + 1];
                 otherTask.Rank--;
                 item.Rank++;
-                SetCursor(_cursor + 1);
+                SetCursor(Cursor + 1);
             }
         }
 
-        private void DeleteTask(ItemType task)
+        private void DeleteTask(T task)
         {
             Tree.Remove(task.ID);
         }
 
         private void CursorDown()
         {
-            SetCursor(_cursor + 1);
+            SetCursor(Cursor + 1);
             _refreshDisplay = false;
         }
 
         private void CursorUp()
         {
-            SetCursor(_cursor - 1);
+            SetCursor(Cursor - 1);
             _refreshDisplay = false;
         }
 
@@ -282,7 +285,7 @@ namespace Structure
         {
             var index = NumberOfVisibleTasks;
             _io.WriteNoLine($"\n{insertPrompt}: ");
-            _io.Read(s => AddNode(nodeFactory, s, _currentParent, index), ConsoleKey.Enter, ConsoleKey.LeftArrow);
+            _io.Read(s => AddNode(nodeFactory, s, CurrentParentCached, index), ConsoleKey.Enter, ConsoleKey.LeftArrow);
             if (NumberOfVisibleTasks == 0) ViewParent();
         };
 
@@ -297,7 +300,7 @@ namespace Structure
             {
                 return;
             }
-            Tree.Set(node as ItemType);
+            Tree.Set(node as T);
         }
     }
 }

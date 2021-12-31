@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 
 namespace Structure
 {
@@ -10,6 +10,7 @@ namespace Structure
 
         public override void DoTask(StructureIO io, NodeTreeCollection<TaskItem> tree)
         {
+            Contract.Requires(io != null);
             io.ReadInteger($"Record integer metric for: {Name}", RecordInteger);
             base.DoTask(io, tree);
         }

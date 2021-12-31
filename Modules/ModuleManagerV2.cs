@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Structure
 {
-    public class ModuleManagerV2 : Module
+    public class ModuleManagerV2 : StructureModule
     {
         public const string ManageModulesPrompt = "Enable/disable modules:";
         private readonly List<IModule> _listedModules = new List<IModule>();
@@ -49,7 +49,7 @@ namespace Structure
             IO.PromptOptions(ManageModulesPrompt, false, options.ToArray());
         }
 
-        private string ModuleString(IModule module)
+        private static string ModuleString(IModule module)
         {
             var state = module.Enabled ? "enabled" : "disabled";
             state += module is IObsoleteModule ? "/upgradable" : "";
@@ -60,7 +60,7 @@ namespace Structure
         {
             if (_listedModules.Contains(module))
             {
-                module.Enable(IO, Hotkey, CurrentData);
+                module.Enable(IO, Hotkey, Data);
                 IO.News($"+{module.Name} enabled.");
             }
         }

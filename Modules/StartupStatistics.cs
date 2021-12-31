@@ -3,11 +3,11 @@ using System.Linq;
 
 namespace Structure
 {
-    public class StartupStatistics : Module
+    public class StartupStatistics : StructureModule
     {
         protected override void OnEnable()
         {
-            var allSaveFiles = Directory.GetFiles(FileIO.SavePath);
+            var allSaveFiles = Directory.GetFiles(StructureFileIO.SavePath);
             var saveFileSizes = allSaveFiles.Select(x => new FileInfo(x).Length);
             var totalSize = saveFileSizes.Sum();
             totalSize /= 1024;

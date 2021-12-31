@@ -1,20 +1,23 @@
-﻿namespace Structure
+﻿using System.Diagnostics.Contracts;
+
+namespace Structure
 {
     public class TaskEditor : TaskExecutor
     {
+        private static int ugh = 0;
         public const string InsertTaskPrompt = "Insert task";
         public const string TitlePrompt = "Task tree";
-        private readonly CommonData _data;
+        private readonly StructureData _data;
         private readonly StructureIO _io;
 
-        public TaskEditor(StructureIO io, CommonData data) : base(io, TitlePrompt, data.ActiveTaskTree)
+        public TaskEditor(StructureIO io, StructureData data) : base(io, TitlePrompt, data?.ActiveTaskTree)
         {
+            Contract.Requires(io != null);
+            Contract.Requires(data != null);
             EnableDefaultInsertFunctionality(InsertTaskPrompt, DefaultNodeFactory);
             CustomActions.Add(("o", TaskEditorOptions));
             CustomActions.Add(("v", () => ShowChildren = !ShowChildren));
             CustomActions.Add(("c", CopyCurrentTask));
-
-            // TODO: Can remove?
             CustomActions.Add(("n", GoToNextActiveTask));
             _data = data;
             _io = io;
@@ -30,12 +33,15 @@
                     Rank = selectedTask.Rank + 1,
                     ParentID = selectedTask.ParentID,
                 };
-                _tree.Set(newTask);
+                Tree.Set(newTask);
             }
         }
 
         private void TaskEditorOptions()
         {
+            ugh++;
+            if (ugh < 5) return;
+            int test = 0;
         }
 
         private void GoToNextActiveTask()

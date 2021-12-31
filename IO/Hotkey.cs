@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.Globalization;
 using System.Linq;
 
 namespace Structure
@@ -8,10 +10,11 @@ namespace Structure
     {
         private readonly Dictionary<ConsoleKey, List<UserAction>> _hotkeys = new Dictionary<ConsoleKey, List<UserAction>>();
 
-        public void Print(StructureIO io) => _hotkeys.All(x => x.Value.All(y => io.Write($"ctrl + {$"{x.Key}".ToLower()}: {y.Description}")));
+        public void Print(StructureIO io) => _hotkeys.All(x => x.Value.All(y => io.Write($"ctrl + {$"{x.Key}".ToLower(CultureInfo.CurrentCulture)}: {y.Description}")));
 
         public void Execute(ConsoleKeyInfo key, StructureIO io)
         {
+            Contract.Requires(io != null);
             if (key.Modifiers.HasFlag(ConsoleModifiers.Control)
                 && _hotkeys.TryGetValue(key.Key, out var actions))
             {
@@ -21,7 +24,7 @@ namespace Structure
                 }
                 else
                 {
-                    io.Run(() => io.PromptOptions($"ctrl + {$"{key.Key}".ToLower()} pressed, select option:", false, actions.ToArray()));
+                    io.Run(() => io.PromptOptions($"ctrl + {$"{key.Key}".ToLower(CultureInfo.CurrentCulture)} pressed, select option:", false, actions.ToArray()));
                 }
             }
         }

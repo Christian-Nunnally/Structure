@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 
 namespace Structure
 {
@@ -7,7 +8,8 @@ namespace Structure
     {
         private DateTime _completedDate;
         private string _name;
-        public string CopiedFromID = null;
+
+        public string CopiedFromID { get; set; }
 
         public string Name
         {
@@ -46,6 +48,7 @@ namespace Structure
 
         public void CopyTo(TaskItem item)
         {
+            Contract.Requires(item != null);
             item.Name = Name;
             item.CompletedDate = CompletedDate;
             item.ParentID = ParentID;
@@ -55,6 +58,8 @@ namespace Structure
 
         public virtual void DoTask(StructureIO io, NodeTreeCollection<TaskItem> tree)
         {
+            Contract.Requires(io != null);
+            Contract.Requires(tree != null);
             CompletedDate = io.CurrentTime.GetCurrentTime();
             tree.Remove(ID);
         }

@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace Structure
+﻿namespace Structure
 {
     public class TaskExecutor : TaskPicker
     {
-        protected readonly NodeTreeCollection<TaskItem> _tree;
         private readonly StructureIO _io;
 
         public TaskExecutor(
@@ -13,14 +10,13 @@ namespace Structure
             NodeTreeCollection<TaskItem> tree)
             : base(io, prompt, "Complete", true, false, false, tree)
         {
-            _tree = tree;
-            PickedAction = CompleteTask;
+            SetPickAction(CompleteTask);
             _io = io;
         }
 
         public virtual void CompleteTask(TaskItem task)
         {
-            _io.Run(() => task?.DoTask(_io, _tree));
+            _io.Run(() => task?.DoTask(_io, Tree));
         }
     }
 }

@@ -4,9 +4,9 @@ namespace Structure
 {
     public class UserAction
     {
-        public string Description;
+        public string Description { get; set; }
 
-        public Action Action;
+        public Action Action { get; set; }
 
         public UserAction(string description, Action action)
         {

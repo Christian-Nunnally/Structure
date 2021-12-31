@@ -5,9 +5,11 @@ using System.Linq;
 
 namespace Structure
 {
-    public class ModuleManager : Module, IObsoleteModule
+    public class ModuleManager : StructureModule, IObsoleteModule
     {
-        public const string ManageModulesPrompt = "Enable/disable modules:";
+        public const string ManageModulesPromptText = "Enable/disable modules:";
+        private const string UpgradeModuleHintText = "Type 'upgrade 1' to upgrade module 1";
+        private const string ToggleModuleHintText = "Type '1' to enable or disable module 1";
         private readonly List<IModule> _listedModules = new List<IModule>();
         private UserAction _action;
 
@@ -31,9 +33,9 @@ namespace Structure
 
         private void ManageModules()
         {
-            IO.Write(ManageModulesPrompt);
-            IO.Write("Type '1' to enable or disable module 1");
-            IO.Write("Type 'upgrade 1' to upgrade module 1");
+            IO.Write(ManageModulesPromptText);
+            IO.Write(ToggleModuleHintText);
+            IO.Write(UpgradeModuleHintText);
             // TODO: Make this show pages at a time.
             _listedModules.All(m => IO.Write(ModuleString(m)));
             IO.Read(ToggleModule);
@@ -50,7 +52,7 @@ namespace Structure
         private void ToggleModule(string module)
         {
             if (string.IsNullOrWhiteSpace(module)) return;
-            bool upgrade = module.Contains("upgrade ");
+            bool upgrade = module.Contains("upgrade ", StringComparison.OrdinalIgnoreCase);
             var length = "upgrade ".Length;
             module = upgrade ? module[length..] : module;
             if (int.TryParse(module, out var index) && index >= 0 && index < _listedModules.Count) ToggleModule(index, upgrade);
@@ -72,7 +74,7 @@ namespace Structure
                         module = upgradedModule;
                     }
 
-                    module.Enable(IO, Hotkey, CurrentData);
+                    module.Enable(IO, Hotkey, Data);
                     IO.News($"+{name} enabled.");
                 }
                 else

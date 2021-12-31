@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 
 namespace Structure
 {
@@ -9,6 +10,7 @@ namespace Structure
 
         public override void DoTask(StructureIO io, NodeTreeCollection<TaskItem> tree)
         {
+            Contract.Requires(io != null);
             io.Read(RecordString);
             base.DoTask(io, tree);
         }

@@ -1,6 +1,7 @@
 ﻿using Structure.Code;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -9,7 +10,8 @@ namespace Structure
 {
     public class StructureIO
     {
-        private List<string> _newsArchive = new List<string>();
+        private readonly List<string> _newsArchive = new List<string>();
+
         public IReadOnlyList<string> NewsArchive => _newsArchive;
 
         private IProgramInput _programInput;
@@ -22,14 +24,10 @@ namespace Structure
         private readonly Queue<string> _newsQueue = new Queue<string>();
         private string _currentNews;
         private  int _newsCursorLeft = 40;
-        private readonly Hotkey _hotkey;
 
         public bool ThrowExceptions { get; set; }
 
-        public StructureIO(Hotkey hotkey)
-        {
-            _hotkey = hotkey;
-        }
+        public event Action<ConsoleKeyInfo, StructureIO> InteruptKeyPressed;
 
         public void SetInput(IProgramInput input)
         {
@@ -91,7 +89,7 @@ namespace Structure
             ReadKey(PickOption);
             void PickOption(string result)
             {
-                result = result.ToLower();
+                result = result.ToLower(CultureInfo.CurrentCulture);
 
                 var (key, userAction) = keyedOptions.FirstOrDefault(x => $"{x.Key}" == result);
                 var action = userAction?.Action;
@@ -110,12 +108,13 @@ namespace Structure
             }
         }
 
-        public (char Key, UserAction Action)[] CreateOptionKeys(UserAction[] options)
+        public static (char Key, UserAction Action)[] CreateOptionKeys(UserAction[] options)
         {
+            if (options == null) return null;
             var keys = new List<(char Key, UserAction Action)>();
             foreach (var option in options)
             {
-                var possibleKeys = $"{option.Description.ToLower()}abcdefghijklmnopqrstuvwxyz1234567890";
+                var possibleKeys = $"{option.Description.ToLower(CultureInfo.CurrentCulture)}abcdefghijklmnopqrstuvwxyz1234567890";
                 for (int i = 0; i < possibleKeys.Length; i++)
                 {
                     if (!keys.Any(x => x.Key == possibleKeys[i]))
@@ -128,7 +127,7 @@ namespace Structure
             return keys.ToArray();
         }
 
-        public Dictionary<char, UserAction> CreateOptionKeysDictionary(UserAction[] options)
+        public static Dictionary<char, UserAction> CreateOptionKeysDictionary(UserAction[] options)
         {
             return CreateOptionKeys(options).ToDictionary(x => x.Key, x=>x.Action);
         }
@@ -224,7 +223,7 @@ namespace Structure
         {
             if (IsModifierPressed(key))
             {
-                _hotkey.Execute(key, this);
+                InteruptKeyPressed?.Invoke(key, this);
             }
             else if (IsAlphanumeric(key) || key.Key == ConsoleKey.OemPeriod || key.Key == ConsoleKey.Decimal)
             {
@@ -241,21 +240,6 @@ namespace Structure
                 else if (key.Key == ConsoleKey.Escape) Write();
             }
         }
-
-        //private char GetCharFromKey(ConsoleKeyInfo key)
-        //{
-        //    if (key.Key == ConsoleKey.D0) return '0';
-        //    if (key.Key == ConsoleKey.D1) return '1';
-        //    if (key.Key == ConsoleKey.D2) return '2';
-        //    if (key.Key == ConsoleKey.D3) return '3';
-        //    if (key.Key == ConsoleKey.D4) return '4';
-        //    if (key.Key == ConsoleKey.D5) return '5';
-        //    if (key.Key == ConsoleKey.D6) return '6';
-        //    if (key.Key == ConsoleKey.D7) return '7';
-        //    if (key.Key == ConsoleKey.D8) return '8';
-        //    if (key.Key == ConsoleKey.D9) return '9';
-        //    return key.KeyChar;
-        //}
 
         private void BackspaceFromLine(StringBuilder line, bool echo)
         {
@@ -278,9 +262,9 @@ namespace Structure
             line.Append(text);
         }
 
-        private bool IsAlphanumeric(ConsoleKeyInfo key) => char.IsLetterOrDigit(key.KeyChar) || key.KeyChar == ' ';
+        private static bool IsAlphanumeric(ConsoleKeyInfo key) => char.IsLetterOrDigit(key.KeyChar) || key.KeyChar == ' ';
 
-        private bool IsModifierPressed(ConsoleKeyInfo key) =>
+        private static bool IsModifierPressed(ConsoleKeyInfo key) =>
             key.Modifiers.HasFlag(ConsoleModifiers.Control)
             || key.Modifiers.HasFlag(ConsoleModifiers.Alt);
     }

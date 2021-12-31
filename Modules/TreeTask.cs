@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Structure
 {
-    internal class TreeTask : Module
+    internal class TreeTask : StructureModule
     {
         public static List<TaskEditor> OpenEditors = new List<TaskEditor>();
         private UserAction _doTasks;
@@ -20,7 +20,7 @@ namespace Structure
 
         private void Start()
         {
-            var editor = new TaskEditor(IO, CurrentData);
+            var editor = new TaskEditor(IO, Data);
             OpenEditors.Add(editor);
             IO.Run(() => editor.Edit());
             if (OpenEditors.Count > 0) OpenEditors.RemoveAt(OpenEditors.Count - 1);

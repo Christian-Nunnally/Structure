@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.Globalization;
 using System.Linq;
 
 namespace Structure.Graphing
@@ -19,6 +21,8 @@ namespace Structure.Graphing
 
         public void Print(StructureIO io, List<(string, double)> values)
         {
+            Contract.Requires(values != null);
+            Contract.Requires(io != null);
             var chart = RenderChart(values);
             var yLabels = GenerateYLabels(values);
             PrintChart(io, chart, yLabels);
@@ -142,7 +146,7 @@ namespace Structure.Graphing
                 {
                     if (x < 0)
                     {
-                        var yLabelString = string.Format("{0:0.##}", yLabels[(int)y]);
+                        var yLabelString = string.Format(CultureInfo.CurrentCulture.NumberFormat, "{0:0.##}", yLabels[(int)y]);
                         for (int i = 0; i < 10 - yLabelString.Length; i++)
                         {
                             io.WriteNoLine(" ");
@@ -152,7 +156,7 @@ namespace Structure.Graphing
                     }
                     else
                     {
-                        io.WriteNoLine(chart[(int)x, (int)y].ToString());
+                        io.WriteNoLine($"{chart[(int)x, (int)y]}");
                     }
                 }
                 io.Write();
@@ -199,7 +203,7 @@ namespace Structure.Graphing
                 io.WriteNoLine("            ");
                 for (int x = 0; x < _width + XLabelRightPadding; x++)
                 {
-                    io.WriteNoLine(xNamesCharacters[x, y].ToString());
+                    io.WriteNoLine($"{xNamesCharacters[x, y]}");
                 }
                 io.Write();
             }

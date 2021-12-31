@@ -2,7 +2,7 @@
 
 namespace Structure
 {
-    internal class Information : Module
+    internal class Information : StructureModule
     {
         private UserAction _userAction;
 
@@ -18,9 +18,9 @@ namespace Structure
 
         private void PrintInfo()
         {
-            IO.Write($"Level = {CurrentData.Level}");
-            IO.Write($"XP = {CurrentData.XP}/{Utility.XPForNextLevel(CurrentData)}");
-            IO.Write($"Points = {CurrentData.Points}");
+            IO.Write($"Level = {Data.Level}");
+            IO.Write($"XP = {Data.XP}/{Utility.XPForNextLevel(Data)}");
+            IO.Write($"Points = {Data.Points}");
             IO.ReadAny();
         }
     }

@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Structure
 {
-    internal class Diagnostics : Module
+    internal class Diagnostics : StructureModule
     {
         private UserAction _action;
 
@@ -14,7 +14,7 @@ namespace Structure
 
         public void OpenSaveFile()
         {
-            Process.Start(new ProcessStartInfo($"explorer", FileIO.SavePath));
+            Process.Start(new ProcessStartInfo($"explorer", StructureFileIO.SavePath));
         }
 
         protected override void OnDisable()

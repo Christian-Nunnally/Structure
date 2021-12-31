@@ -1,4 +1,6 @@
-﻿namespace Structure
+﻿using System;
+
+namespace Structure
 {
     public class NoOpOutput : IProgramOutput
     {

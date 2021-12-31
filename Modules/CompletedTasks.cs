@@ -3,7 +3,7 @@
 namespace Structure
 {
     // TODO: Remove.
-    public class CompletedTasks : Module
+    public class CompletedTasks : StructureModule
     {
         private UserAction _doTasks;
 
@@ -31,15 +31,15 @@ namespace Structure
         private void Search(string searchTerm)
         {
             var count = 0;
-            foreach (var task in CurrentData.ActiveTaskTree)
+            foreach (var task in Data.ActiveTaskTree)
             {
-                if (task.Value.Name.ToLower().Contains(searchTerm.ToLower()))
+                if (task.Value.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                 {
                     IO.Write($"{task.Value.CompletedDate} {task.Value.Name}");
                     count++;
                 }
             }
-            IO.Write("Count: " + count.ToString());
+            IO.Write($"Count: {count}");
         }
     }
 }

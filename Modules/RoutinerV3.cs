@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Structure
 {
-    public class RoutinerV3 : Module
+    public class RoutinerV3 : StructureModule
     {
         private UserAction _pickAction;
         private UserAction _editAction;
@@ -24,8 +24,8 @@ namespace Structure
         {
             var copy = task.Copy();
             copy.ParentID = parentId;
-            CurrentData.ActiveTaskTree.Set(copy);
-            var children = CurrentData.Routines.Where(x => x.Value.ParentID == task.ID);
+            Data.ActiveTaskTree.Set(copy);
+            var children = Data.Routines.Where(x => x.Value.ParentID == task.ID);
             foreach (var child in children.OrderBy(x => x.Value.Rank))
             {
                 CopyRoutineToTaskList(child.Value, copy.ID);
@@ -37,7 +37,7 @@ namespace Structure
         {
             IO.Run(() =>
             {
-                var editor = new TaskEditor(IO, CurrentData);
+                var editor = new TaskEditor(IO, Data);
                 editor.SetParent(routine);
                 editor.Edit();
             });
@@ -45,12 +45,12 @@ namespace Structure
 
         private void EditRoutines()
         {
-            IO.Run(() => new RoutineEditor(IO, CurrentData.Routines).Edit());
+            IO.Run(() => new RoutineEditor(IO, Data.Routines).Edit());
         }
 
         private void PickRoutine()
         {
-            IO.Run(() => new TaskPicker(IO, "Pick routine to start", "Start", false, true, true, CurrentData.Routines, StartRoutine).Edit());
+            IO.Run(() => new TaskPicker(IO, "Pick routine to start", "Start", false, true, true, Data.Routines, StartRoutine).Edit());
         }
 
         private void StartRoutine(TaskItem routine)

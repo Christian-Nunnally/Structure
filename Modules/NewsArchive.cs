@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Structure
 {
-    internal class NewsArchive : Module
+    internal class NewsArchive : StructureModule
     {
         private UserAction _action;
 

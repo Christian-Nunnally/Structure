@@ -6,7 +6,7 @@ namespace Structure.Code
 {
     public class StructureInput : IProgramInput
     {
-        private const bool DEVELOPMENT_MODE = true;
+        private const bool DEVELOPMENT_MODE = false;
 
         private ChainedInput _inputSource;
 

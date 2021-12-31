@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 
 namespace Structure
 {
@@ -15,13 +16,14 @@ namespace Structure
             return (int)Math.Max(minimum, Math.Floor(total / 4));
         }
 
-        internal static object XPForNextLevel(CommonData currentData)
+        internal static object XPForNextLevel(StructureData currentData)
         {
             return ExperienceForLevel(currentData.Level +1, 10, 75, 25);
         }
 
         public static void All<T>(this IEnumerable<T> collection, Action<T> action)
         {
+            Contract.Requires(collection != null);
             foreach (var item in collection) action(item);
         }
     }

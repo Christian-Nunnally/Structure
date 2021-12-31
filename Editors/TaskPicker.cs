@@ -4,7 +4,7 @@ namespace Structure
 {
     public class TaskPicker : TreeEditor<TaskItem>
     {
-        protected Action<TaskItem> PickedAction;
+        private Action<TaskItem> _pickedAction;
         private readonly string _pickPrompt;
         private readonly bool _exitAfterPick;
         private readonly StructureIO _io;
@@ -25,15 +25,20 @@ namespace Structure
 
             _pickPrompt = pickPrompt;
             _exitAfterPick = exitAfterPick;
-            PickedAction = pickedAction;
+            _pickedAction = pickedAction;
             _io = io;
+        }
+
+        public void SetPickAction(Action<TaskItem> action)
+        {
+            _pickedAction = action;
         }
 
         private void ConfirmPick(TaskItem task) => _io.PromptOptions($"{_pickPrompt} {task}?", true,
             new UserAction("no", () => { }),
             new UserAction("yes (Enter)", () =>
             {
-                PickedAction(task);
+                _pickedAction(task);
                 if (_exitAfterPick) ShouldExit = true;
             }));
     }

@@ -20,7 +20,7 @@ namespace Structure.Code.ProgramInput
 
         private static PersistedListCollection<ProgramInputData> LoadSession(int setNumber)
         {
-            return new PersistedListCollection<ProgramInputData>($"session-{setNumber}", true);
+            return new PersistedListCollection<ProgramInputData>($"session-{setNumber}");
         }
     }
 }

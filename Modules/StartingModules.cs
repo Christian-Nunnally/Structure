@@ -4,7 +4,7 @@ namespace Structure
 {
     public static class StartingModules
     {
-        public static Module[] CreateStartingModules() => new Module[]
+        public static StructureModule[] CreateStartingModules() => new StructureModule[]
         {
             new TreeTask(),
             new Information(),
