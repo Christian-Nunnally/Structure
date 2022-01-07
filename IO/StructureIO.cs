@@ -65,46 +65,38 @@ namespace Structure
         }
 
         public void ReadKey(Action<string> continuation) => Read(continuation, KeyGroups.MiscKeys, KeyGroups.NoKeys, echo: false);
-
+        
         public void PromptOptions(string prompt, bool useDefault, params UserAction[] options)
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
             Write($"{prompt}\n");
             keyedOptions.All(x => Write($"{x.Key}: {x.Value.Description}"));
-            ReadKey(PickOption);
-            void PickOption(string result)
-            {
-                result = result.ToLower(CultureInfo.CurrentCulture);
 
-                var (key, userAction) = keyedOptions.FirstOrDefault(x => $"{x.Key}" == result);
-                var action = userAction?.Action;
-                if (useDefault)
-                {
-                    action ??= options.Last().Action;
-                }
-                if (action is object)
-                {
-                    action();
-                }
-                else
-                {
-                    //throw new InvalidOperationException("Invalid input.");
-                }
+            ConsoleKeyInfo key;
+
+            key = ReadKey(KeyGroups.NoKeys);
+            if (useDefault && !keyedOptions.ContainsKey(key.Key))
+            {
+                options.Last().Action();
+            }
+            else if (keyedOptions.ContainsKey(key.Key))
+            {
+                keyedOptions[key.Key].Action();
             }
         }
 
-        public static (char Key, UserAction Action)[] CreateOptionKeys(UserAction[] options)
+        public static (ConsoleKey Key, UserAction Action)[] CreateOptionKeys(UserAction[] options)
         {
             if (options == null) return null;
-            var keys = new List<(char Key, UserAction Action)>();
+            var keys = new List<(ConsoleKey Key, UserAction Action)>();
             foreach (var option in options)
             {
                 var possibleKeys = $"{option.Description.ToLower(CultureInfo.CurrentCulture)}abcdefghijklmnopqrstuvwxyz1234567890";
                 for (int i = 0; i < possibleKeys.Length; i++)
                 {
-                    if (!keys.Any(x => x.Key == possibleKeys[i]))
+                    if (!keys.Any(x => x.Key == ConvertCharToConsoleKey(possibleKeys[i]).Key))
                     {
-                        keys.Add((possibleKeys[i], option));
+                        keys.Add((ConvertCharToConsoleKey(possibleKeys[i]).Key, option));
                         break;
                     }
                 }
@@ -112,7 +104,18 @@ namespace Structure
             return keys.ToArray();
         }
 
-        public static Dictionary<char, UserAction> CreateOptionKeysDictionary(UserAction[] options)
+        public static ConsoleKeyInfo ConvertCharToConsoleKey(char character)
+        {
+            if (Enum.TryParse(character.ToString(CultureInfo.InvariantCulture), true, out ConsoleKey consoleKey))
+            {
+                return new ConsoleKeyInfo(character, consoleKey, false, false, false);
+            }
+            else if (character == ' ')
+                return new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, false);
+            throw new InvalidOperationException($"Unable to convert '{character}' to ConsoleKey");
+        }
+
+        public static Dictionary<ConsoleKey, UserAction> CreateOptionKeysDictionary(UserAction[] options)
         {
             return CreateOptionKeys(options).ToDictionary(x => x.Key, x => x.Action);
         }
@@ -147,16 +150,9 @@ namespace Structure
             WriteNoLine(buffer);
         }
 
-        public void Read(
-            Action<string> continuation,
-            ConsoleKey[] allowedKeys,
-            ConsoleKey[] submitKeys,
-            bool echo)
+        public ConsoleKeyInfo ReadKey(ConsoleKey[] allowedKeys)
         {
-            ProgramInputData key;
-            var line = new StringBuilder();
-            bool wasHotkeyPressed;
-            while(true)
+            while (true)
             {
                 while (!ProgramInput.IsKeyAvailable())
                 {
@@ -165,23 +161,45 @@ namespace Structure
                 }
 
                 // TODO: Pass allowed keys in here all the time.
-                key = ProgramInput.ReadKey();
+                var key = ProgramInput.ReadKey();
+                var keyInfo = key.GetKeyInfo();
                 CurrentTime.SetArtificialTime(key.Time);
-                wasHotkeyPressed = IsModifierPressed(key.GetKeyInfo());
+                var wasHotkeyPressed = IsModifierPressed(keyInfo);
                 if (wasHotkeyPressed)
                 {
                     Hotkey.Execute(key.GetKeyInfo(), this);
                 }
-                else
+                else //if (allowedKeys.Contains(keyInfo.Key))
                 {
-                    ProcessReadKeyIntoLine(key.GetKeyInfo(), line, echo, allowedKeys);
+                    return keyInfo;
                 }
                 if (wasHotkeyPressed) continue;
-                if (submitKeys.Contains(key.GetKeyInfo().Key)) break;
+            }
+        }
+
+        public void Read(
+            Action<string> continuation,
+            ConsoleKey[] allowedKeys,
+            ConsoleKey[] submitKeys,
+            bool echo)
+        {
+            var line = new StringBuilder();
+            while(true)
+            {
+                while (!ProgramInput.IsKeyAvailable())
+                {
+                    if (!_newsPrinter.PrintNews(ProgramOutput)) break;
+                    Thread.Sleep(10);
+                }
+
+                var key = ReadKey(allowedKeys);
+                ProcessReadKeyIntoLine(key, line, echo, allowedKeys);
+                
+                if (submitKeys.Contains(key.Key)) break;
                 if (submitKeys == KeyGroups.NoKeys) break;
             }
             if (echo) Write();
-            continuation(line.ToString());
+            continuation?.Invoke(line.ToString());
         }
 
         private void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo, ConsoleKey[] allowedKeys)
