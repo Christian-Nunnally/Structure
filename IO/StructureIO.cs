@@ -54,11 +54,9 @@ namespace Structure
             ProgramOutput.SetCursorPosition(0, 1);
         }
 
-        public void ReadAny() => Read((line, key) => true, x => { }, KeyGroups.NoKeys, echo: true);
+        public void ReadAny() => Read(x => { }, KeyGroups.NoKeys, KeyGroups.NoKeys, echo: true);
 
-        public void Read(Action<string> continuation, params ConsoleKey[] submitKeys) => Read((line, key) => submitKeys.Contains(key.Key), continuation, KeyGroups.NoKeys, echo: true);
-
-        public void Read(Action<string> continuation) => Read(continuation, ConsoleKey.Enter);
+        public void Read(Action<string> continuation, params ConsoleKey[] submitKeys) => Read(continuation, KeyGroups.NoKeys, submitKeys, echo: true);
 
         public void ReadInteger(string prompt, Action<int> continuation)
         {
@@ -74,10 +72,10 @@ namespace Structure
                     Write($"'{x}' is not a valid integer.");
                     ReadInteger(prompt, continuation);
                 }
-            });
+            }, ConsoleKey.Enter);
         }
 
-        public void ReadKey(Action<string> continuation) => Read((line, key) => !IsModifierPressed(key), continuation, KeyGroups.MiscKeys, echo: false);
+        public void ReadKey(Action<string> continuation) => Read(continuation, KeyGroups.MiscKeys, KeyGroups.NoKeys, echo: false);
 
         public void PromptOptions(string prompt, bool useDefault, params UserAction[] options)
         {
@@ -161,14 +159,15 @@ namespace Structure
         }
 
         private void Read(
-            Func<string, ConsoleKeyInfo, bool> shouldExit,
             Action<string> continuation,
             ConsoleKey[] allowedKeys,
+            ConsoleKey[] submitKeys,
             bool echo)
         {
             ProgramInputData key;
             var line = new StringBuilder();
-            do
+            bool wasHotkeyPressed;
+            while(true)
             {
                 while (!ProgramInput.IsKeyAvailable())
                 {
@@ -179,20 +178,26 @@ namespace Structure
                 // TODO: Pass allowed keys in here all the time.
                 key = ProgramInput.ReadKey();
                 CurrentTime.SetArtificialTime(key.Time);
-                ProcessReadKeyIntoLine(key.GetKeyInfo(), line, echo, allowedKeys);
-
-            } while (!shouldExit(line.ToString(), key.GetKeyInfo()));
+                wasHotkeyPressed = IsModifierPressed(key.GetKeyInfo());
+                if (wasHotkeyPressed)
+                {
+                    Hotkey.Execute(key.GetKeyInfo(), this);
+                }
+                else
+                {
+                    ProcessReadKeyIntoLine(key.GetKeyInfo(), line, echo, allowedKeys);
+                }
+                if (wasHotkeyPressed) continue;
+                if (submitKeys.Contains(key.GetKeyInfo().Key)) break;
+                if (submitKeys == KeyGroups.NoKeys) break;
+            }
             if (echo) Write();
             continuation(line.ToString());
         }
 
         private void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo, ConsoleKey[] allowedKeys)
         {
-            if (IsModifierPressed(key))
-            {
-                Hotkey.Execute(key, this);
-            }
-            else if (IsAlphanumeric(key) || key.Key == ConsoleKey.OemPeriod || key.Key == ConsoleKey.Decimal)
+            if (IsAlphanumeric(key) || key.Key == ConsoleKey.OemPeriod || key.Key == ConsoleKey.Decimal)
             {
                 ReadStringIntoLine($"{key.KeyChar}", line, echo);
             }

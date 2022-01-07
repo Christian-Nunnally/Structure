@@ -12,7 +12,7 @@ namespace Structure
         {
             Contract.Requires(io != null);
             io.Write($"Record float metric for: {Name}");
-            io.Read(s => RecordFloat(io, Name, s));
+            io.Read(s => RecordFloat(io, Name, s), ConsoleKey.Enter);
             base.DoTask(io, tree);
         }
 
@@ -33,7 +33,7 @@ namespace Structure
             else
             {
                 io.Write($"{result} is not a valid float.");
-                io.Read(s => RecordFloat(io, metricName, s));
+                io.Read(s => RecordFloat(io, metricName, s), ConsoleKey.Enter);
             }
         }
     }

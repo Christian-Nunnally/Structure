@@ -38,7 +38,7 @@ namespace Structure
             IO.Write(UpgradeModuleHintText);
             // TODO: Make this show pages at a time.
             _listedModules.All(m => IO.Write(ModuleString(m)));
-            IO.Read(ToggleModule);
+            IO.Read(ToggleModule, ConsoleKey.Enter);
         }
 
         private string ModuleString(IModule module)

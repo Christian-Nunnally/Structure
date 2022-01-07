@@ -11,7 +11,7 @@ namespace Structure
         public override void DoTask(StructureIO io, NodeTreeCollection<TaskItem> tree)
         {
             Contract.Requires(io != null);
-            io.Read(RecordString);
+            io.Read(RecordString, ConsoleKey.Enter);
             base.DoTask(io, tree);
         }
 
