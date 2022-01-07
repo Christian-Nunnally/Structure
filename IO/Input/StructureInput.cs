@@ -1,4 +1,5 @@
 ﻿using Structure.Code.ProgramInput;
+using Structure.IO;
 using System;
 using System.Linq;
 
@@ -10,7 +11,7 @@ namespace Structure.Code
 
         private readonly ChainedInput _inputSource;
 
-        public StructureInput(StructureIO io)
+        public StructureInput(StructureIO io, NewsPrinter newsPrinter)
         {
             _inputSource = new ChainedInput();
             _inputSource.AddAction(() => SetToLoadMode(io));
@@ -19,7 +20,7 @@ namespace Structure.Code
             sessionsInputs.All(x => _inputSource.AddInput(x));
             var recordedUserInputSource = (IProgramInput)new RecordingInput(new ConsoleInput(), nextDataSession);
             if (DEVELOPMENT_MODE) recordedUserInputSource = new ConsoleInput();
-            _inputSource.AddAction(() => SetToUserMode(io));
+            _inputSource.AddAction(() => SetToUserMode(io, newsPrinter));
             _inputSource.AddInput(recordedUserInputSource);
         }
 
@@ -40,8 +41,9 @@ namespace Structure.Code
             io.ProgramOutput = new NoOpOutput();
         }
 
-        private static void SetToUserMode(StructureIO io)
+        private static void SetToUserMode(StructureIO io, NewsPrinter newsPrinter)
         {
+            newsPrinter.ClearNews();
             io.ProgramOutput = new ConsoleOutput();
             io.CurrentTime.SetToRealTime();
             io.Refresh();

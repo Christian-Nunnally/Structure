@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Structure.IO
 {
-    internal class NewsPrinter
+    public class NewsPrinter
     {
         private readonly Queue<string> _newsQueue = new Queue<string>();
         private string _currentNews;

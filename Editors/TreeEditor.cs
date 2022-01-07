@@ -47,6 +47,7 @@ namespace Structure
             WriteTasks(Cursor, children, "");
             if (ShouldExit) return;
             if (children.Count == 0) { NoChildrenAction(); _io.Clear(); Edit(); }
+            // TODO: Use _io.PromptOptions instead
             else _io.ReadKey(x => DoTasksInteraction(x));
         }
 

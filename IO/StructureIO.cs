@@ -15,28 +15,19 @@ namespace Structure
 
         private readonly Stack<string> _buffers = new Stack<string>();
         private readonly StringBuilder _currentBuffer = new StringBuilder();
-        private readonly NewsPrinter _newsPrinter = new NewsPrinter();
-        private IProgramOutput programOutput;
+        private readonly NewsPrinter _newsPrinter;
         public Hotkey Hotkey { get; private set; }
 
         public bool ThrowExceptions { get; set; }
 
         public IProgramInput ProgramInput { get; set; }
 
-        public IProgramOutput ProgramOutput 
-        { 
-            get => programOutput; 
-            set
-            {
-                programOutput = value;
-                // TODO: Maybe handle this less magically?
-                _newsPrinter.ClearNews();
-            }
-        }
+        public IProgramOutput ProgramOutput { get; set; }
 
-        public StructureIO(Hotkey hotkey)
+        public StructureIO(Hotkey hotkey, NewsPrinter newsPrinter)
         {
             Hotkey = hotkey;
+            _newsPrinter = newsPrinter;
         }
 
         public void Write(string text = "") => WriteNoLine($"{text}\n");
@@ -53,8 +44,6 @@ namespace Structure
             if (clearConsole) ProgramOutput.Clear();
             ProgramOutput.SetCursorPosition(0, 1);
         }
-
-        public void ReadAny() => Read(x => { }, KeyGroups.NoKeys, KeyGroups.NoKeys, echo: true);
 
         public void Read(Action<string> continuation, params ConsoleKey[] submitKeys) => Read(continuation, KeyGroups.NoKeys, submitKeys, echo: true);
 
@@ -158,7 +147,7 @@ namespace Structure
             WriteNoLine(buffer);
         }
 
-        private void Read(
+        public void Read(
             Action<string> continuation,
             ConsoleKey[] allowedKeys,
             ConsoleKey[] submitKeys,

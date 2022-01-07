@@ -21,7 +21,7 @@ namespace Structure
             IO.Write($"Level = {Data.Level}");
             IO.Write($"XP = {Data.XP}/{Utility.XPForNextLevel(Data)}");
             IO.Write($"Points = {Data.Points}");
-            IO.ReadAny();
+            // IO.ReadAny();
         }
     }
 }

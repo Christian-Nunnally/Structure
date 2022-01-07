@@ -1,4 +1,5 @@
 ﻿using Structure.Code;
+using Structure.IO;
 
 namespace Structure
 {
@@ -7,8 +8,9 @@ namespace Structure
         public static void Main()
         {
             var hotkey = new Hotkey();
-            var io = new StructureIO(hotkey);
-            io.ProgramInput = new StructureInput(io);
+            var newsPrinter = new NewsPrinter();
+            var io = new StructureIO(hotkey, newsPrinter);
+            io.ProgramInput = new StructureInput(io, newsPrinter);
             io.ProgramOutput = new ConsoleOutput();
             var program = new StructureProgram(io);
             program.Run();
