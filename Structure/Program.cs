@@ -7,13 +7,11 @@ namespace Structure
         public static void Main()
         {
             var io = new StructureIO();
-            var input = new StructureInput();
-            var output = new ConsoleOutput();
-            input.InitializeStructureInput(io);
-            io.SetInput(input);
-            io.SetOutput(output);
+            io.ProgramInput = new StructureInput(io);
+            io.ProgramOutput = new ConsoleOutput();
 
-            var program = new StructureProgram(io, new Hotkey());
+            var hotkey = new Hotkey();
+            var program = new StructureProgram(io, hotkey);
             program.Run();
         }
     }

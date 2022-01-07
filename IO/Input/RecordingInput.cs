@@ -16,10 +16,10 @@ namespace Structure.Code
 
         public bool IsKeyAvailable() => _inputSource.IsKeyAvailable();
 
-        public ProgramInputData ReadKey(ConsoleKeyInfo[] allowedKeys)
+        public ProgramInputData ReadKey(ConsoleKey[] allowedKeys)
         {
             var key = _inputSource.ReadKey(allowedKeys);
-            while (!allowedKeys.Contains(key.GetKeyInfo())) key = _inputSource.ReadKey();
+            while (!allowedKeys.Contains((ConsoleKey)key.Key)) key = _inputSource.ReadKey();
             _recordedInputs.Add(key);
             return key;
         }

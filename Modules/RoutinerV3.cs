@@ -45,6 +45,7 @@ namespace Structure
 
         private void EditRoutines()
         {
+            IO.News("Editing");
             IO.Run(() => new RoutineEditor(IO, Data.Routines).Edit());
         }
 

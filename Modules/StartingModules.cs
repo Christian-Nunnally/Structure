@@ -11,10 +11,9 @@ namespace Structure
             new Diagnostics(),
             new Routiner(),
             new NewsArchive(),
-            new CompletedTasks(),
+            new TaskHistoryInformation(),
             new StartupStatistics(),
             new ModuleManager(),
-            new TaskHistoryInformation(),
         };
     }
 }

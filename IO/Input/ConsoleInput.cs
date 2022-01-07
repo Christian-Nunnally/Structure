@@ -7,10 +7,10 @@ namespace Structure.Code
     {
         public bool IsKeyAvailable() => Console.KeyAvailable;
 
-        public ProgramInputData ReadKey(ConsoleKeyInfo[] allowedKeys)
+        public ProgramInputData ReadKey(ConsoleKey[] allowedKeys)
         {
             var key = ReadKey();
-            while (!allowedKeys.Contains(key.GetKeyInfo())) key = ReadKey();
+            while (!allowedKeys.Contains((ConsoleKey)key.Key)) key = ReadKey();
             return key;
         }
 

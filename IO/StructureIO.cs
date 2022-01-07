@@ -1,4 +1,5 @@
 ﻿using Structure.Code;
+using Structure.IO;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -14,44 +15,33 @@ namespace Structure
 
         public IReadOnlyList<string> NewsArchive => _newsArchive;
 
-        private IProgramInput _programInput;
-        private IProgramOutput _programOutput;
-
         public CurrentTime CurrentTime { get; } = new CurrentTime();
 
         private readonly Stack<string> _buffers = new Stack<string>();
         private readonly StringBuilder _buffer = new StringBuilder();
-        private readonly Queue<string> _newsQueue = new Queue<string>();
-        private string _currentNews;
-        private  int _newsCursorLeft = 40;
+        private readonly NewsPrinter _newsPrinter = new NewsPrinter();
 
         public bool ThrowExceptions { get; set; }
 
+        public IProgramInput ProgramInput { get; set; }
+        public IProgramOutput ProgramOutput { get; set; }
+
         public event Action<ConsoleKeyInfo, StructureIO> InteruptKeyPressed;
-
-        public void SetInput(IProgramInput input)
-        {
-            _programInput = input;
-        }
-
-        public void SetOutput(IProgramOutput output)
-        {
-            _programOutput = output;
-        }
+        public event Action<string> NewsBroadcast;
 
         public void Write(string text = "") => WriteNoLine($"{text}\n");
 
         public void WriteNoLine(string text = "")
         {
             _buffer.Append(text);
-            _programOutput.Write(text);
+            ProgramOutput.Write(text);
         }
 
         public void Clear(bool clearConsole = true)
         {
             _buffer.Clear();
-            if (clearConsole) _programOutput.Clear();
-            _programOutput.SetCursorPosition(0, 1);
+            if (clearConsole) ProgramOutput.Clear();
+            ProgramOutput.SetCursorPosition(0, 1);
         }
 
         public void ReadAny() => Read((line, key) => true, x => { }, KeyGroups.NoKeys, echo: true);
@@ -78,8 +68,6 @@ namespace Structure
         }
 
         public void ReadKey(Action<string> continuation) => Read((line, key) => !IsModifierPressed(key), continuation, KeyGroups.MiscKeys, echo: false);
-
-        public void PromptYesNo(string prompt, Action action) => PromptOptions(prompt, false, new UserAction("yes", action), new UserAction("no", null));
 
         public void PromptOptions(string prompt, bool useDefault, params UserAction[] options)
         {
@@ -134,11 +122,8 @@ namespace Structure
 
         public void News(string news)
         {
-            if (!(_programOutput is NoOpOutput))
-            {
-                _newsQueue.Enqueue(news);
-            }
-            _newsArchive.Add(news);
+            _newsPrinter.EnqueueNews(ProgramOutput, news);
+            NewsBroadcast?.Invoke(news);
         }
 
         public void Run(Action action)
@@ -153,7 +138,7 @@ namespace Structure
             catch (Exception e)
             {
                 if (ThrowExceptions) throw new Exception("Exception" + e.Message, e);
-                _programOutput.WriteLine(e.Message);
+                ProgramOutput.WriteLine(e.Message);
             }
             Clear(true);
             WriteNoLine(_buffers.Pop());
@@ -176,47 +161,20 @@ namespace Structure
             var line = new StringBuilder();
             do
             {
-                while (!_programInput.IsKeyAvailable())
+                while (!ProgramInput.IsKeyAvailable())
                 {
-                    if (!PrintNews()) break;
+                    if (!_newsPrinter.PrintNews()) break;
                     Thread.Sleep(10);
                 }
 
                 // TODO: Pass allowed keys in here all the time.
-                key = _programInput.ReadKey();
+                key = ProgramInput.ReadKey();
                 CurrentTime.SetArtificialTime(key.Time);
                 ProcessReadKeyIntoLine(key.GetKeyInfo(), line, echo, allowedKeys);
 
             } while (!shouldExit(line.ToString(), key.GetKeyInfo()));
             if (echo) Write();
             continuation(line.ToString());
-        }
-
-        private bool PrintNews()
-        {
-            if (!_newsQueue.Any() && _currentNews == null) return false;
-            _currentNews ??= _newsQueue.Dequeue();
-            var cursorLeft = _programOutput.CursorLeft;
-            var cursorTop = _programOutput.CursorTop;
-            _programOutput.CursorLeft = Math.Max(0, _newsCursorLeft);
-            _newsCursorLeft -= 2;
-            _programOutput.CursorTop = 0;
-
-            _programOutput.Write(_currentNews + "  ");
-
-            _programOutput.CursorLeft = cursorLeft;
-            _programOutput.CursorTop = cursorTop;
-            if (_newsCursorLeft < -80)
-            {
-                if (_currentNews.Length == 0)
-                {
-                    _currentNews = null;
-                    _newsCursorLeft = 40;
-                }
-                else if (_currentNews.Length == 1) _currentNews = _currentNews[1..];
-                else _currentNews = _currentNews[2..];
-            }
-            return true;
         }
 
         private void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo, ConsoleKey[] allowedKeys)
@@ -248,7 +206,7 @@ namespace Structure
                 if (echo)
                 {
                     const string DoubleBackspace = "\b \b";
-                    _programOutput.Write(DoubleBackspace);
+                    ProgramOutput.Write(DoubleBackspace);
                 }
 
                 _buffer.Remove(_buffer.Length - 1, 1);

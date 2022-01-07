@@ -13,6 +13,7 @@ namespace Structure.Modules
         private Func<List<TaskItem>, double> _aggregationMode = CountAggregationFunction;
         private TaskItem _routineParent;
         private bool _interpolateZeros;
+        private bool _listValues;
 
         private static double CountAggregationFunction(List<TaskItem> list) => list.Count;
 
@@ -80,16 +81,33 @@ namespace Structure.Modules
 
         private void ShowHistory(Predicate<TaskItem> filter)
         {
+            var values = ComputeValues(filter);
+
+            if (_listValues)
+            {
+                ListValues(values);
+            } 
+            else
+            {
+                GraphValues(values);
+            }
+            ListChartOptions(values);
+        }
+
+        private void GraphValues(List<(string Label, double Value)> values)
+        {
+            var consoleGraph = new ConsoleGraph(80, 20);
+            consoleGraph.Print(IO, values);
+        }
+
+        private List<(string Label, double Value)> ComputeValues(Predicate<TaskItem> filter)
+        {
             var tasks = Data.CompletedTasks.Where(x => x.CompletedDate + new TimeSpan(_range, 0, 0, 0, 0) > DateTime.Now && filter(x)).ToList();
-            
             if (_routineParent is object)
             {
                 tasks = tasks.Where(t => t.CopiedFromID == _routineParent.ID).ToList();
             }
-
             var values = new List<(string Label, double Value)>();
-            var totalCount = values.Count;
-
             for (int i = 1; i < _range; i += _grouping)
             {
                 var groupedTasks = tasks.Where(x => x.CompletedDate + new TimeSpan(i, 0, 0, 0, 0) > DateTime.Now).ToList();
@@ -156,22 +174,24 @@ namespace Structure.Modules
                 }
             }
 
-            var consoleGraph = new ConsoleGraph(80, 20);
-            consoleGraph.Print(IO, values);
+            return values;
+        }
 
+        private void ListChartOptions(List<(string Label, double Value)> values)
+        {
             var changeRangeOption = new UserAction("Change range", ChangeRange);
             var changeGroupingOption = new UserAction("Change grouping", ChangeGrouping);
             var setRoutineParent = new UserAction("Set routine parent", SetRoutineParent);
             var changeYAxisOption = new UserAction("Y axis", ChangeYAxisMode);
-            var listRawValues = new UserAction("List raw values", () => ListValues(values));
+            var listRawValues = new UserAction("List raw values", () => ToggleListValues(values));
             var toggleInterpolateZeros = new UserAction("Toggle interpolate zeros", ToggleInterpolateZeros);
 
             IO.PromptOptions(
-                "Task history options", 
-                false, changeRangeOption, 
+                "Task history options",
+                false, changeRangeOption,
                 changeGroupingOption,
                 setRoutineParent,
-                changeYAxisOption, 
+                changeYAxisOption,
                 listRawValues,
                 toggleInterpolateZeros);
         }
@@ -193,6 +213,12 @@ namespace Structure.Modules
             _routineParent = routineParent;
         }
 
+        private void ToggleListValues(List<(string Label, double Value)> values)
+        {
+            _listValues = !_listValues;
+            IO.Run(Start);
+        }
+
         private void ListValues(List<(string Label, double Value)> values)
         {
             IO.Write();
@@ -200,8 +226,6 @@ namespace Structure.Modules
             {
                 IO.Write($"{Label} : {Value}");
             }
-            IO.ReadAny();
-            IO.Run(Start);
         }
 
         private void ChangeYAxisMode()

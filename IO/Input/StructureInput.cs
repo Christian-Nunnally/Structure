@@ -6,15 +6,11 @@ namespace Structure.Code
 {
     public class StructureInput : IProgramInput
     {
-        private const bool DEVELOPMENT_MODE = true;
+        private const bool DEVELOPMENT_MODE = false;
 
-        private ChainedInput _inputSource;
+        private readonly ChainedInput _inputSource;
 
-        public StructureInput()
-        {
-        }
-
-        public void InitializeStructureInput(StructureIO io)
+        public StructureInput(StructureIO io)
         {
             _inputSource = new ChainedInput();
             _inputSource.AddAction(() => SetToLoadMode(io));
@@ -29,7 +25,7 @@ namespace Structure.Code
 
         public bool IsKeyAvailable() => _inputSource.IsKeyAvailable();
 
-        public ProgramInputData ReadKey(ConsoleKeyInfo[] allowedKeys)
+        public ProgramInputData ReadKey(ConsoleKey[] allowedKeys)
         {
             return _inputSource.ReadKey(allowedKeys);
         }
@@ -41,12 +37,12 @@ namespace Structure.Code
 
         private static void SetToLoadMode(StructureIO io)
         {
-            io.SetOutput(new NoOpOutput());
+            io.ProgramOutput = new NoOpOutput();
         }
 
         private static void SetToUserMode(StructureIO io)
         {
-            io.SetOutput(new ConsoleOutput());
+            io.ProgramOutput = new ConsoleOutput();
             io.CurrentTime.SetToRealTime();
             io.Refresh();
         }
