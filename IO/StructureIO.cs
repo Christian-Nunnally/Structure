@@ -11,35 +11,45 @@ namespace Structure
 {
     public class StructureIO
     {
-        private readonly List<string> _newsArchive = new List<string>();
-
-        public IReadOnlyList<string> NewsArchive => _newsArchive;
-
         public CurrentTime CurrentTime { get; } = new CurrentTime();
 
         private readonly Stack<string> _buffers = new Stack<string>();
-        private readonly StringBuilder _buffer = new StringBuilder();
+        private readonly StringBuilder _currentBuffer = new StringBuilder();
         private readonly NewsPrinter _newsPrinter = new NewsPrinter();
+        private IProgramOutput programOutput;
+        public Hotkey Hotkey { get; private set; }
 
         public bool ThrowExceptions { get; set; }
 
         public IProgramInput ProgramInput { get; set; }
-        public IProgramOutput ProgramOutput { get; set; }
 
-        public event Action<ConsoleKeyInfo, StructureIO> InteruptKeyPressed;
-        public event Action<string> NewsBroadcast;
+        public IProgramOutput ProgramOutput 
+        { 
+            get => programOutput; 
+            set
+            {
+                programOutput = value;
+                // TODO: Maybe handle this less magically?
+                _newsPrinter.ClearNews();
+            }
+        }
+
+        public StructureIO(Hotkey hotkey)
+        {
+            Hotkey = hotkey;
+        }
 
         public void Write(string text = "") => WriteNoLine($"{text}\n");
 
         public void WriteNoLine(string text = "")
         {
-            _buffer.Append(text);
+            _currentBuffer.Append(text);
             ProgramOutput.Write(text);
         }
 
         public void Clear(bool clearConsole = true)
         {
-            _buffer.Clear();
+            _currentBuffer.Clear();
             if (clearConsole) ProgramOutput.Clear();
             ProgramOutput.SetCursorPosition(0, 1);
         }
@@ -117,19 +127,18 @@ namespace Structure
 
         public static Dictionary<char, UserAction> CreateOptionKeysDictionary(UserAction[] options)
         {
-            return CreateOptionKeys(options).ToDictionary(x => x.Key, x=>x.Action);
+            return CreateOptionKeys(options).ToDictionary(x => x.Key, x => x.Action);
         }
 
         public void News(string news)
         {
-            _newsPrinter.EnqueueNews(ProgramOutput, news);
-            NewsBroadcast?.Invoke(news);
+            _newsPrinter.EnqueueNews(news);
         }
 
         public void Run(Action action)
         {
             if (action is null) return;
-            _buffers.Push($"{_buffer}");
+            _buffers.Push($"{_currentBuffer}");
             Clear(true);
             try
             {
@@ -146,14 +155,14 @@ namespace Structure
 
         public void Refresh()
         {
-            var buffer = _buffer.ToString();
+            var buffer = _currentBuffer.ToString();
             Clear(true);
             WriteNoLine(buffer);
         }
 
         private void Read(
-            Func<string, ConsoleKeyInfo, bool> shouldExit, 
-            Action<string> continuation, 
+            Func<string, ConsoleKeyInfo, bool> shouldExit,
+            Action<string> continuation,
             ConsoleKey[] allowedKeys,
             bool echo)
         {
@@ -163,7 +172,7 @@ namespace Structure
             {
                 while (!ProgramInput.IsKeyAvailable())
                 {
-                    if (!_newsPrinter.PrintNews()) break;
+                    if (!_newsPrinter.PrintNews(ProgramOutput)) break;
                     Thread.Sleep(10);
                 }
 
@@ -181,7 +190,7 @@ namespace Structure
         {
             if (IsModifierPressed(key))
             {
-                InteruptKeyPressed?.Invoke(key, this);
+                Hotkey.Execute(key, this);
             }
             else if (IsAlphanumeric(key) || key.Key == ConsoleKey.OemPeriod || key.Key == ConsoleKey.Decimal)
             {
@@ -209,7 +218,7 @@ namespace Structure
                     ProgramOutput.Write(DoubleBackspace);
                 }
 
-                _buffer.Remove(_buffer.Length - 1, 1);
+                _currentBuffer.Remove(_currentBuffer.Length - 1, 1);
                 line.Remove(line.Length - 1, 1);
             }
         }

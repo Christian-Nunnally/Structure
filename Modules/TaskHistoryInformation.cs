@@ -81,17 +81,21 @@ namespace Structure.Modules
 
         private void ShowHistory(Predicate<TaskItem> filter)
         {
-            var values = ComputeValues(filter);
+            ShowData(filter);
+            ListChartOptions();
+        }
 
+        private void ShowData(Predicate<TaskItem> filter)
+        {
+            var values = ComputeValues(filter);
             if (_listValues)
             {
                 ListValues(values);
-            } 
+            }
             else
             {
                 GraphValues(values);
             }
-            ListChartOptions(values);
         }
 
         private void GraphValues(List<(string Label, double Value)> values)
@@ -177,13 +181,13 @@ namespace Structure.Modules
             return values;
         }
 
-        private void ListChartOptions(List<(string Label, double Value)> values)
+        private void ListChartOptions()
         {
             var changeRangeOption = new UserAction("Change range", ChangeRange);
             var changeGroupingOption = new UserAction("Change grouping", ChangeGrouping);
             var setRoutineParent = new UserAction("Set routine parent", SetRoutineParent);
             var changeYAxisOption = new UserAction("Y axis", ChangeYAxisMode);
-            var listRawValues = new UserAction("List raw values", () => ToggleListValues(values));
+            var listRawValues = new UserAction("List raw values", ToggleListValues);
             var toggleInterpolateZeros = new UserAction("Toggle interpolate zeros", ToggleInterpolateZeros);
 
             IO.PromptOptions(
@@ -213,7 +217,7 @@ namespace Structure.Modules
             _routineParent = routineParent;
         }
 
-        private void ToggleListValues(List<(string Label, double Value)> values)
+        private void ToggleListValues()
         {
             _listValues = !_listValues;
             IO.Run(Start);

@@ -1,5 +1,4 @@
-﻿using Structure.Code;
-using System;
+﻿using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
@@ -17,13 +16,11 @@ namespace Structure
 
         public static string TitleString => $"Structure {Version.Major}.{Version.Minor}.{Version.Build}";
 
-        public StructureProgram(StructureIO io, Hotkey hotkey)
+        public StructureProgram(StructureIO io)
         {
             Contract.Requires(io != null);
-            Contract.Requires(hotkey != null);
             _io = io;
-            _hotkey = hotkey;
-            _io.InteruptKeyPressed += _hotkey.Execute;
+            _hotkey = io.Hotkey;
         }
 
         public void Run()

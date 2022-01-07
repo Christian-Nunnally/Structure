@@ -6,26 +6,17 @@ namespace Structure.IO
 {
     internal class NewsPrinter
     {
-        private readonly Queue<(IProgramOutput, string)> _newsQueue = new Queue<(IProgramOutput, string)>();
+        private readonly Queue<string> _newsQueue = new Queue<string>();
         private string _currentNews;
         private int _newsCursorLeft = 40;
 
-        internal bool PrintNews()
+        internal bool PrintNews(IProgramOutput programOutput)
         {
             if (!_newsQueue.Any() && _currentNews == null) return false;
-            IProgramOutput programOutput = null;
             if (_currentNews == null)
             {
-                var nextNews = _newsQueue.Dequeue();
-                _currentNews = nextNews.Item2;
-                programOutput = nextNews.Item1;
+                _currentNews = _newsQueue.Dequeue();
             }
-            //if (programOutput == null)
-            //{
-            //    _currentNews = null;
-            //    _newsCursorLeft = 40;
-            //    return true;
-            //}
             var cursorLeft = programOutput?.CursorLeft ?? 0;
             var cursorTop = programOutput?.CursorTop ?? 0;
             if (programOutput != null)
@@ -59,9 +50,14 @@ namespace Structure.IO
             return true;
         }
 
-        internal void EnqueueNews(IProgramOutput output, string news)
+        internal void ClearNews()
         {
-            _newsQueue.Enqueue((output, news));
+            _newsQueue.Clear();
+        }
+
+        internal void EnqueueNews(string news)
+        {
+            _newsQueue.Enqueue(news);
         }
     }
 }

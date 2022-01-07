@@ -9,20 +9,12 @@ namespace Structure
 
         protected override void OnEnable()
         {
-            _action = Hotkey.Add(ConsoleKey.N, new UserAction("News", BrowseNews));
+            _action = Hotkey.Add(ConsoleKey.N, new UserAction("News", () => { }));
         }
 
         protected override void OnDisable()
         {
             Hotkey.Remove(ConsoleKey.N, _action);
-        }
-
-        private void BrowseNews()
-        {
-            var news = new List<object>();
-            IO.NewsArchive.All(news.Add);
-            news.Reverse();
-            new ListViewer("News archive:", news, 10).ViewList(IO);
         }
     }
 }

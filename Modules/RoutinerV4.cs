@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Structure
 {
-    public class RoutinerV3 : StructureModule
+    public class RoutinerV4 : StructureModule
     {
         private UserAction _pickAction;
         private UserAction _editAction;
@@ -51,7 +51,7 @@ namespace Structure
 
         private void PickRoutine()
         {
-            IO.Run(() => new TaskPicker(IO, "Pick routine to start", "Start", false, true, true, Data.Routines, StartRoutine).Edit());
+            IO.Run(() => new TaskPicker(IO, "Pick routine to start", "Start", true, true, true, Data.Routines, StartRoutine).Edit());
         }
 
         private void StartRoutine(TaskItem routine)

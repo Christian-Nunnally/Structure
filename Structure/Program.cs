@@ -6,12 +6,11 @@ namespace Structure
     {
         public static void Main()
         {
-            var io = new StructureIO();
+            var hotkey = new Hotkey();
+            var io = new StructureIO(hotkey);
             io.ProgramInput = new StructureInput(io);
             io.ProgramOutput = new ConsoleOutput();
-
-            var hotkey = new Hotkey();
-            var program = new StructureProgram(io, hotkey);
+            var program = new StructureProgram(io);
             program.Run();
         }
     }
