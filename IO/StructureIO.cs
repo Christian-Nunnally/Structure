@@ -115,6 +115,12 @@ namespace Structure
             var keys = new List<(ConsoleKeyInfo Key, UserAction Action)>();
             foreach (var option in options)
             {
+                if (option.HotkeyOverridden)
+                {
+                    keys.Add((option.Hotkey, option));
+                    continue;
+                }
+
                 var possibleKeys = $"{option.Description.ToLower(CultureInfo.CurrentCulture)}abcdefghijklmnopqrstuvwxyz1234567890";
                 for (int i = 0; i < possibleKeys.Length; i++)
                 {
