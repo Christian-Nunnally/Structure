@@ -44,7 +44,7 @@ namespace Structure
             var line = new StringBuilder();
             while (true)
             {
-                var key = ReadKey(allowedKeys);
+                var key = ReadKey(allowedKeys.Concat(submitKeys).ToArray());
                 ProcessReadKeyIntoLine(key, line, echo, allowedKeys);
 
                 if (submitKeys.Contains(key.Key)) break;
@@ -161,13 +161,18 @@ namespace Structure
                 var keyInfo = ReadKeyAndSetTime();
                 var wasHotkeyPressed = ConsoleKeyHelpers.IsModifierPressed(keyInfo);
                 if (wasHotkeyPressed) Hotkey.Execute(keyInfo, this);
-                else if (allowedKeys == KeyGroups.NoKeys || allowedKeys.Contains(keyInfo.Key))
+                else if (allowedKeys.Contains(keyInfo.Key))
                 {
                     return keyInfo;
                 }
                 //TODO: Temp
                 else if (allowedKeys == KeyGroups.MiscKeys)
                 {
+                    return keyInfo;
+                }
+                else
+                {
+                    // throw new InvalidOperationException("Not allowed key");
                     return keyInfo;
                 }
             }

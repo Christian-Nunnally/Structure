@@ -17,6 +17,11 @@ namespace Structure
         };
         public static readonly ConsoleKey[] NoKeys = Array.Empty<ConsoleKey>();
 
+        public static readonly ConsoleKey[] SpaceKey = new ConsoleKey[]
+        {
+            ConsoleKey.Spacebar,
+        };
+
         public static readonly ConsoleKey[] NumberKeys = new ConsoleKey[]
         {
             ConsoleKey.NumPad0,
@@ -74,5 +79,7 @@ namespace Structure
         };
 
         public static readonly ConsoleKey[] AlphanumericKeys = NumberKeys.Concat(LetterKeys).ToArray();
+
+        public static readonly ConsoleKey[] AlphanumericKeysPlus = AlphanumericKeys.Concat(SpaceKey).ToArray();
     }
 }

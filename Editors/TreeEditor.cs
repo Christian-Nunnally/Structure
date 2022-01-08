@@ -288,7 +288,7 @@ namespace Structure
             _io.WriteNoLine($"\n{insertPrompt}: ");
 
             var submitKeys = new ConsoleKey[] { ConsoleKey.Enter, ConsoleKey.LeftArrow };
-            _io.Read(s => AddNode(nodeFactory, s, CurrentParentCached, index), KeyGroups.NoKeys, submitKeys);
+            _io.Read(s => AddNode(nodeFactory, s, CurrentParentCached, index), KeyGroups.AlphanumericKeysPlus, submitKeys);
             if (NumberOfVisibleTasks == 0) ViewParent();
         };
 
