@@ -16,7 +16,6 @@ namespace Structure.Code
 
         public int Key { get; set; }
 
-        // TODO: Rename to 'Character'. This messes up previous serialization.
         [JsonProperty(PropertyName="Char")]
         public char Character { get; set; }
 

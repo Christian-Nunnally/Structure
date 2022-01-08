@@ -39,11 +39,19 @@ namespace Structure
             ProgramOutput.Write(text);
         }
 
-        public void Clear(bool clearConsole)
+        public void Read(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, bool echo = true)
         {
-            _currentBuffer.Clear();
-            if (clearConsole) ProgramOutput.Clear();
-            ProgramOutput.SetCursorPosition(0, 1);
+            var line = new StringBuilder();
+            while (true)
+            {
+                var key = ReadKey(allowedKeys);
+                ProcessReadKeyIntoLine(key, line, echo, allowedKeys);
+
+                if (submitKeys.Contains(key.Key)) break;
+                if (submitKeys == KeyGroups.NoKeys) break;
+            }
+            if (echo) Write();
+            continuation?.Invoke(line.ToString());
         }
 
         public void ReadInteger(string prompt, Action<int> continuation)
@@ -89,7 +97,19 @@ namespace Structure
             }
         }
 
-        public static (ConsoleKeyInfo Key, UserAction Action)[] CreateOptionKeys(UserAction[] options)
+        public void News(string news)
+        {
+            _newsPrinter.EnqueueNews(news);
+        }
+
+        public void Clear(bool clearConsole)
+        {
+            _currentBuffer.Clear();
+            if (clearConsole) ProgramOutput.Clear();
+            ProgramOutput.SetCursorPosition(0, 1);
+        }
+
+        public static Dictionary<ConsoleKeyInfo, UserAction> CreateOptionKeysDictionary(UserAction[] options)
         {
             if (options == null) return null;
             var keys = new List<(ConsoleKeyInfo Key, UserAction Action)>();
@@ -98,35 +118,14 @@ namespace Structure
                 var possibleKeys = $"{option.Description.ToLower(CultureInfo.CurrentCulture)}abcdefghijklmnopqrstuvwxyz1234567890";
                 for (int i = 0; i < possibleKeys.Length; i++)
                 {
-                    if (!keys.Any(x => x.Key.KeyChar == ConvertCharToConsoleKey(possibleKeys[i]).KeyChar))
+                    if (!keys.Any(x => x.Key.KeyChar == ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]).KeyChar))
                     {
-                        keys.Add((ConvertCharToConsoleKey(possibleKeys[i]), option));
+                        keys.Add((ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]), option));
                         break;
                     }
                 }
             }
-            return keys.ToArray();
-        }
-
-        public static ConsoleKeyInfo ConvertCharToConsoleKey(char character)
-        {
-            if (Enum.TryParse(character.ToString(CultureInfo.InvariantCulture), true, out ConsoleKey consoleKey))
-            {
-                return new ConsoleKeyInfo(character, consoleKey, false, false, false);
-            }
-            else if (character == ' ')
-                return new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, false);
-            throw new InvalidOperationException($"Unable to convert '{character}' to ConsoleKey");
-        }
-
-        public static Dictionary<ConsoleKeyInfo, UserAction> CreateOptionKeysDictionary(UserAction[] options)
-        {
-            return CreateOptionKeys(options).ToDictionary(x => x.Key, x => x.Action);
-        }
-
-        public void News(string news)
-        {
-            _newsPrinter.EnqueueNews(news);
+            return keys.ToDictionary(x => x.Key, x => x.Action);
         }
 
         public void Run(Action action)
@@ -141,7 +140,7 @@ namespace Structure
             catch (Exception e)
             {
                 if (ThrowExceptions) throw new Exception("Exception" + e.Message, e);
-                ProgramOutput.WriteLine(e.Message);
+                Write(e.Message);
             }
             Clear(true);
             WriteNoLine(_buffers.Pop());
@@ -158,57 +157,31 @@ namespace Structure
         {
             while (true)
             {
-                while (!ProgramInput.IsKeyAvailable())
-                {
-                    if (!_newsPrinter.PrintNews(ProgramOutput)) break;
-                    Thread.Sleep(10);
-                }
-
-                // TODO: Pass allowed keys in here all the time.
-                var key = ProgramInput.ReadKey();
-                var keyInfo = key.GetKeyInfo();
-                CurrentTime.SetArtificialTime(key.Time);
-                var wasHotkeyPressed = IsModifierPressed(keyInfo);
-                if (wasHotkeyPressed)
-                {
-                    Hotkey.Execute(key.GetKeyInfo(), this);
-                }
-                else //if (allowedKeys.Contains(keyInfo.Key))
-                {
-                    return keyInfo;
-                }
-                if (wasHotkeyPressed) continue;
+                PrintNewsWhileWaitingForInput();
+                var keyInfo = ReadKeyAndSetTime();
+                var wasHotkeyPressed = ConsoleKeyHelpers.IsModifierPressed(keyInfo);
+                if (wasHotkeyPressed) Hotkey.Execute(keyInfo, this);
+                //if (allowedKeys == KeyGroups.NoKeys || allowedKeys.Contains(keyInfo.Key))
+                else return keyInfo;
             }
         }
 
-        public void Read(
-            Action<string> continuation,
-            ConsoleKey[] allowedKeys,
-            ConsoleKey[] submitKeys,
-            bool echo = true)
+        private ConsoleKeyInfo ReadKeyAndSetTime()
         {
-            var line = new StringBuilder();
-            while(true)
-            {
-                while (!ProgramInput.IsKeyAvailable())
-                {
-                    if (!_newsPrinter.PrintNews(ProgramOutput)) break;
-                    Thread.Sleep(10);
-                }
+            var key = ProgramInput.ReadKey();
+            CurrentTime.SetArtificialTime(key.Time);
+            return key.GetKeyInfo();
+        }
 
-                var key = ReadKey(allowedKeys);
-                ProcessReadKeyIntoLine(key, line, echo, allowedKeys);
-                
-                if (submitKeys.Contains(key.Key)) break;
-                if (submitKeys == KeyGroups.NoKeys) break;
-            }
-            if (echo) Write();
-            continuation?.Invoke(line.ToString());
+        private void PrintNewsWhileWaitingForInput()
+        {
+            bool isNoInputAndNewsStillPrinting() => !ProgramInput.IsKeyAvailable() && _newsPrinter.PrintNews(ProgramOutput);
+            while (isNoInputAndNewsStillPrinting()) Thread.Sleep(10);
         }
 
         private void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo, ConsoleKey[] allowedKeys)
         {
-            if (IsAlphanumeric(key) || key.Key == ConsoleKey.OemPeriod || key.Key == ConsoleKey.Decimal)
+            if (ConsoleKeyHelpers.IsAlphanumeric(key))
             {
                 ReadStringIntoLine($"{key.KeyChar}", line, echo);
             }
@@ -226,17 +199,10 @@ namespace Structure
 
         private void BackspaceFromLine(StringBuilder line, bool echo)
         {
-            if (line.Length > 0)
-            {
-                if (echo)
-                {
-                    const string DoubleBackspace = "\b \b";
-                    ProgramOutput.Write(DoubleBackspace);
-                }
-
-                _currentBuffer.Remove(_currentBuffer.Length - 1, 1);
-                line.Remove(line.Length - 1, 1);
-            }
+            if (line.Length == 0) return;
+            if (echo) ProgramOutput.Write("\b \b");
+            _currentBuffer.Remove(_currentBuffer.Length - 1, 1);
+            line.Remove(line.Length - 1, 1);
         }
 
         private void ReadStringIntoLine(string text, StringBuilder line, bool echo)
@@ -244,11 +210,5 @@ namespace Structure
             if (echo) WriteNoLine(text);
             line.Append(text);
         }
-
-        private static bool IsAlphanumeric(ConsoleKeyInfo key) => char.IsLetterOrDigit(key.KeyChar) || key.KeyChar == ' ';
-
-        private static bool IsModifierPressed(ConsoleKeyInfo key) =>
-            key.Modifiers.HasFlag(ConsoleModifiers.Control)
-            || key.Modifiers.HasFlag(ConsoleModifiers.Alt);
     }
 }

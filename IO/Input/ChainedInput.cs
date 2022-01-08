@@ -56,12 +56,5 @@ namespace Structure
                 }
             }
         }
-
-        public ProgramInputData ReadKey(ConsoleKey[] allowedKeys)
-        {
-            var key = ReadKey();
-            while (!allowedKeys.Contains((ConsoleKey)key.Key)) key = ReadKey();
-            return key;
-        }
     }
 }

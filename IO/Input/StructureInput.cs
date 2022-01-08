@@ -26,11 +26,6 @@ namespace Structure.Code
 
         public bool IsKeyAvailable() => _inputSource.IsKeyAvailable();
 
-        public ProgramInputData ReadKey(ConsoleKey[] allowedKeys)
-        {
-            return _inputSource.ReadKey(allowedKeys);
-        }
-
         public ProgramInputData ReadKey()
         {
             return _inputSource.ReadKey();
