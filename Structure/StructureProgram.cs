@@ -38,7 +38,7 @@ namespace Structure
         {
             _io.Write(TitleString);
             _hotkey.Print(_io);
-            _io.Read(x => { }, KeyGroups.NoKeys, KeyGroups.NoKeys, true);
+            _io.Read(x => { }, KeyGroups.NoKeys, KeyGroups.NoKeys);
         }
     }
 }

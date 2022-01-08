@@ -161,8 +161,15 @@ namespace Structure
                 var keyInfo = ReadKeyAndSetTime();
                 var wasHotkeyPressed = ConsoleKeyHelpers.IsModifierPressed(keyInfo);
                 if (wasHotkeyPressed) Hotkey.Execute(keyInfo, this);
-                //if (allowedKeys == KeyGroups.NoKeys || allowedKeys.Contains(keyInfo.Key))
-                else return keyInfo;
+                else if (allowedKeys == KeyGroups.NoKeys || allowedKeys.Contains(keyInfo.Key))
+                {
+                    return keyInfo;
+                }
+                //TODO: Temp
+                else if (allowedKeys == KeyGroups.MiscKeys)
+                {
+                    return keyInfo;
+                }
             }
         }
 

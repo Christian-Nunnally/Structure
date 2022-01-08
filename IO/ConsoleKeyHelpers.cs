@@ -11,6 +11,8 @@ namespace Structure.IO
                 return new ConsoleKeyInfo(character, consoleKey, false, false, false);
             if (character == ' ')
                 return new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, false);
+            if (character == '.')
+                return new ConsoleKeyInfo('.', ConsoleKey.OemPeriod, false, false, false);
             throw new InvalidOperationException($"Unable to convert '{character}' to ConsoleKey");
         }
 
