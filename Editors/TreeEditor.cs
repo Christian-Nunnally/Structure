@@ -46,9 +46,9 @@ namespace Structure
             WriteHeader();
             WriteTasks(Cursor, children, "");
             if (ShouldExit) return;
-            if (children.Count == 0) { NoChildrenAction(); _io.Clear(); Edit(); }
+            if (children.Count == 0) { NoChildrenAction(); _io.Clear(clearConsole: true); Edit(); }
             // TODO: Use _io.PromptOptions instead
-            else _io.ReadKey(x => DoTasksInteraction(x));
+            else _io.Read(DoTasksInteraction, KeyGroups.MiscKeys, KeyGroups.NoKeys, echo: false);
         }
 
         public void SetParent(T item)
@@ -286,7 +286,9 @@ namespace Structure
         {
             var index = NumberOfVisibleTasks;
             _io.WriteNoLine($"\n{insertPrompt}: ");
-            _io.Read(s => AddNode(nodeFactory, s, CurrentParentCached, index), ConsoleKey.Enter, ConsoleKey.LeftArrow);
+
+            var submitKeys = new ConsoleKey[] { ConsoleKey.Enter, ConsoleKey.LeftArrow };
+            _io.Read(s => AddNode(nodeFactory, s, CurrentParentCached, index), KeyGroups.NoKeys, submitKeys);
             if (NumberOfVisibleTasks == 0) ViewParent();
         };
 

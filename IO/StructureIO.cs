@@ -11,11 +11,12 @@ namespace Structure
 {
     public class StructureIO
     {
-        public CurrentTime CurrentTime { get; } = new CurrentTime();
-
         private readonly Stack<string> _buffers = new Stack<string>();
         private readonly StringBuilder _currentBuffer = new StringBuilder();
         private readonly NewsPrinter _newsPrinter;
+
+        public CurrentTime CurrentTime { get; } = new CurrentTime();
+
         public Hotkey Hotkey { get; private set; }
 
         public bool ThrowExceptions { get; set; }
@@ -32,20 +33,18 @@ namespace Structure
 
         public void Write(string text = "") => WriteNoLine($"{text}\n");
 
-        public void WriteNoLine(string text = "")
+        public void WriteNoLine(string text)
         {
             _currentBuffer.Append(text);
             ProgramOutput.Write(text);
         }
 
-        public void Clear(bool clearConsole = true)
+        public void Clear(bool clearConsole)
         {
             _currentBuffer.Clear();
             if (clearConsole) ProgramOutput.Clear();
             ProgramOutput.SetCursorPosition(0, 1);
         }
-
-        public void Read(Action<string> continuation, params ConsoleKey[] submitKeys) => Read(continuation, KeyGroups.NoKeys, submitKeys, echo: true);
 
         public void ReadInteger(string prompt, Action<int> continuation)
         {
@@ -61,11 +60,9 @@ namespace Structure
                     Write($"'{x}' is not a valid integer.");
                     ReadInteger(prompt, continuation);
                 }
-            }, ConsoleKey.Enter);
+            }, KeyGroups.NoKeys, new[] { ConsoleKey.Enter });
         }
 
-        public void ReadKey(Action<string> continuation) => Read(continuation, KeyGroups.MiscKeys, KeyGroups.NoKeys, echo: false);
-        
         public void PromptOptions(string prompt, bool useDefault, params UserAction[] options)
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
@@ -188,7 +185,7 @@ namespace Structure
             Action<string> continuation,
             ConsoleKey[] allowedKeys,
             ConsoleKey[] submitKeys,
-            bool echo)
+            bool echo = true)
         {
             var line = new StringBuilder();
             while(true)
