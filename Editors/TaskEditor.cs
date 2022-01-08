@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics.Contracts;
+﻿using System.Diagnostics.Contracts;
 
 namespace Structure
 {
@@ -16,10 +15,10 @@ namespace Structure
             Contract.Requires(io != null);
             Contract.Requires(data != null);
             EnableDefaultInsertFunctionality(InsertTaskPrompt, DefaultNodeFactory);
-            CustomActions.Add(new UserAction("o", TaskEditorOptions, ConsoleKey.O));
-            CustomActions.Add(new UserAction("v", () => ShowChildren = !ShowChildren, ConsoleKey.V));
-            CustomActions.Add(new UserAction("c", CopyCurrentTask, ConsoleKey.C));
-            CustomActions.Add(new UserAction("n", GoToNextActiveTask, ConsoleKey.N));
+            CustomActions.Add(("o", TaskEditorOptions));
+            CustomActions.Add(("v", () => ShowChildren = !ShowChildren));
+            CustomActions.Add(("c", CopyCurrentTask));
+            CustomActions.Add(("n", GoToNextActiveTask));
             _data = data;
             _io = io;
         }

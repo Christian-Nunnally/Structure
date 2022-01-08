@@ -7,7 +7,7 @@ namespace Structure
 {
     public class TreeEditor<T> where T : Node
     {
-        public List<UserAction> CustomActions { get; } = new List<UserAction>();
+        public List<(string, Action)> CustomActions { get; } = new List<(string, Action)>();
         public Action<T> EnterPressedOnParentAction { get; set; }
         public Action<T> EnterPressedOnLeafAction { get; set; }
         public Action NoChildrenAction { get; set; }
@@ -22,7 +22,6 @@ namespace Structure
         private readonly string _prompt;
         private bool _refreshDisplay;
         private bool _goBackIfNoChild;
-        private bool _exiting;
         private readonly StructureIO _io;
 
         public TreeEditor(StructureIO io, string prompt, NodeTreeCollection<T> tree)
@@ -30,7 +29,7 @@ namespace Structure
             EnterPressedOnParentAction = SetParent;
             EnterPressedOnLeafAction = SetParent;
             NoChildrenAction = () => { _io.News("No children"); ViewParent(); };
-            CustomActions.Add(new UserAction("t", ChangeItemType));
+            CustomActions.Add(("t", ChangeItemType));
             _prompt = prompt;
             Tree = tree;
             _io = io;
@@ -48,7 +47,8 @@ namespace Structure
             WriteTasks(Cursor, children, "");
             if (ShouldExit) return;
             if (children.Count == 0) { NoChildrenAction(); _io.Clear(clearConsole: true); Edit(); }
-            DoTasksInteraction();
+            // TODO: Use _io.PromptOptions instead
+            else _io.Read(DoTasksInteraction, KeyGroups.MiscKeys, KeyGroups.NoKeys, echo: false);
         }
 
         public void SetParent(T item)
@@ -88,7 +88,7 @@ namespace Structure
 
         protected void EnableDefaultInsertFunctionality(string insertPrompt, Func<string, string, int, Node> nodeFactory)
         {
-            CustomActions.Add(new UserAction("i", () => _io.Run(PromptToInsertNode(insertPrompt, nodeFactory)), ConsoleKey.I));
+            CustomActions.Add(("i", (Action)(() => _io.Run(PromptToInsertNode(insertPrompt, nodeFactory)))));
             NoChildrenAction = PromptToInsertNode(insertPrompt, nodeFactory);
         }
 
@@ -174,36 +174,42 @@ namespace Structure
             }
         }
 
-        private void DoTasksInteraction()
+        private void DoTasksInteraction(string key)
         {
-            var options = new List<UserAction>
+            SetCursor(Cursor);
+            var tasks = GetChildren(CurrentParentCached);
+            if (Cursor < 0 || Cursor >= tasks.Count)
             {
-                new UserAction("{UpArrow}", EditorInteractionWrapper(CursorUp), ConsoleKey.UpArrow),
-                new UserAction("{DownArrow}", EditorInteractionWrapper(CursorDown), ConsoleKey.DownArrow),
-                new UserAction("{LeftArrow}", EditorInteractionWrapper(ViewParent), ConsoleKey.LeftArrow),
-                new UserAction("{RightArrow}", EditorInteractionWrapper(SetParent), ConsoleKey.RightArrow),
-                new UserAction("{Delete}", EditorInteractionWrapper(DeleteTask), ConsoleKey.Delete),
-                new UserAction("{Enter}", EditorInteractionWrapper(EnterPressed), ConsoleKey.Enter),
-                new UserAction("w", EditorInteractionWrapper(LowerTaskRank), ConsoleKey.W),
-                new UserAction("s", EditorInteractionWrapper(RaiseItemRank), ConsoleKey.S),
+                return;
+            }
+            var task = tasks[Cursor];
+
+            _refreshDisplay = true;
+
+            var actions = new Dictionary<string, Action>
+            {
+                { "{UpArrow}", CursorUp },
+                { "{DownArrow}", CursorDown },
+                { "{LeftArrow}", ViewParent },
+                { "{RightArrow}", () => SetParent(task) },
+                { "{Delete}", () => DeleteTask(task) },
+                { "{Enter}", () => EnterPressed(task) },
+                { "w", () => LowerTaskRank(task) },
+                { "s", () => RaiseItemRank(task) },
             };
             if (EnableReparenting)
             {
-                options.Add(new UserAction("a", EditorInteractionWrapper(ReparentToGrandparent), ConsoleKey.A));
-                options.Add(new UserAction("d", EditorInteractionWrapper(ParentUnderSibling), ConsoleKey.D));
+                actions.Add("a", () => ReparentToGrandparent(task));
+                actions.Add("d", () => ParentUnderSibling(task, tasks));
             }
             for (var i = 0; i < 9; i++)
             {
                 var b = i;
-                options.Add(new UserAction($"{i}", EditorInteractionWrapper(() => SetCursor(b))));
+                actions.Add($"{i}", () => SetCursor(b));
             }
-            CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action))));
-
-            options.Add(new UserAction("exit", EditorInteractionWrapper(() => _exiting = true), ConsoleKey.Escape));
-
-            _io.PromptOptions("", false, options.ToArray());
-
-            if (_exiting) { ShouldExit = true; return; }
+            CustomActions.All(x => actions.Add($"{x.Item1}", x.Item2));
+            if (key == "{Escape}") return;
+            if (actions.ContainsKey(key)) actions[key]();
 
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {
@@ -214,27 +220,6 @@ namespace Structure
             Edit();
         }
 
-        private Action EditorInteractionWrapper(Action<T> interaction)
-        {
-            return () =>
-            {
-                SetCursor(Cursor);
-                var tasks = GetChildren(CurrentParentCached);
-                if (Cursor < 0 || Cursor >= tasks.Count)
-                {
-                    return;
-                }
-                var task = tasks[Cursor];
-                _refreshDisplay = true;
-                interaction(task);
-            };
-        }
-
-        private Action EditorInteractionWrapper(Action interaction)
-        {
-            return EditorInteractionWrapper(x => interaction());
-        }
-
         private void SetCursor(int index) => Cursor = Math.Max(0, Math.Min(index, GetChildren(CurrentParentCached).Count - 1));
 
         private void ReparentToGrandparent(T task)
@@ -242,9 +227,8 @@ namespace Structure
             task.ParentID = Tree[task.ParentID]?.ParentID;
         }
 
-        private void ParentUnderSibling(T task)
+        private void ParentUnderSibling(T task, List<T> siblings)
         {
-            var siblings = GetChildren(task.ParentID);
             if (siblings.Contains(task)) siblings.Remove(task);
             if (!siblings.Any()) return;
             int i = 0;
