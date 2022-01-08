@@ -70,33 +70,40 @@ namespace Structure
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
             Write($"{prompt}\n");
-            keyedOptions.All(x => Write($"{x.Key}: {x.Value.Description}"));
+            keyedOptions.All(x => Write($"{x.Key.KeyChar}: {x.Value.Description}"));
 
             ConsoleKeyInfo key;
-
+            
             key = ReadKey(KeyGroups.NoKeys);
-            if (useDefault && !keyedOptions.ContainsKey(key.Key))
+            var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
+            var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
+            if (useDefault && !exactMatchExists)
             {
                 options.Last().Action();
             }
-            else if (keyedOptions.ContainsKey(key.Key))
+            else if (exactMatchExists)
             {
-                keyedOptions[key.Key].Action();
+                match.Value.Action();
+            }
+            else if (int.TryParse($"{key.KeyChar}", out var _) && keyedOptions.Any(x => x.Key.KeyChar == key.KeyChar))
+            {
+                var selectedNumericOption = keyedOptions.First(x => x.Key.KeyChar == key.KeyChar);
+                selectedNumericOption.Value.Action();
             }
         }
 
-        public static (ConsoleKey Key, UserAction Action)[] CreateOptionKeys(UserAction[] options)
+        public static (ConsoleKeyInfo Key, UserAction Action)[] CreateOptionKeys(UserAction[] options)
         {
             if (options == null) return null;
-            var keys = new List<(ConsoleKey Key, UserAction Action)>();
+            var keys = new List<(ConsoleKeyInfo Key, UserAction Action)>();
             foreach (var option in options)
             {
                 var possibleKeys = $"{option.Description.ToLower(CultureInfo.CurrentCulture)}abcdefghijklmnopqrstuvwxyz1234567890";
                 for (int i = 0; i < possibleKeys.Length; i++)
                 {
-                    if (!keys.Any(x => x.Key == ConvertCharToConsoleKey(possibleKeys[i]).Key))
+                    if (!keys.Any(x => x.Key.KeyChar == ConvertCharToConsoleKey(possibleKeys[i]).KeyChar))
                     {
-                        keys.Add((ConvertCharToConsoleKey(possibleKeys[i]).Key, option));
+                        keys.Add((ConvertCharToConsoleKey(possibleKeys[i]), option));
                         break;
                     }
                 }
@@ -115,7 +122,7 @@ namespace Structure
             throw new InvalidOperationException($"Unable to convert '{character}' to ConsoleKey");
         }
 
-        public static Dictionary<ConsoleKey, UserAction> CreateOptionKeysDictionary(UserAction[] options)
+        public static Dictionary<ConsoleKeyInfo, UserAction> CreateOptionKeysDictionary(UserAction[] options)
         {
             return CreateOptionKeys(options).ToDictionary(x => x.Key, x => x.Action);
         }
