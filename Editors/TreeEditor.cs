@@ -22,7 +22,6 @@ namespace Structure
         private readonly string _prompt;
         private bool _refreshDisplay;
         private bool _goBackIfNoChild;
-        private bool _exiting;
         private readonly StructureIO _io;
 
         public TreeEditor(StructureIO io, string prompt, NodeTreeCollection<T> tree)
@@ -49,6 +48,8 @@ namespace Structure
             if (ShouldExit) return;
             if (children.Count == 0) { NoChildrenAction(); _io.Clear(clearConsole: true); Edit(); }
             DoTasksInteraction();
+            if (ShouldExit) return;
+            Edit();
         }
 
         public void SetParent(T item)
@@ -199,11 +200,9 @@ namespace Structure
             }
             CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action))));
 
-            options.Add(new UserAction("exit", EditorInteractionWrapper(() => _exiting = true), ConsoleKey.Escape));
+            options.Add(new UserAction("exit", EditorInteractionWrapper(() => ShouldExit = true), ConsoleKey.Escape));
 
             _io.PromptOptions("", false, options.ToArray());
-
-            if (_exiting) { ShouldExit = true; return; }
 
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {
@@ -211,7 +210,6 @@ namespace Structure
             }
             _goBackIfNoChild = true;
             _io.Clear(_refreshDisplay);
-            Edit();
         }
 
         private Action EditorInteractionWrapper(Action<T> interaction)
