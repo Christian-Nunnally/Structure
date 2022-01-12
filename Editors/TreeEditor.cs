@@ -46,7 +46,13 @@ namespace Structure
             WriteHeader();
             WriteTasks(Cursor, children, "");
             if (ShouldExit) return;
-            if (children.Count == 0) { NoChildrenAction(); _io.Clear(clearConsole: true); Edit(); }
+            if (children.Count == 0) 
+            { 
+                NoChildrenAction(); 
+                _io.Clear(clearConsole: true); 
+                Edit();
+                return;
+            }
             DoTasksInteraction();
             if (ShouldExit) return;
             Edit();
@@ -204,6 +210,7 @@ namespace Structure
 
             _io.PromptOptions("", false, options.ToArray());
 
+            if (ShouldExit) return;
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {
                 ViewParent();

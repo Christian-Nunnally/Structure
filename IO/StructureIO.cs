@@ -2,6 +2,7 @@
 using Structure.IO;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -80,6 +81,7 @@ namespace Structure
             ConsoleKeyInfo key;
             
             key = ReadKey(KeyGroups.NoKeys);
+            if (char.IsUpper(key.KeyChar)) return;
             var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
             var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
             if (useDefault && !exactMatchExists)
@@ -102,8 +104,17 @@ namespace Structure
             _newsPrinter.EnqueueNews(news);
         }
 
+        private int clear_count = 0;
         public void Clear(bool clearConsole)
         {
+            clear_count++;
+            if (StructureInput.STEP_THROUGH_MODE)
+            {
+                if (clear_count > StructureInput.STEP_THROUGH_START)
+                {
+                    Debugger.Break();
+                }
+            }
             _currentBuffer.Clear();
             if (clearConsole) ProgramOutput.Clear();
             ProgramOutput.SetCursorPosition(0, 1);
