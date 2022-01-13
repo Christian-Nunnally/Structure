@@ -22,7 +22,8 @@ namespace Structure
         private readonly string _prompt;
         private bool _refreshDisplay;
         private bool _goBackIfNoChild;
-        private bool _exiting;
+        public bool _escapePressed;
+        private bool _return;
         private readonly StructureIO _io;
 
         public TreeEditor(StructureIO io, string prompt, NodeTreeCollection<T> tree)
@@ -45,10 +46,11 @@ namespace Structure
             var children = GetChildren(CurrentParentCached);
             ConsolidateRank(children);
             WriteHeader();
+            SetCursor(Cursor);
             WriteTasks(Cursor, children, "");
             if (ShouldExit) return;
             if (children.Count == 0) { NoChildrenAction(); _io.Clear(clearConsole: true); Edit(); }
-            DoTasksInteraction();
+            else DoTasksInteraction();
         }
 
         public void SetParent(T item)
@@ -176,6 +178,7 @@ namespace Structure
 
         private void DoTasksInteraction()
         {
+            _return = false;
             var options = new List<UserAction>
             {
                 new UserAction("{UpArrow}", EditorInteractionWrapper(CursorUp), ConsoleKey.UpArrow),
@@ -199,18 +202,20 @@ namespace Structure
             }
             CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action))));
 
-            options.Add(new UserAction("exit", EditorInteractionWrapper(() => _exiting = true), ConsoleKey.Escape));
+            _escapePressed = false;
+            var escape = false; 
+            options.Add(new UserAction("exit", EditorInteractionWrapper(() => { escape = true; }), ConsoleKey.Escape));
 
-            _io.PromptOptions("", false, options.ToArray());
-
-            if (_exiting) { ShouldExit = true; return; }
-
+            _io.PromptOptionsSpecial("", false, options.ToArray());
+            if (_return) return;
+            if (escape) return;
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {
                 ViewParent();
             }
             _goBackIfNoChild = true;
             _io.Clear(_refreshDisplay);
+
             Edit();
         }
 
@@ -222,6 +227,7 @@ namespace Structure
                 var tasks = GetChildren(CurrentParentCached);
                 if (Cursor < 0 || Cursor >= tasks.Count)
                 {
+                    _return = true;
                     return;
                 }
                 var task = tasks[Cursor];
@@ -244,7 +250,7 @@ namespace Structure
 
         private void ParentUnderSibling(T task)
         {
-            var siblings = GetChildren(task.ParentID);
+            var siblings = GetChildren(CurrentParentCached);
             if (siblings.Contains(task)) siblings.Remove(task);
             if (!siblings.Any()) return;
             int i = 0;

@@ -9,6 +9,8 @@ namespace Structure.Code
     {
         private const bool DEVELOPMENT_MODE = true;
         private const bool NON_SAVE_MODE = false;
+        public const bool STEP_THROUGH_MODE = false;
+        public const int STEP_THROUGH_START = 7655 - 10;
 
         private readonly ChainedInput _inputSource;
 
@@ -17,7 +19,7 @@ namespace Structure.Code
             _inputSource = new ChainedInput();
             if (!NON_SAVE_MODE)
             {
-                _inputSource.AddAction(() => SetToLoadMode(io));
+                if (!STEP_THROUGH_MODE) _inputSource.AddAction(() => SetToLoadMode(io));
                 var (savedDataSessions, nextDataSession) = SavedSessionUtilities.LoadSavedDataSessions();
                 var sessionsInputs = savedDataSessions.Select(x => new PredeterminedInput(x));
                 sessionsInputs.All(x => _inputSource.AddInput(x));

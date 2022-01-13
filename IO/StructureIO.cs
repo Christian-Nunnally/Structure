@@ -2,6 +2,7 @@
 using Structure.IO;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -75,11 +76,43 @@ namespace Structure
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
             Write($"{prompt}\n");
-            keyedOptions.All(x => Write($"{x.Key.KeyChar}: {x.Value.Description}"));
+            //keyedOptions.All(x => Write($"{x.Key.KeyChar}: {x.Value.Description}"));
 
             ConsoleKeyInfo key;
             
             key = ReadKey(KeyGroups.NoKeys);
+            if (char.IsUpper(key.KeyChar))
+            {
+                if (useDefault) options.Last().Action();
+                return;
+            }
+            var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
+            var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
+            if (useDefault && !exactMatchExists)
+            {
+                options.Last().Action();
+            }
+            else if (exactMatchExists)
+            {
+                match.Value.Action();
+            }
+            else if (int.TryParse($"{key.KeyChar}", out var _) && keyedOptions.Any(x => x.Key.KeyChar == key.KeyChar))
+            {
+                var selectedNumericOption = keyedOptions.First(x => x.Key.KeyChar == key.KeyChar);
+                selectedNumericOption.Value.Action();
+            }
+        }
+
+        public void PromptOptionsSpecial(string prompt, bool useDefault, params UserAction[] options)
+        {
+            var keyedOptions = CreateOptionKeysDictionary(options);
+            WriteNoLine($"{prompt}");
+            //keyedOptions.All(x => Write($"{x.Key.KeyChar}: {x.Value.Description}"));
+
+            ConsoleKeyInfo key;
+
+            key = ReadKey(KeyGroups.NoKeys);
+            if (char.IsUpper(key.KeyChar)) return;
             var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
             var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
             if (useDefault && !exactMatchExists)
@@ -102,8 +135,17 @@ namespace Structure
             _newsPrinter.EnqueueNews(news);
         }
 
+        private int clear_count = 0;
         public void Clear(bool clearConsole)
         {
+            clear_count++;
+            if (StructureInput.STEP_THROUGH_MODE)
+            {
+                if (clear_count > StructureInput.STEP_THROUGH_START)
+                {
+                    Debugger.Break();
+                }
+            }
             _currentBuffer.Clear();
             if (clearConsole) ProgramOutput.Clear();
             ProgramOutput.SetCursorPosition(0, 1);
