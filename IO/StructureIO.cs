@@ -76,7 +76,7 @@ namespace Structure
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
             Write($"{prompt}\n");
-            keyedOptions.All(x => Write($"{x.Key.KeyChar}: {x.Value.Description}"));
+            //keyedOptions.All(x => Write($"{x.Key.KeyChar}: {x.Value.Description}"));
 
             ConsoleKeyInfo key;
             

@@ -22,6 +22,7 @@ namespace Structure
         private readonly string _prompt;
         private bool _refreshDisplay;
         private bool _goBackIfNoChild;
+        public bool _escapePressed;
         private readonly StructureIO _io;
 
         public TreeEditor(StructureIO io, string prompt, NodeTreeCollection<T> tree)
@@ -46,16 +47,8 @@ namespace Structure
             WriteHeader();
             WriteTasks(Cursor, children, "");
             if (ShouldExit) return;
-            if (children.Count == 0) 
-            { 
-                NoChildrenAction(); 
-                _io.Clear(clearConsole: true); 
-                Edit();
-                return;
-            }
-            DoTasksInteraction();
-            if (ShouldExit) return;
-            Edit();
+            if (children.Count == 0) { NoChildrenAction(); _io.Clear(clearConsole: true); Edit(); }
+            else DoTasksInteraction();
         }
 
         public void SetParent(T item)
@@ -206,17 +199,20 @@ namespace Structure
             }
             CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action))));
 
-            options.Add(new UserAction("exit", EditorInteractionWrapper(() => ShouldExit = true), ConsoleKey.Escape));
+            _escapePressed = false;
+            options.Add(new UserAction("exit", EditorInteractionWrapper(() => { _escapePressed = true; ShouldExit = true; }), ConsoleKey.Escape));
 
             _io.PromptOptions("", false, options.ToArray());
 
-            if (ShouldExit) return;
+            if (_escapePressed) return;
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {
                 ViewParent();
             }
             _goBackIfNoChild = true;
             _io.Clear(_refreshDisplay);
+
+            Edit();
         }
 
         private Action EditorInteractionWrapper(Action<T> interaction)
@@ -249,7 +245,7 @@ namespace Structure
 
         private void ParentUnderSibling(T task)
         {
-            var siblings = GetChildren(task.ParentID);
+            var siblings = GetChildren(CurrentParentCached);
             if (siblings.Contains(task)) siblings.Remove(task);
             if (!siblings.Any()) return;
             int i = 0;
