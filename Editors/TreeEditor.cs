@@ -23,6 +23,7 @@ namespace Structure
         private bool _refreshDisplay;
         private bool _goBackIfNoChild;
         public bool _escapePressed;
+        private bool _return;
         private readonly StructureIO _io;
 
         public TreeEditor(StructureIO io, string prompt, NodeTreeCollection<T> tree)
@@ -176,6 +177,7 @@ namespace Structure
 
         private void DoTasksInteraction()
         {
+            _return = false;
             var options = new List<UserAction>
             {
                 new UserAction("{UpArrow}", EditorInteractionWrapper(CursorUp), ConsoleKey.UpArrow),
@@ -200,11 +202,12 @@ namespace Structure
             CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action))));
 
             _escapePressed = false;
-            options.Add(new UserAction("exit", EditorInteractionWrapper(() => { _escapePressed = true; ShouldExit = true; }), ConsoleKey.Escape));
+            var escape = false; 
+            options.Add(new UserAction("exit", EditorInteractionWrapper(() => { escape = true; }), ConsoleKey.Escape));
 
-            _io.PromptOptions("", false, options.ToArray());
-
-            if (_escapePressed) return;
+            _io.PromptOptionsSpecial("", false, options.ToArray());
+            if (_return) return;
+            if (escape) return;
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {
                 ViewParent();
@@ -223,6 +226,7 @@ namespace Structure
                 var tasks = GetChildren(CurrentParentCached);
                 if (Cursor < 0 || Cursor >= tasks.Count)
                 {
+                    _return = true;
                     return;
                 }
                 var task = tasks[Cursor];

@@ -99,6 +99,33 @@ namespace Structure
             }
         }
 
+        public void PromptOptionsSpecial(string prompt, bool useDefault, params UserAction[] options)
+        {
+            var keyedOptions = CreateOptionKeysDictionary(options);
+            WriteNoLine($"{prompt}");
+            //keyedOptions.All(x => Write($"{x.Key.KeyChar}: {x.Value.Description}"));
+
+            ConsoleKeyInfo key;
+
+            key = ReadKey(KeyGroups.NoKeys);
+            if (char.IsUpper(key.KeyChar)) return;
+            var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
+            var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
+            if (useDefault && !exactMatchExists)
+            {
+                options.Last().Action();
+            }
+            else if (exactMatchExists)
+            {
+                match.Value.Action();
+            }
+            else if (int.TryParse($"{key.KeyChar}", out var _) && keyedOptions.Any(x => x.Key.KeyChar == key.KeyChar))
+            {
+                var selectedNumericOption = keyedOptions.First(x => x.Key.KeyChar == key.KeyChar);
+                selectedNumericOption.Value.Action();
+            }
+        }
+
         public void News(string news)
         {
             _newsPrinter.EnqueueNews(news);
