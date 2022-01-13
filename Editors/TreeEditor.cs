@@ -46,6 +46,7 @@ namespace Structure
             var children = GetChildren(CurrentParentCached);
             ConsolidateRank(children);
             WriteHeader();
+            SetCursor(Cursor);
             WriteTasks(Cursor, children, "");
             if (ShouldExit) return;
             if (children.Count == 0) { NoChildrenAction(); _io.Clear(clearConsole: true); Edit(); }

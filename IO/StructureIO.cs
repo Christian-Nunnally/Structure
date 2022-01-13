@@ -81,7 +81,11 @@ namespace Structure
             ConsoleKeyInfo key;
             
             key = ReadKey(KeyGroups.NoKeys);
-            if (char.IsUpper(key.KeyChar)) return;
+            if (char.IsUpper(key.KeyChar))
+            {
+                if (useDefault) options.Last().Action();
+                return;
+            }
             var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
             var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
             if (useDefault && !exactMatchExists)
