@@ -14,6 +14,10 @@ namespace Structure.Modules
         private TaskItem _routineParent;
         private bool _interpolateZeros;
         private bool _listValues;
+        private (string Name, IList<TaskItem> Data) _currentDataSet;
+        private bool _exit;
+
+        public List<(string Name, IList<TaskItem> Data)> DataSets { get; private set; } = new List<(string Name, IList<TaskItem> Data)>();
 
         private static double CountAggregationFunction(List<TaskItem> list) => list.Count;
 
@@ -72,17 +76,34 @@ namespace Structure.Modules
         protected override void OnEnable()
         {
             _startAction = Hotkey.Add(ConsoleKey.H, new UserAction("Task history", Start));
+
+            if (DataSets.Count == 0)
+            {
+                DataSets.Add(("Completed Tasks", Data.CompletedTasks));
+                DataSets.Add(("Active Task Count", Data.TaskCountOverTime));
+                _currentDataSet = DataSets.First();
+            }
         }
 
         private void Start()
         {
-            ShowHistory(x => true);
+            while(!_exit)
+            {
+                IO.Run(() => ShowHistoryAndListOptions(x => true));
+            }
+            _exit = false;
         }
 
-        private void ShowHistory(Predicate<TaskItem> filter)
+        private void ShowHistoryAndListOptions(Predicate<TaskItem> filter)
         {
+            PrintTitle();
             ShowData(filter);
             ListChartOptions();
+        }
+
+        private void PrintTitle()
+        {
+            IO.Write(_currentDataSet.Name);
         }
 
         private void ShowData(Predicate<TaskItem> filter)
@@ -98,6 +119,10 @@ namespace Structure.Modules
             }
         }
 
+        public TaskHistoryInformation()
+        {
+        }
+
         private void GraphValues(List<(string Label, double Value)> values)
         {
             var consoleGraph = new ConsoleGraph(80, 20);
@@ -106,7 +131,7 @@ namespace Structure.Modules
 
         private List<(string Label, double Value)> ComputeValues(Predicate<TaskItem> filter)
         {
-            var tasks = Data.CompletedTasks.Where(x => x.CompletedDate + new TimeSpan(_range, 0, 0, 0, 0) > DateTime.Now && filter(x)).ToList();
+            var tasks = _currentDataSet.Data.Where(x => x.CompletedDate + new TimeSpan(_range, 0, 0, 0, 0) > DateTime.Now && filter(x)).ToList();
             if (_routineParent is object)
             {
                 tasks = tasks.Where(t => t.CopiedFromID == _routineParent.ID).ToList();
@@ -129,57 +154,66 @@ namespace Structure.Modules
                 }
             }
 
-            if (_interpolateZeros)
-            {
-                for (int i = 0; i < values.Count; i++)
-                {
-                    if (string.IsNullOrEmpty(values[i].Label))
-                    {
-                        var min = 0.0;
-                        var minI = -1;
-                        var max = 0.0;
-                        var maxI = -1;
-
-                        for (int j = i; j >= 0; j--)
-                        {
-                            if (!string.IsNullOrEmpty(values[j].Label))
-                            {
-                                min = values[j].Value;
-                                minI = j;
-                                break;
-                            }
-                        }
-
-                        for (int j = i; j < values.Count; j++)
-                        {
-                            if (!string.IsNullOrEmpty(values[j].Label))
-                            {
-                                max = values[j].Value;
-                                maxI = j;
-                                break;
-                            }
-                        }
-                        if (minI == -1)
-                        {
-                            min = max;
-                            minI = i;
-                        }
-                        if (maxI == -1)
-                        {
-                            max = min;
-                            maxI = i;
-                        }
-
-                        var dist1 = i - minI;
-                        var dist2 = maxI - i;
-                        var value = (max * dist1 / (dist1 + dist2)) + (min * dist2 / (dist1 + dist2));
-                        values[i] = ("", value);
-                    }
-                }
-            }
-
+            if (_interpolateZeros) values = InterpolateEmptyValues(values);
             return values;
         }
+
+        private static List<(string Label, double Value)> InterpolateEmptyValues(List<(string Label, double Value)> values)
+        {
+            var interpolatedValues = new List<(string Label, double Value)>();
+            for (int i = 0; i < values.Count; i++)
+            {
+                if (string.IsNullOrEmpty(values[i].Label))
+                {
+                    var min = 0.0;
+                    var indexOf = -1;
+                    var max = 0.0;
+                    var maxI = -1;
+
+                    for (int j = i; j >= 0; j--)
+                    {
+                        if (!IsValueEmpty(values[j]))
+                        {
+                            min = values[j].Value;
+                            indexOf = j;
+                            break;
+                        }
+                    }
+
+                    for (int j = i; j < values.Count; j++)
+                    {
+                        if (!IsValueEmpty(values[j]))
+                        {
+                            max = values[j].Value;
+                            maxI = j;
+                            break;
+                        }
+                    }
+                    if (indexOf == -1)
+                    {
+                        min = max;
+                        indexOf = i;
+                    }
+                    if (maxI == -1)
+                    {
+                        max = min;
+                        maxI = i;
+                    }
+
+                    var dist1 = i - indexOf;
+                    var dist2 = maxI - i;
+                    var value = (max * dist1 / (dist1 + dist2)) + (min * dist2 / (dist1 + dist2));
+                    interpolatedValues.Add((values[i].Label, value));
+                }
+                else
+                {
+                    interpolatedValues.Add((values[i].Label, values[i].Value));
+                }
+            }
+            return interpolatedValues;
+        }
+
+        private static bool IsValueEmpty((string Label, double Value) value) => string.IsNullOrEmpty(value.Label);
 
         private void ListChartOptions()
         {
@@ -189,6 +223,8 @@ namespace Structure.Modules
             var changeYAxisOption = new UserAction("Y axis", ChangeYAxisMode);
             var listRawValues = new UserAction("List raw values", ToggleListValues);
             var toggleInterpolateZeros = new UserAction("Toggle interpolate zeros", ToggleInterpolateZeros);
+            var selectDataSet = new UserAction("Select data set", SelectDataSet);
+            var exit = new UserAction("Exit", Exit, ConsoleKey.Escape);
 
             IO.PromptOptions(
                 "Task history options",
@@ -197,19 +233,39 @@ namespace Structure.Modules
                 setRoutineParent,
                 changeYAxisOption,
                 listRawValues,
-                toggleInterpolateZeros);
+                toggleInterpolateZeros,
+                selectDataSet,
+                exit);
+        }
+
+        private void Exit()
+        {
+            _exit = true;
+        }
+
+        private void SelectDataSet()
+        {
+            var options = new List<UserAction>();
+            foreach (var dataSet in DataSets)
+            {
+                options.Add(new UserAction(dataSet.Name, () => SelectDataSet(dataSet)));
+            }
+            IO.PromptOptions("Select data set", false, options.ToArray());
+        }
+
+        private void SelectDataSet((string Name, IList<TaskItem> Data) dataSet)
+        {
+            _currentDataSet = dataSet;
         }
 
         private void ToggleInterpolateZeros()
         {
             _interpolateZeros = !_interpolateZeros;
-            IO.Run(Start);
         }
 
         private void SetRoutineParent()
         {
             IO.Run(() => new TaskPicker(IO, "Pick routine parent", "Select", true, true, true, Data.Routines, SetRoutineParentToTask).Edit());
-            IO.Run(Start);
         }
 
         private void SetRoutineParentToTask(TaskItem routineParent)
@@ -220,7 +276,6 @@ namespace Structure.Modules
         private void ToggleListValues()
         {
             _listValues = !_listValues;
-            IO.Run(Start);
         }
 
         private void ListValues(List<(string Label, double Value)> values)
@@ -249,19 +304,16 @@ namespace Structure.Modules
         private void SetToSumValueMode()
         {
             _aggregationMode = SumAggregationFunction;
-            IO.Run(Start);
         }
 
         private void SetToMaxValueMode()
         {
             _aggregationMode = MaxAggregationFunction;
-            IO.Run(Start);
         }
 
         private void SetToCountMode()
         {
             _aggregationMode = CountAggregationFunction;
-            IO.Run(Start);
         }
 
         private void ChangeRange()
@@ -275,7 +327,6 @@ namespace Structure.Modules
             {
                 _range = range;
             }
-            IO.Run(Start);
         }
 
         private void ChangeGrouping()
@@ -289,7 +340,6 @@ namespace Structure.Modules
             {
                 _grouping = grouping;
             }
-            IO.Run(Start);
         }
     }
 }

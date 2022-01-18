@@ -7,7 +7,7 @@ namespace Structure.Code
 {
     public class StructureInput : IProgramInput
     {
-        private const bool DEVELOPMENT_MODE = false;
+        private const bool DEVELOPMENT_MODE = true;
         private const bool NON_SAVE_MODE = false;
         public const bool STEP_THROUGH_MODE = false;
         public const int STEP_THROUGH_START = 7655 - 10;

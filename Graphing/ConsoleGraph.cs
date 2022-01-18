@@ -37,6 +37,7 @@ namespace Structure.Graphing
         private double[] InterpolateValues(List<(string Label, double Value)> values)
         {
             var interpolatedValues = new double[_width];
+            if (values.Count == 0) return interpolatedValues;
             for (int x = 0; x < _width; x++)
             {
                 double percent = x / (_width - 1.0);

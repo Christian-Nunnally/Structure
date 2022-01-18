@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Structure.Modules;
+using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
@@ -31,6 +32,7 @@ namespace Structure
 
             manager.RegisterModules(modules);
             manager.Enable(_io, _hotkey, data);
+            new AnalyzeTaskCount().Enable(_io, _hotkey, data);
             while (!Exit) _io.Run(Loop);
         }
 

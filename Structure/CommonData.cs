@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Structure
 {
@@ -6,7 +7,9 @@ namespace Structure
     {
         public NodeTreeCollection<TaskItem> ActiveTaskTree { get; } = new NodeTreeCollection<TaskItem>();
 
-        public List<TaskItem> CompletedTasks { get; } = new List<TaskItem>();
+        public ObservableCollection<TaskItem> CompletedTasks { get; } = new ObservableCollection<TaskItem>();
+
+        public List<TaskItem> TaskCountOverTime { get; } = new List<TaskItem>();
 
         public List<IModule> EnabledModules { get; } = new List<IModule>();
 
