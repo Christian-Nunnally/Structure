@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Structure.Code.ProgramInput
 {
     public static class SavedSessionUtilities
     {
-        public static (PersistedListCollection<ProgramInputData>[] SavedDataSessions, PersistedListCollection<ProgramInputData> NextDataSession) LoadSavedDataSessions()
+        private static (PersistedListCollection<ProgramInputData>[] SavedDataSessions, PersistedListCollection<ProgramInputData> NextDataSession) LoadDataSessions()
         {
             var sessions = new List<PersistedListCollection<ProgramInputData>>();
             var currentSession = 0;
@@ -19,9 +18,10 @@ namespace Structure.Code.ProgramInput
             return (sessions.ToArray(), session);
         }
 
-        private static PersistedListCollection<ProgramInputData> LoadSession(int setNumber)
-        {
-            return new PersistedListCollection<ProgramInputData>($"session-{setNumber}");
-        }
+        public static PersistedListCollection<ProgramInputData> LoadNextEmptyDataSession() => LoadDataSessions().NextDataSession;
+
+        public static PersistedListCollection<ProgramInputData>[] LoadSavedDataSessions() => LoadDataSessions().SavedDataSessions;
+
+        private static PersistedListCollection<ProgramInputData> LoadSession(int setNumber) => new PersistedListCollection<ProgramInputData>($"session-{setNumber}");
     }
 }

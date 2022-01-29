@@ -135,17 +135,8 @@ namespace Structure
             _newsPrinter.EnqueueNews(news);
         }
 
-        private int clear_count = 0;
         public void Clear(bool clearConsole)
         {
-            clear_count++;
-            if (StructureInput.STEP_THROUGH_MODE)
-            {
-                if (clear_count > StructureInput.STEP_THROUGH_START)
-                {
-                    Debugger.Break();
-                }
-            }
             _currentBuffer.Clear();
             if (clearConsole) ProgramOutput.Clear();
             ProgramOutput.SetCursorPosition(0, 1);

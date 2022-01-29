@@ -9,7 +9,7 @@ namespace Structure
         private UserAction _pickAction;
         private UserAction _editAction;
 
-        public IModule UpgradedModule => new RoutinerV4();
+        public IModule UpgradeModule() => new RoutinerV4();
 
         protected override void OnDisable()
         {

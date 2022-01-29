@@ -2,6 +2,6 @@
 {
     internal interface IObsoleteModule
     {
-        public IModule UpgradedModule { get; }
+        public IModule UpgradeModule();
     }
 }

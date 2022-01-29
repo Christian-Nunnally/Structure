@@ -1,54 +1,54 @@
 ﻿using Structure.Code.ProgramInput;
 using Structure.IO;
-using System;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace Structure.Code
 {
     public class StructureInput : IProgramInput
     {
-        private const bool DEVELOPMENT_MODE = false;
-        private const bool NON_SAVE_MODE = false;
-        public const bool STEP_THROUGH_MODE = false;
-        public const int STEP_THROUGH_START = 7655 - 10;
-
-        private readonly ChainedInput _inputSource;
+        protected ChainedInput InputSource { get; set; }
 
         public StructureInput(StructureIO io, NewsPrinter newsPrinter)
         {
-            _inputSource = new ChainedInput();
-            if (!NON_SAVE_MODE)
-            {
-                if (!STEP_THROUGH_MODE) _inputSource.AddAction(() => SetToLoadMode(io));
-                var (savedDataSessions, nextDataSession) = SavedSessionUtilities.LoadSavedDataSessions();
-                var sessionsInputs = savedDataSessions.Select(x => new PredeterminedInput(x));
-                sessionsInputs.All(x => _inputSource.AddInput(x));
-                var recordedUserInputSource = (IProgramInput)new RecordingInput(new ConsoleInput(), nextDataSession);
-                if (DEVELOPMENT_MODE) recordedUserInputSource = new ConsoleInput();
-                _inputSource.AddAction(() => SetToUserMode(io, newsPrinter));
-                _inputSource.AddInput(recordedUserInputSource);
-            }
-            else
-            {
-                _inputSource.AddInput(new ConsoleInput());
-            }
+            InitializeNewInputFromSavedSessions(io, newsPrinter);
+            AddRecordingInputForEmptySaveSession();
         }
 
-        public bool IsKeyAvailable() => _inputSource.IsKeyAvailable();
+        protected void InitializeNewInputFromSavedSessions(StructureIO io, NewsPrinter newsPrinter)
+        {
+            InputSource = new ChainedInput();
+            InputSource.AddAction(() => SetToLoadMode(io));
+            var savedDataSessions = SavedSessionUtilities.LoadSavedDataSessions();
+            var sessionsInputs = savedDataSessions.Select(x => new PredeterminedInput(x));
+            sessionsInputs.All(x => InputSource.AddInput(x));
+            InputSource.AddAction(() => SetToUserMode(io, newsPrinter));
+        }
+
+        private void AddRecordingInputForEmptySaveSession()
+        {
+            var nextDataSession = SavedSessionUtilities.LoadNextEmptyDataSession();
+            var recordedUserInputSource = (IProgramInput)new RecordingInput(new ConsoleInput(), nextDataSession);
+            InputSource.AddInput(recordedUserInputSource);
+        }
+
+        public bool IsKeyAvailable() => InputSource.IsKeyAvailable();
 
         public ProgramInputData ReadKey()
         {
-            return _inputSource.ReadKey();
+            return InputSource.ReadKey();
         }
 
-        private static void SetToLoadMode(StructureIO io)
+        protected static void SetToLoadMode(StructureIO io)
         {
+            Contract.Requires(io != null);
             io.ProgramOutput = new NoOpOutput();
         }
 
-        private static void SetToUserMode(StructureIO io, NewsPrinter newsPrinter)
+        protected static void SetToUserMode(StructureIO io, NewsPrinter newsPrinter)
         {
-            newsPrinter.ClearNews();
+            Contract.Requires(io != null);
+            newsPrinter?.ClearNews();
             io.ProgramOutput = new ConsoleOutput();
             io.CurrentTime.SetToRealTime();
             io.Refresh();

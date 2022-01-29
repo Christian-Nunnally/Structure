@@ -23,6 +23,7 @@ namespace Structure.Graphing
         {
             Contract.Requires(values != null);
             Contract.Requires(io != null);
+
             var chart = RenderChart(values);
             var yLabels = GenerateYLabels(values);
             PrintChart(io, chart, yLabels);
@@ -127,13 +128,18 @@ namespace Structure.Graphing
         {
             var interpolatedValues = InterpolateValues(values);
             var minValue = interpolatedValues.Min();
+            if (double.IsNaN(minValue)) minValue = 0;
             var maxValue = interpolatedValues.Max();
+            if (double.IsNaN(maxValue)) maxValue = 0;
             if (maxValue == 0) maxValue = 1;
             var chart = CreateChart();
             for (int x = 0; x < _width; x++)
             {
-                int row = (int)((interpolatedValues[x] - minValue) / (maxValue - minValue) * (_height - 1.0));
-                chart[x, row] = '─';
+                var scaler = _height - 1.0;
+                var numerator = interpolatedValues[x] - minValue;
+                var denominator = maxValue - minValue;
+                var row = denominator == 0 ? 0 : numerator / denominator * scaler;
+                chart[x, (int)row] = '─';
             }
             PostProcessChart(chart);
             return chart;
@@ -143,24 +149,25 @@ namespace Structure.Graphing
         {
             for (double y = _height - 1; y >= 0; y--)
             {
-                for (double x = -1; x < _width; x++)
-                {
-                    if (x < 0)
-                    {
-                        var yLabelString = string.Format(CultureInfo.CurrentCulture.NumberFormat, "{0:0.##}", yLabels[(int)y]);
-                        for (int i = 0; i < 10 - yLabelString.Length; i++)
-                        {
-                            io.WriteNoLine(" ");
-                        }
-                        io.WriteNoLine(yLabelString);
-                        io.WriteNoLine($" ┤");
-                    }
-                    else
-                    {
-                        io.WriteNoLine($"{chart[(int)x, (int)y]}");
-                    }
-                }
+                PrintYLabelString(io, yLabels[(int)y]);
+                io.WriteNoLine($" ┤");
+                PrintRow(io, chart, y);
                 io.Write();
+            }
+        }
+
+        private static void PrintYLabelString(StructureIO io, double yLabel)
+        {
+            var yLabelString = string.Format(CultureInfo.CurrentCulture.NumberFormat, "{0:0.##}", yLabel);
+            for (int i = 0; i < 10 - yLabelString.Length; i++) io.WriteNoLine(" ");
+            io.WriteNoLine(yLabelString);
+        }
+
+        private void PrintRow(StructureIO io, char[,] chart, double row)
+        {
+            for (double x = 0; x < _width; x++)
+            {
+                io.WriteNoLine($"{chart[(int)x, (int)row]}");
             }
         }
 
@@ -223,27 +230,30 @@ namespace Structure.Graphing
         {
             for (int x = 0; x < _width - 1; x++)
             {
-                for (int y = 0; y < _height; y++)
-                {
-                    if (chart[x, y] == '─')
-                    {
-                        for (int y2 = 0; y2 < _height; y2++)
-                        {
-                            if (chart[x + 1, y2] == '─')
-                            {
-                                PostProcessAtPoint(chart, x, y, y2);
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                }
+                PostProcessColumn(chart, x);
             }
+        }
+
+        private void PostProcessColumn(char[,] chart, int column)
+        {
+            var index = FindCharacterIndexInColumn(chart, '─', column);
+            if (index == -1) return;
+            var nextIndex = FindCharacterIndexInColumn(chart, '─', column + 1);
+            PostProcessAtPoint(chart, column, index, nextIndex);
+        }
+
+        private int FindCharacterIndexInColumn(char[,] chart, char character, int column)
+        {
+            for (int y = 0; y < _height; y++)
+            {
+                if (chart[column, y] == character) return y;
+            }
+            return -1;
         }
 
         private static void PostProcessAtPoint(char[,] chart, int x, int y, int y2)
         {
-            if (y == y2) return;
+            if (y == y2 || y == -1 || y2 == -1) return;
             int smallerY = Math.Min(y, y2);
             int biggerY = Math.Max(y, y2);
             bool direction = y > y2;

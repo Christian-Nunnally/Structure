@@ -8,7 +8,7 @@ namespace Structure
     {
         private UserAction _action;
 
-        public IModule UpgradedModule => new RoutinerV2();
+        public IModule UpgradeModule() => new RoutinerV2();
 
         protected override void OnDisable()
         {

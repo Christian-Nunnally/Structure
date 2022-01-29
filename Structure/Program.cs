@@ -11,6 +11,7 @@ namespace Structure
             var newsPrinter = new NewsPrinter();
             var io = new StructureIO(hotkey, newsPrinter);
             io.ProgramInput = new StructureInput(io, newsPrinter);
+            io.ProgramInput = new DevelopmentStructureInput(io, newsPrinter, true);
             io.ProgramOutput = new ConsoleOutput();
             var program = new StructureProgram(io);
             program.Run();

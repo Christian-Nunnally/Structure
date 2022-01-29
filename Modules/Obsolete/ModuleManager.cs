@@ -13,7 +13,15 @@ namespace Structure
         private readonly List<IModule> _listedModules = new List<IModule>();
         private UserAction _action;
 
-        public IModule UpgradedModule => new ModuleManagerV2();
+        public IModule UpgradeModule()
+        {
+            var newModule = new ModuleManagerV2();
+            var thisIndex = _listedModules.IndexOf(this);
+            _listedModules[thisIndex] = newModule;
+            newModule.RegisterModules(_listedModules.ToArray());
+            newModule.Enable(IO, Hotkey, Data);
+            return newModule;
+        }
 
         internal void RegisterModules(IModule[] modules)
         {
@@ -67,7 +75,7 @@ namespace Structure
                 {
                     if (module is IObsoleteModule obsoleteModule && upgrade)
                     {
-                        var upgradedModule = obsoleteModule.UpgradedModule;
+                        var upgradedModule = obsoleteModule.UpgradeModule();
                         _listedModules[index] = upgradedModule;
                         IO.News($"Upgraded {name} to {upgradedModule.Name}");
                         module = upgradedModule;
@@ -83,8 +91,9 @@ namespace Structure
 
                     if (module is IObsoleteModule obsoleteModule && upgrade)
                     {
-                        _listedModules[index] = obsoleteModule.UpgradedModule;
-                        IO.News($"Upgraded {name} to {obsoleteModule.UpgradedModule.Name}");
+                        var upgradedModule = obsoleteModule.UpgradeModule();
+                        _listedModules[index] = upgradedModule;
+                        IO.News($"Upgraded {name} to {upgradedModule.Name}");
                     }
                 }
             }

@@ -81,7 +81,7 @@ namespace Structure
             {
                 if (module is IObsoleteModule obsoleteModule)
                 {
-                    var upgradedModule = obsoleteModule.UpgradedModule;
+                    var upgradedModule = obsoleteModule.UpgradeModule();
                     _listedModules[index] = upgradedModule;
                     IO.News($"Upgraded {module.Name} to {upgradedModule.Name}");
                 }
