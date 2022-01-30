@@ -189,7 +189,7 @@ namespace Structure
                 new UserAction("{RightArrow}", EditorInteractionWrapper(SetParent), ConsoleKey.RightArrow),
                 new UserAction("{Delete}", EditorInteractionWrapper(DeleteTask), ConsoleKey.Delete),
                 new UserAction("{Enter}", EditorInteractionWrapper(EnterPressed), ConsoleKey.Enter),
-                new UserAction("w", EditorInteractionWrapper(LowerTaskRank), ConsoleKey.W),
+                new UserAction("Lower task priority", EditorInteractionWrapper(LowerTaskRank), ConsoleKey.W),
                 new UserAction("s", EditorInteractionWrapper(RaiseItemRank), ConsoleKey.S),
             };
             if (EnableReparenting)

@@ -20,7 +20,7 @@ namespace Structure
 
         public UserAction(string description, Action action, ConsoleKey hotkey) : this(description, action)
         {
-            Hotkey = new ConsoleKeyInfo(' ', hotkey, false, false, false);
+            Hotkey = new ConsoleKeyInfo(Utility.KeyToKeyChar(hotkey), hotkey, false, false, false);
             HotkeyOverridden = true;
         }
     }
