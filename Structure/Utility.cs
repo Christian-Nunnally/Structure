@@ -38,6 +38,7 @@ namespace Structure
                 ConsoleKey.Enter => "<Enter>",
                 ConsoleKey.Escape => "<Escape>",
                 ConsoleKey.Backspace => "<Backspace>",
+                ConsoleKey.Delete => "<Delete>",
                 _ => $"{key.KeyChar}",
             };
         }

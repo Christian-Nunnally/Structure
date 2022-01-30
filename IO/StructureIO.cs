@@ -129,6 +129,7 @@ namespace Structure
                 var possibleKeys = $"{option.Description.ToLower(CultureInfo.CurrentCulture)}abcdefghijklmnopqrstuvwxyz1234567890";
                 for (int i = 0; i < possibleKeys.Length; i++)
                 {
+                    if (char.IsWhiteSpace(possibleKeys[i])) continue;
                     if (!keys.Any(x => x.Key.KeyChar == ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]).KeyChar))
                     {
                         keys.Add((ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]), option));

@@ -183,19 +183,19 @@ namespace Structure
             _return = false;
             var options = new List<UserAction>
             {
-                new UserAction("{UpArrow}", EditorInteractionWrapper(CursorUp), ConsoleKey.UpArrow),
-                new UserAction("{DownArrow}", EditorInteractionWrapper(CursorDown), ConsoleKey.DownArrow),
-                new UserAction("{LeftArrow}", EditorInteractionWrapper(ViewParent), ConsoleKey.LeftArrow),
-                new UserAction("{RightArrow}", EditorInteractionWrapper(SetParent), ConsoleKey.RightArrow),
-                new UserAction("{Delete}", EditorInteractionWrapper(DeleteTask), ConsoleKey.Delete),
-                new UserAction("{Enter}", EditorInteractionWrapper(EnterPressed), ConsoleKey.Enter),
+                new UserAction("Move selection up", EditorInteractionWrapper(CursorUp), ConsoleKey.UpArrow),
+                new UserAction("Move selection down", EditorInteractionWrapper(CursorDown), ConsoleKey.DownArrow),
+                new UserAction("View parent", EditorInteractionWrapper(ViewParent), ConsoleKey.LeftArrow),
+                new UserAction("View child", EditorInteractionWrapper(SetParent), ConsoleKey.RightArrow),
+                new UserAction("Delete task", EditorInteractionWrapper(DeleteTask), ConsoleKey.Delete),
+                new UserAction("Complete task", EditorInteractionWrapper(EnterPressed), ConsoleKey.Enter),
                 new UserAction("Lower task priority", EditorInteractionWrapper(LowerTaskRank), ConsoleKey.W),
-                new UserAction("s", EditorInteractionWrapper(RaiseItemRank), ConsoleKey.S),
+                new UserAction("Raise task priority", EditorInteractionWrapper(RaiseItemRank), ConsoleKey.S),
             };
             if (EnableReparenting)
             {
-                options.Add(new UserAction("a", EditorInteractionWrapper(ReparentToGrandparent), ConsoleKey.A));
-                options.Add(new UserAction("d", EditorInteractionWrapper(ParentUnderSibling), ConsoleKey.D));
+                options.Add(new UserAction("Reparent to grandparent", EditorInteractionWrapper(ReparentToGrandparent), ConsoleKey.A));
+                options.Add(new UserAction("Parent under sibling", EditorInteractionWrapper(ParentUnderSibling), ConsoleKey.D));
             }
             for (var i = 0; i < 9; i++)
             {
