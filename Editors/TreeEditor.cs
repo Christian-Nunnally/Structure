@@ -206,7 +206,7 @@ namespace Structure
             var escape = false; 
             options.Add(new UserAction("exit", EditorInteractionWrapper(() => { escape = true; }), ConsoleKey.Escape));
 
-            _io.PromptOptionsSpecial("", false, options.ToArray());
+            _io.PromptOptions("", false, options.ToArray());
             if (_return) return;
             if (escape) return;
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
