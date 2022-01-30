@@ -55,7 +55,6 @@ namespace Structure
                     var nextEditorIndex = (thisEditorsIndex + 1) % TreeTask.OpenEditors.Count;
                     var nextEditor = TreeTask.OpenEditors[nextEditorIndex];
                     nextEditor.ShouldExit = false;
-                    nextEditor._escapePressed = false;
                     _io.Run(nextEditor.Edit);
                 }
             }

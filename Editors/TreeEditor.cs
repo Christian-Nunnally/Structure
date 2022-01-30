@@ -22,7 +22,6 @@ namespace Structure
         private readonly string _prompt;
         private bool _refreshDisplay;
         private bool _goBackIfNoChild;
-        public bool _escapePressed;
         private bool _return;
         private readonly StructureIO _io;
 
@@ -43,14 +42,17 @@ namespace Structure
 
         public void Edit()
         {
-            var children = GetChildren(CurrentParentCached);
-            ConsolidateRank(children);
-            WriteHeader();
-            SetCursor(Cursor);
-            WriteTasks(Cursor, children, "");
-            if (ShouldExit) return;
-            if (children.Count == 0) { NoChildrenAction(); _io.Clear(clearConsole: true); Edit(); }
-            else DoTasksInteraction();
+            while(true)
+            {
+                var children = GetChildren(CurrentParentCached);
+                ConsolidateRank(children);
+                WriteHeader();
+                SetCursor(Cursor);
+                WriteTasks(Cursor, children, "");
+                if (ShouldExit) return;
+                if (children.Count == 0) { NoChildrenAction(); _io.Clear(clearConsole: true); }
+                else if (!DoTasksInteraction()) break;
+            }
         }
 
         public void SetParent(T item)
@@ -176,7 +178,7 @@ namespace Structure
             }
         }
 
-        private void DoTasksInteraction()
+        private bool DoTasksInteraction()
         {
             _return = false;
             var options = new List<UserAction>
@@ -202,13 +204,12 @@ namespace Structure
             }
             CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action))));
 
-            _escapePressed = false;
             var escape = false; 
             options.Add(new UserAction("exit", EditorInteractionWrapper(() => { escape = true; }), ConsoleKey.Escape));
 
             _io.PromptOptions("", false, options.ToArray());
-            if (_return) return;
-            if (escape) return;
+            if (_return) return false;
+            if (escape) return false;
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {
                 ViewParent();
@@ -216,7 +217,7 @@ namespace Structure
             _goBackIfNoChild = true;
             _io.Clear(_refreshDisplay);
 
-            Edit();
+            return true;
         }
 
         private Action EditorInteractionWrapper(Action<T> interaction)

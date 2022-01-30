@@ -26,27 +26,20 @@ namespace Structure
             Contract.Requires(collection != null);
             foreach (var item in collection) action(item);
         }
-        
+
         public static string KeyToKeyString(ConsoleKeyInfo key)
         {
-            switch (key.Key)
+            return key.Key switch
             {
-                case ConsoleKey.UpArrow:
-                    return "↑";
-                case ConsoleKey.DownArrow:
-                    return "↓";
-                case ConsoleKey.LeftArrow:
-                    return "←";
-                case ConsoleKey.RightArrow:
-                    return "→";
-                case ConsoleKey.Enter:
-                    return "<Enter>";
-                case ConsoleKey.Escape:
-                    return "<Escape>";
-                case ConsoleKey.Backspace:
-                    return "<Backspace>";
-            }
-            return key.KeyChar.ToString();
+                ConsoleKey.UpArrow => "↑",
+                ConsoleKey.DownArrow => "↓",
+                ConsoleKey.LeftArrow => "←",
+                ConsoleKey.RightArrow => "→",
+                ConsoleKey.Enter => "<Enter>",
+                ConsoleKey.Escape => "<Escape>",
+                ConsoleKey.Backspace => "<Backspace>",
+                _ => $"{key.KeyChar}",
+            };
         }
     }
 }
