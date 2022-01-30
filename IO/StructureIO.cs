@@ -2,7 +2,6 @@
 using Structure.IO;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -76,7 +75,7 @@ namespace Structure
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
             Write($"{prompt}\n");
-            keyedOptions.All(x => Write($"{x.Key.KeyChar}: {x.Value.Description}"));
+            keyedOptions.All(x => Write($" {Utility.KeyToKeyString(x.Key)} - {x.Value.Description}"));
 
             ConsoleKeyInfo key;
             

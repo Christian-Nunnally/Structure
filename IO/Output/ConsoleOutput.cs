@@ -4,6 +4,11 @@ namespace Structure
 {
     public class ConsoleOutput : IProgramOutput
     {
+        public ConsoleOutput()
+        {
+            Console.OutputEncoding = System.Text.Encoding.Unicode;
+        }
+
         public int CursorLeft
         {
             get => Console.CursorLeft;
