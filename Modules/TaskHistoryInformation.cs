@@ -23,49 +23,35 @@ namespace Structure.Modules
 
         private static double MaxAggregationFunction(List<TaskItem> list)
         {
-            double currentMax = 0;
-            foreach (var item in list)
-            {
-                if (item is RecordFloatTaskItem floatTaskItem)
-                {
-                    if (floatTaskItem.RecordedFloat > currentMax)
-                    {
-                        currentMax = floatTaskItem.RecordedFloat;
-                    }
-                }
-                else if (item is RecordIntegerTaskItem integerTaskItem)
-                {
-                    if (integerTaskItem.RecordedInteger > currentMax)
-                    {
-                        currentMax = integerTaskItem.RecordedInteger;
-                    }
-                }
-                else
-                {
-                    if (1 > currentMax)
-                    {
-                        currentMax = 1;
-                    }
-                }
-            }
-            return currentMax;
+            return list.Max(x => GetNumericValueOfItem(x));
         }
 
         private static double SumAggregationFunction(List<TaskItem> list)
         {
-            double currentSum = 0;
-            foreach (var item in list)
+            return list.Sum(item => GetNumericValueOfItem(item));
+        }
+
+        private static double MinAggregationFunction(List<TaskItem> list)
+        {
+            return list.Min(item => GetNumericValueOfItem(item));
+        }
+
+        private static double MeanAggregationFunction(List<TaskItem> list)
+        {
+            return SumAggregationFunction(list) / list.Count;
+        }
+
+        private static double GetNumericValueOfItem(TaskItem item)
+        {
+            if (item is RecordFloatTaskItem floatTaskItem)
             {
-                if (item is RecordFloatTaskItem floatTaskItem)
-                {
-                    currentSum += floatTaskItem.RecordedFloat;
-                }
-                else if (item is RecordIntegerTaskItem integerTaskItem)
-                {
-                    currentSum += integerTaskItem.RecordedInteger;
-                }
+                return floatTaskItem.RecordedFloat;
             }
-            return currentSum;
+            else if (item is RecordIntegerTaskItem integerTaskItem)
+            {
+                return integerTaskItem.RecordedInteger;
+            }
+            return 0;
         }
 
         protected override void OnDisable()
@@ -289,15 +275,19 @@ namespace Structure.Modules
 
         private void ChangeYAxisMode()
         {
-            var setToCountMode = new UserAction("Count mode", SetToCountMode);
+            var setToCountMode = new UserAction("Item count", SetToCountMode);
             var setToMaxValueMode = new UserAction("Max value", SetToMaxValueMode);
-            var setToSumMode = new UserAction("Sum value", SetToSumValueMode);
+            var setToMinValueMode = new UserAction("Min value", SetToMinValueMode);
+            var setToSumMode = new UserAction("Sum of values", SetToSumValueMode);
+            var setToMeanMode = new UserAction("Average value", SetToMeanValueMode);
 
             IO.PromptOptions(
                 "Set y axis mode", 
                 false, 
                 setToCountMode, 
                 setToMaxValueMode,
+                setToMinValueMode,
+                setToMeanMode,
                 setToSumMode);
         }
 
@@ -314,6 +304,16 @@ namespace Structure.Modules
         private void SetToCountMode()
         {
             _aggregationMode = CountAggregationFunction;
+        }
+
+        private void SetToMinValueMode()
+        {
+            _aggregationMode = MinAggregationFunction;
+        }
+
+        private void SetToMeanValueMode()
+        {
+            _aggregationMode = MeanAggregationFunction;
         }
 
         private void ChangeRange()
