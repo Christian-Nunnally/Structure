@@ -1,6 +1,7 @@
 ﻿using Structure.Code.Modules;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Structure
@@ -62,21 +63,38 @@ namespace Structure
             bool upgrade = module.Contains("upgrade ", StringComparison.OrdinalIgnoreCase);
             var length = "upgrade ".Length;
             module = upgrade ? module[length..] : module;
-            if (int.TryParse(module, out var index) && index >= 0 && index < _listedModules.Count) ToggleModule(index, upgrade);
+            if (int.TryParse(module, out var index) && index >= 0 && (index < _listedModules.Count || _indexMap.ContainsKey(index))) ToggleModule(index, upgrade);
+            else
+            {
+                Debugger.Break();
+            }
         }
+
+        private Dictionary<int, Type> _indexMap = new Dictionary<int, Type> { {0,typeof(TreeTask)},{ 3, typeof(Routiner) },{ 7, typeof(ModuleManager) } };
 
         private void ToggleModule(int index, bool upgrade)
         {
-            if (index >= 0 && index < _listedModules.Count)
+            IModule module = null;
+            if (_indexMap.ContainsKey(index))
             {
-                var module = _listedModules[index];
+                module = _listedModules.Where(x => x.GetType() == _indexMap[index]).FirstOrDefault();
+            }
+
+            if ((index >= 0 && index < _listedModules.Count) || module != null)
+            {
+                if (module == null) module = _listedModules[index];
+
                 var name = module.Name;
                 if (!module.Enabled)
                 {
                     if (module is IObsoleteModule obsoleteModule && upgrade)
                     {
                         var upgradedModule = obsoleteModule.UpgradeModule();
-                        _listedModules[index] = upgradedModule;
+                        _listedModules[_listedModules.IndexOf(module)] = upgradedModule;
+                        if (_indexMap.ContainsKey(index))
+                        {
+                            _indexMap[index] = upgradedModule.GetType();
+                        }
                         IO.News($"Upgraded {name} to {upgradedModule.Name}");
                         module = upgradedModule;
                     }
@@ -92,7 +110,11 @@ namespace Structure
                     if (module is IObsoleteModule obsoleteModule && upgrade)
                     {
                         var upgradedModule = obsoleteModule.UpgradeModule();
-                        _listedModules[index] = upgradedModule;
+                        _listedModules[_listedModules.IndexOf(module)] = upgradedModule;
+                        if (_indexMap.ContainsKey(index))
+                        {
+                            _indexMap[index] = upgradedModule.GetType();
+                        }
                         IO.News($"Upgraded {name} to {upgradedModule.Name}");
                     }
                 }
