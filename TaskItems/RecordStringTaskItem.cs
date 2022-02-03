@@ -25,6 +25,7 @@ namespace Structure
 
         private void RecordString(string result)
         {
+            // TODO: Handle escape characters.
             RecordedString = result;
         }
     }

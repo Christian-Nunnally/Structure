@@ -181,10 +181,12 @@ namespace Structure
                 //TODO: Temp
                 else if (allowedKeys == KeyGroups.MiscKeys)
                 {
+                    News($"{keyInfo.KeyChar} relying on misc keys hack.");
                     return keyInfo;
                 }
                 else
                 {
+                    News($"{keyInfo.KeyChar} is not a currently recognized input.");
                     // throw new InvalidOperationException("Not allowed key");
                     return keyInfo;
                 }

@@ -12,14 +12,18 @@ namespace Structure
         public Action NoChildrenAction { get; set; }
         protected Dictionary<Type, Dictionary<Type, Func<T, T>>> ItemConversionMap { get; } = new Dictionary<Type, Dictionary<Type, Func<T, T>>>();
         protected string CurrentParentCached { get; set; }
-        protected bool EnableReparenting { get; set; } = true;
         protected NodeTreeCollection<T> Tree { get; set; }
         protected bool ShowChildren { get; set; }
         protected bool ShouldExit { get; set; }
-        protected int Cursor 
-        { 
-            get => _cursor; 
-            set => _cursor = Math.Max(0, Math.Min(value, GetChildren(CurrentParentCached).Count)); 
+        protected int Cursor
+        {
+            get => _cursor;
+            set
+            {
+                var maxValue = NumberOfVisibleTasks - 1;
+                maxValue += _cursor == maxValue && value == NumberOfVisibleTasks ? 0 : 1;
+                _cursor = NumberOfVisibleTasks == 1 ? 0 : Math.Max(0, Math.Min(value, maxValue));
+            }
         }
 
         private readonly string _prompt;
@@ -84,7 +88,7 @@ namespace Structure
         public List<T> GetChildren(string parent)
         {
             if (parent == null)
-                foreach (var (_, value) in Tree.Where(x => x.Value.ParentID != null)) 
+                foreach (var (_, value) in Tree.Where(x => x.Value.ParentID != null))
                     if (Tree[value.ParentID] == null) value.ParentID = null;
             return Tree.Where(x => x.Value.ParentID == parent)
                 .Select(x => x.Value)
@@ -185,11 +189,11 @@ namespace Structure
         {
             for (int i = 0; i < tasks.Count; i++)
             {
-                var prefix = spaces.Length == 0 ? $"{i}{(i == cursorIndex ? " > " : "   ")}" : "    " + spaces;
+                var prefix = spaces.Length == 0 ? $"- {(i == cursorIndex ? "> " : "  ")}" : "    " + spaces;
                 _io.Write($"{prefix}{tasks[i]}");
                 if (ShowChildren) WriteTasks(-1, GetChildren(tasks[i].ID), spaces + "    ");
             }
-            var lastLine = spaces.Length == 0 ? $"{tasks.Count}{(tasks.Count == cursorIndex ? " > " : "   ")}" : "    " + spaces;
+            var lastLine = spaces.Length == 0 ? $"- {(tasks.Count == cursorIndex ? "> " : "  ")}" : "    " + spaces;
             _io.Write(lastLine);
         }
 
@@ -206,17 +210,13 @@ namespace Structure
                 new UserAction("Complete task", EditorInteractionWrapper(EnterPressed), ConsoleKey.Enter),
                 new UserAction("Lower task priority", EditorInteractionWrapper(LowerItemRank), ConsoleKey.W),
                 new UserAction("Raise task priority", EditorInteractionWrapper(RaiseItemRank), ConsoleKey.S),
+                new UserAction("Reparent to grandparent", EditorInteractionWrapper(ReparentToGrandparent), ConsoleKey.A),
+                new UserAction("Parent under sibling", EditorInteractionWrapper(ParentUnderSibling), ConsoleKey.D),
+                new UserAction("Select first task", EditorInteractionWrapper(CursorHome), ConsoleKey.Home),
+                new UserAction("Select last task", EditorInteractionWrapper(CursorEnd), ConsoleKey.End),
+                new UserAction("Exit", EditorInteractionWrapper(ExitEditor), ConsoleKey.Escape),
             };
-            if (EnableReparenting)
-            {
-                options.Add(new UserAction("Reparent to grandparent", EditorInteractionWrapper(ReparentToGrandparent), ConsoleKey.A));
-                options.Add(new UserAction("Parent under sibling", EditorInteractionWrapper(ParentUnderSibling), ConsoleKey.D));
-            }
-
             CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action), x.Hotkey.Key)));
-
-            var escape = false;
-            options.Add(new UserAction("exit", EditorInteractionWrapper(() => { escape = true; }), ConsoleKey.Escape));
 
             var helpString = "←↑↓→ - Move selection\n";
             helpString += "i - Insert item\n";
@@ -228,7 +228,6 @@ namespace Structure
 
             _io.PromptOptions("", false, helpString, options.ToArray());
             if (_return) return false;
-            if (escape) return false;
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {
                 ViewParent();
@@ -269,7 +268,13 @@ namespace Structure
             _io.PromptOptions($"Select the new parent for {task}", false, "", siblings.Select(s => new UserAction($"{i++} {s}", () => task.ParentID = s.ID)).ToArray());
         }
 
-        private void EnterPressed(T item) => (IsParent(item) ? EnterPressedOnParentAction : EnterPressedOnLeafAction)(item);
+        private void EnterPressed(T item)
+        { 
+            if (item != null) 
+            { 
+                (IsParent(item) ? EnterPressedOnParentAction : EnterPressedOnLeafAction)(item); 
+            }
+        }
 
         private bool IsParent(T item) => GetChildren(item.ID).Any();
 
@@ -318,6 +323,20 @@ namespace Structure
             Cursor--;
             _refreshDisplay = false;
         }
+
+        private void CursorHome()
+        {
+            Cursor = 0;
+            _refreshDisplay = false;
+        }
+
+        private void CursorEnd()
+        {
+            Cursor = NumberOfVisibleTasks;
+            _refreshDisplay = false;
+        }
+
+        private void ExitEditor() => _return = true;
 
         private Action PromptToInsertNode(string insertPrompt, Func<string, string, int, Node> nodeFactory) => () =>
         {

@@ -172,7 +172,7 @@ namespace Structure
         {
             for (int i = 0; i < tasks.Count; i++)
             {
-                var prefix = spaces.Length == 0 ? $"{i}{(i == cursorIndex ? " > " : "   ")}" : "    " + spaces;
+                var prefix = spaces.Length == 0 ? $"-{(i == cursorIndex ? " > " : "   ")}" : "    " + spaces;
                 _io.Write($"{prefix}{tasks[i]}");
                 if (ShowChildren) WriteTasks(-1, GetChildren(tasks[i].ID), spaces + "    ");
             }
@@ -204,12 +204,10 @@ namespace Structure
             }
             CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action))));
 
-            var escape = false; 
-            options.Add(new UserAction("exit", EditorInteractionWrapper(() => { escape = true; }), ConsoleKey.Escape));
+            options.Add(new UserAction("exit", EditorInteractionWrapper(() => { _return = true; }), ConsoleKey.Escape));
 
             _io.PromptOptions("", false, "", options.ToArray());
             if (_return) return false;
-            if (escape) return false;
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {
                 ViewParent();
