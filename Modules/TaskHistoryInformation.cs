@@ -1,4 +1,5 @@
 ﻿using Structure.Graphing;
+using Structure.Structure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +8,14 @@ namespace Structure.Modules
 {
     public class TaskHistoryInformation : StructureModule
     {
+        private const string ModuleHotkeyDescription = "Task history";
+        private const string SetYAxisModeActionDescription = "Set y axis mode";
+        private const string CompletedTasksDataSetDescription = "Completed Tasks";
+        private const string ActiveTaskCountDataSetDescription = "Active Task Count";
         private UserAction _startAction;
         private int _range = 30;
         private int _grouping = 1;
-        private Func<List<TaskItem>, double> _aggregationMode = CountAggregationFunction;
+        private Func<List<TaskItem>, double> _aggregationMode = AggregationFunctions.CountAggregationFunction;
         private readonly List<TaskItem> _copiedFrom = new List<TaskItem>();
         private string _searchTerm = null;
         private bool _interpolateZeros;
@@ -20,45 +25,6 @@ namespace Structure.Modules
 
         public List<(string Name, IList<TaskItem> Data)> DataSets { get; private set; } = new List<(string Name, IList<TaskItem> Data)>();
 
-        private static double CountAggregationFunction(List<TaskItem> list) => list.Count;
-
-        private static double MaxAggregationFunction(List<TaskItem> list)
-        {
-            if (list.Count == 0) return 0;
-            return list.Max(x => GetNumericValueOfItem(x));
-        }
-
-        private static double SumAggregationFunction(List<TaskItem> list)
-        {
-            if (list.Count == 0) return 0;
-            return list.Sum(item => GetNumericValueOfItem(item));
-        }
-
-        private static double MinAggregationFunction(List<TaskItem> list)
-        {
-            if (list.Count == 0) return 0;
-            return list.Min(item => GetNumericValueOfItem(item));
-        }
-
-        private static double MeanAggregationFunction(List<TaskItem> list)
-        {
-            if (list.Count == 0) return 0;
-            return SumAggregationFunction(list) / list.Count;
-        }
-
-        private static double GetNumericValueOfItem(TaskItem item)
-        {
-            if (item is RecordFloatTaskItem floatTaskItem)
-            {
-                return floatTaskItem.RecordedFloat;
-            }
-            else if (item is RecordIntegerTaskItem integerTaskItem)
-            {
-                return integerTaskItem.RecordedInteger;
-            }
-            return 0;
-        }
-
         protected override void OnDisable()
         {
             Hotkey.Remove(ConsoleKey.H, _startAction);
@@ -66,12 +32,13 @@ namespace Structure.Modules
 
         protected override void OnEnable()
         {
-            _startAction = Hotkey.Add(ConsoleKey.H, new UserAction("Task history", Start));
+            _startAction = new UserAction(ModuleHotkeyDescription, Start);
+            Hotkey.Add(ConsoleKey.H, _startAction);
 
             if (DataSets.Count == 0)
             {
-                DataSets.Add(("Completed Tasks", Data.CompletedTasks));
-                DataSets.Add(("Active Task Count", Data.TaskCountOverTime));
+                DataSets.Add((CompletedTasksDataSetDescription, Data.CompletedTasks));
+                DataSets.Add((ActiveTaskCountDataSetDescription, Data.TaskCountOverTime));
                 _currentDataSet = DataSets.First();
             }
         }
@@ -217,31 +184,21 @@ namespace Structure.Modules
 
         private void ListChartOptions()
         {
-            var changeRangeOption = new UserAction("Change range", ChangeRange);
-            var changeGroupingOption = new UserAction("Change grouping", ChangeGrouping);
-            var addCopiedTasks = new UserAction("Add tasks copied from another task", AddCopiedTasks);
-            var changeYAxisOption = new UserAction("Y axis", ChangeYAxisMode);
-            var listRawValues = new UserAction("List raw values", ToggleListValues);
-            var toggleInterpolateZeros = new UserAction("Toggle interpolate zeros", ToggleInterpolateZeros);
-            var selectDataSet = new UserAction("Select data set", SelectDataSet);
-            var setSearchTerm = new UserAction("Filter by word", SetSearchTerm);
-            var clearFilters = new UserAction("Clear filters", ClearFilters);
-            var exit = new UserAction("Exit", Exit, ConsoleKey.Escape);
+            var options = new[]
+            {
+                new UserAction("Change range", ChangeRange),
+                new UserAction("Change grouping", ChangeGrouping),
+                new UserAction("Add tasks copied from another task", AddCopiedTasks),
+                new UserAction("Y axis", ChangeYAxisMode),
+                new UserAction("List raw values", ToggleListValues),
+                new UserAction("Toggle interpolate zeros", ToggleInterpolateZeros),
+                new UserAction("Select data set", SelectDataSet),
+                new UserAction("Filter by word", SetSearchTerm),
+                new UserAction("Clear filters", ClearFilters),
+                new UserAction("Exit", Exit, ConsoleKey.Escape),
+            };
 
-            IO.PromptOptions(
-                "Task history options",
-                false,
-                 "",
-                changeRangeOption, 
-                changeGroupingOption,
-                addCopiedTasks,
-                changeYAxisOption,
-                listRawValues,
-                toggleInterpolateZeros,
-                selectDataSet,
-                setSearchTerm,
-                clearFilters,
-                exit);
+            IO.PromptOptions("Task history options", false, options);
         }
 
         private void SetSearchTerm()
@@ -306,46 +263,41 @@ namespace Structure.Modules
 
         private void ChangeYAxisMode()
         {
-            var setToCountMode = new UserAction("Item count", SetToCountMode);
-            var setToMaxValueMode = new UserAction("Max value", SetToMaxValueMode);
-            var setToMinValueMode = new UserAction("Min value", SetToMinValueMode);
-            var setToSumMode = new UserAction("Sum of values", SetToSumValueMode);
-            var setToMeanMode = new UserAction("Average value", SetToMeanValueMode);
+            var options = new[]
+            {
+                new UserAction("Item count", SetToCountMode),
+                new UserAction("Max value", SetToMaxValueMode),
+                new UserAction("Min value", SetToMinValueMode),
+                new UserAction("Sum of values", SetToSumValueMode),
+                new UserAction("Average value", SetToMeanValueMode)
+            };
 
-            IO.PromptOptions(
-                "Set y axis mode", 
-                false,
-                 "",
-                setToCountMode, 
-                setToMaxValueMode,
-                setToMinValueMode,
-                setToMeanMode,
-                setToSumMode);
+            IO.PromptOptions(SetYAxisModeActionDescription, false, options);
         }
 
         private void SetToSumValueMode()
         {
-            _aggregationMode = SumAggregationFunction;
+            _aggregationMode = AggregationFunctions.SumAggregationFunction;
         }
 
         private void SetToMaxValueMode()
         {
-            _aggregationMode = MaxAggregationFunction;
+            _aggregationMode = AggregationFunctions.MaxAggregationFunction;
         }
 
         private void SetToCountMode()
         {
-            _aggregationMode = CountAggregationFunction;
+            _aggregationMode = AggregationFunctions.CountAggregationFunction;
         }
 
         private void SetToMinValueMode()
         {
-            _aggregationMode = MinAggregationFunction;
+            _aggregationMode = AggregationFunctions.MinAggregationFunction;
         }
 
         private void SetToMeanValueMode()
         {
-            _aggregationMode = MeanAggregationFunction;
+            _aggregationMode = AggregationFunctions.MeanAggregationFunction;
         }
 
         private void ChangeRange()
@@ -355,10 +307,7 @@ namespace Structure.Modules
 
         private void SetRange(int range)
         {
-            if (range > 0)
-            {
-                _range = range;
-            }
+            if (range > 0) _range = range;
         }
 
         private void ChangeGrouping()
@@ -368,10 +317,7 @@ namespace Structure.Modules
 
         private void SetGrouping(int grouping)
         {
-            if (grouping > 0)
-            {
-                _grouping = grouping;
-            }
+            if (grouping > 0)  _grouping = grouping;
         }
     }
 }

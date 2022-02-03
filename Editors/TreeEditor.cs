@@ -87,13 +87,15 @@ namespace Structure
 
         public List<T> GetChildren(string parent)
         {
-            if (parent == null)
-                foreach (var (_, value) in Tree.Where(x => x.Value.ParentID != null))
-                    if (Tree[value.ParentID] == null) value.ParentID = null;
-            return Tree.Where(x => x.Value.ParentID == parent)
+            var childrenOfCurrentParent = Tree.Where(x => x.Value.ParentID == parent)
                 .Select(x => x.Value)
-                .OrderBy(x => x.Rank)
-                .ToList();
+                .OrderBy(x => x.Rank);
+            if (parent == null)
+            {
+                var childrenWithMissingParents = Tree.Where(x => x.Value.ParentID != null && Tree[x.Value.ParentID] == null).Select(x => x.Value);
+                return childrenOfCurrentParent.Concat(childrenWithMissingParents).ToList();
+            }
+            return childrenOfCurrentParent.ToList();
         }
 
         protected bool TryGetSelectedTask(out T selectedTask)

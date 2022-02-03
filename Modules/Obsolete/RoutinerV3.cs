@@ -19,8 +19,10 @@ namespace Structure
 
         protected override void OnEnable()
         {
-            _pickAction = Hotkey.Add(ConsoleKey.R, new UserAction("Do routine", PickRoutine));
-            _editAction = Hotkey.Add(ConsoleKey.E, new UserAction("Edit routines", EditRoutines));
+            _pickAction = new UserAction("Do routine", PickRoutine);
+            _editAction = new UserAction("Edit routines", EditRoutines);
+            Hotkey.Add(ConsoleKey.R, _pickAction);
+            Hotkey.Add(ConsoleKey.E, _editAction);
         }
 
         private TaskItem CopyRoutineToTaskList(TaskItem task, string parentId = null)

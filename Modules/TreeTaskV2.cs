@@ -13,9 +13,10 @@ namespace Structure
 
         protected override void OnEnable()
         {
-            _doTasks = Hotkey.Add(ConsoleKey.T, new UserAction("Do tasks", Start));
+            _doTasks = new UserAction("Do tasks", Start);
+            Hotkey.Add(ConsoleKey.T, _doTasks);
         }
-
+        
         private void Start()
         {
             var editor = new TaskEditor(IO, Data);

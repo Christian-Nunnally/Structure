@@ -17,7 +17,8 @@ namespace Structure
 
         protected override void OnEnable()
         {
-            _action = Hotkey.Add(ConsoleKey.R, new UserAction("Routines", PromptRoutinerOptions));
+            _action = new UserAction("Routines", PromptRoutinerOptions);
+            Hotkey.Add(ConsoleKey.R, _action);
         }
 
         private void CopyRoutineToTaskList(TaskItem task)

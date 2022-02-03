@@ -63,7 +63,6 @@ namespace Structure
             io.PromptOptions(
                 $"Complete task {Name}?",
                 true,
-                null,
                 new UserAction("No", () => can = false, ConsoleKey.N),
                 new UserAction("Yes", () => can = true, ConsoleKey.Enter));
             return can;

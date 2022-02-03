@@ -71,6 +71,8 @@ namespace Structure
             }, KeyGroups.NoKeys, new[] { ConsoleKey.Enter });
         }
 
+        public void PromptOptions(string prompt, bool useDefault, params UserAction[] options) => PromptOptions(prompt, useDefault, null, options);
+
         public void PromptOptions(string prompt, bool useDefault, string helpString, params UserAction[] options)
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
@@ -79,8 +81,9 @@ namespace Structure
             else Write(helpString);
 
             ConsoleKeyInfo key;
-            
-            key = ReadKey(KeyGroups.NoKeys);
+
+            var possibleKeys = options.Select(x => x.Hotkey.Key).ToArray();
+            key = ReadKey(possibleKeys);
             if (char.IsUpper(key.KeyChar))
             {
                 if (useDefault) options.Last().Action();

@@ -29,11 +29,10 @@ namespace Structure
             }
         }
 
-        public UserAction Add(ConsoleKey key, UserAction action)
+        public void Add(ConsoleKey key, UserAction action)
         {
             if (_hotkeys.ContainsKey(key)) _hotkeys[key].Add(action);
             else _hotkeys.Add(key, new List<UserAction> { action });
-            return action;
         }
 
         public void Remove(ConsoleKey key, UserAction action)

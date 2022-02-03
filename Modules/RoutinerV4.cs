@@ -5,6 +5,9 @@ namespace Structure
 {
     public class RoutinerV4 : StructureModule
     {
+        private const string PickRoutineToStartPrompt = "Pick routine to start";
+        private const string DoRoutineActionDescription = "Do routine";
+        private const string EditRoutineActionDescription = "Edit routines";
         private UserAction _pickAction;
         private UserAction _editAction;
 
@@ -16,8 +19,10 @@ namespace Structure
 
         protected override void OnEnable()
         {
-            _pickAction = Hotkey.Add(ConsoleKey.R, new UserAction("Do routine", PickRoutine));
-            _editAction = Hotkey.Add(ConsoleKey.E, new UserAction("Edit routines", EditRoutines));
+            _pickAction = new UserAction(DoRoutineActionDescription, PickRoutine);
+            _editAction = new UserAction(EditRoutineActionDescription, EditRoutines);
+            Hotkey.Add(ConsoleKey.R, _pickAction);
+            Hotkey.Add(ConsoleKey.E, _editAction);
         }
 
         private TaskItem CopyRoutineToTaskList(TaskItem task, string parentId = null)
@@ -35,26 +40,24 @@ namespace Structure
 
         private void DoRoutine(TaskItem routine)
         {
-            IO.Run(() =>
-            {
-                var editor = new TaskEditorObsolete(IO, Data);
-                editor.SetParent(routine);
-                editor.Edit();
-            });
+            var editor = new TaskEditor(IO, Data);
+            editor.SetParent(routine);
+            IO.Run(editor.Edit);
         }
 
         private void EditRoutines()
         {
-            IO.News("Editing");
-            IO.Run(() => new RoutineEditor(IO, Data.Routines).Edit());
+            var editor = new RoutineEditor(IO, Data.Routines);
+            IO.Run(editor.Edit);
         }
 
         private void PickRoutine()
         {
-            IO.Run(() => new TaskPickerObsolete(IO, "Pick routine to start", "Start", true, true, true, Data.Routines, StartRoutine).Edit());
+            var picker = new TaskPicker(IO, PickRoutineToStartPrompt, true, true, true, Data.Routines, CopyRoutineToTaskListAndBegin);
+            IO.Run(picker.Edit);
         }
 
-        private void StartRoutine(TaskItem routine)
+        private void CopyRoutineToTaskListAndBegin(TaskItem routine)
         {
             var task = CopyRoutineToTaskList(routine);
             DoRoutine(task);
