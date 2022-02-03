@@ -1,7 +1,6 @@
 ﻿using Structure.Code.Modules;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Structure
@@ -18,8 +17,9 @@ namespace Structure
         {
             var newModule = new ModuleManagerV2();
             var thisIndex = _listedModules.IndexOf(this);
-            _listedModules[thisIndex] = newModule;
-            newModule.RegisterModules(_listedModules.ToArray());
+            var moduleListCopy = _listedModules.ToArray();
+            moduleListCopy[thisIndex] = newModule;
+            newModule.RegisterModules(moduleListCopy);
             newModule.Enable(IO, Hotkey, Data);
             return newModule;
         }
@@ -59,18 +59,19 @@ namespace Structure
 
         private void ToggleModule(string module)
         {
+            if (module == "special sauce")
+            {
+                ToggleModule(_listedModules.IndexOf(_listedModules.OfType<ModuleManager>().First()), true, _listedModules.OfType<ModuleManager>().First());
+                return;
+            }
             if (string.IsNullOrWhiteSpace(module)) return;
             bool upgrade = module.Contains("upgrade ", StringComparison.OrdinalIgnoreCase);
             var length = "upgrade ".Length;
             module = upgrade ? module[length..] : module;
             if (int.TryParse(module, out var index) && index >= 0 && (index < _listedModules.Count || _indexMap.ContainsKey(index))) ToggleModule(index, upgrade);
-            else
-            {
-                Debugger.Break();
-            }
         }
 
-        private Dictionary<int, Type> _indexMap = new Dictionary<int, Type> { {0,typeof(TreeTask)},{ 3, typeof(Routiner) },{ 7, typeof(ModuleManager) } };
+        private readonly Dictionary<int, Type> _indexMap = new Dictionary<int, Type> { {0,typeof(TreeTask)},{ 3, typeof(Routiner) },{ 7, typeof(ModuleManager) } };
 
         private void ToggleModule(int index, bool upgrade)
         {
@@ -83,40 +84,44 @@ namespace Structure
             if ((index >= 0 && index < _listedModules.Count) || module != null)
             {
                 if (module == null) module = _listedModules[index];
+                ToggleModule(index, upgrade, module);
+            }
+        }
 
-                var name = module.Name;
-                if (!module.Enabled)
+        private void ToggleModule(int index, bool upgrade, IModule module)
+        {
+            var name = module.Name;
+            if (!module.Enabled)
+            {
+                if (module is IObsoleteModule obsoleteModule && upgrade)
                 {
-                    if (module is IObsoleteModule obsoleteModule && upgrade)
+                    var upgradedModule = obsoleteModule.UpgradeModule();
+                    _listedModules[_listedModules.IndexOf(module)] = upgradedModule;
+                    if (_indexMap.ContainsKey(index))
                     {
-                        var upgradedModule = obsoleteModule.UpgradeModule();
-                        _listedModules[_listedModules.IndexOf(module)] = upgradedModule;
-                        if (_indexMap.ContainsKey(index))
-                        {
-                            _indexMap[index] = upgradedModule.GetType();
-                        }
-                        IO.News($"Upgraded {name} to {upgradedModule.Name}");
-                        module = upgradedModule;
+                        _indexMap[index] = upgradedModule.GetType();
                     }
-
-                    module.Enable(IO, Hotkey, Data);
-                    IO.News($"+{name} enabled.");
+                    IO.News($"Upgraded {name} to {upgradedModule.Name}");
+                    module = upgradedModule;
                 }
-                else
-                {
-                    module.Disable();
-                    IO.News($"+{name} disabled.");
 
-                    if (module is IObsoleteModule obsoleteModule && upgrade)
+                module.Enable(IO, Hotkey, Data);
+                IO.News($"+{name} enabled.");
+            }
+            else
+            {
+                module.Disable();
+                IO.News($"+{name} disabled.");
+
+                if (module is IObsoleteModule obsoleteModule && upgrade)
+                {
+                    var upgradedModule = obsoleteModule.UpgradeModule();
+                    _listedModules[_listedModules.IndexOf(module)] = upgradedModule;
+                    if (_indexMap.ContainsKey(index))
                     {
-                        var upgradedModule = obsoleteModule.UpgradeModule();
-                        _listedModules[_listedModules.IndexOf(module)] = upgradedModule;
-                        if (_indexMap.ContainsKey(index))
-                        {
-                            _indexMap[index] = upgradedModule.GetType();
-                        }
-                        IO.News($"Upgraded {name} to {upgradedModule.Name}");
+                        _indexMap[index] = upgradedModule.GetType();
                     }
+                    IO.News($"Upgraded {name} to {upgradedModule.Name}");
                 }
             }
         }

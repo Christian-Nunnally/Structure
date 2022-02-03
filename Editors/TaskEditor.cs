@@ -5,59 +5,39 @@ namespace Structure
 {
     public class TaskEditor : TaskExecutor
     {
-        private static int ugh = 0;
         public const string InsertTaskPrompt = "Insert task";
         public const string TitlePrompt = "Task tree";
         private readonly StructureData _data;
-        private readonly StructureIO _io;
 
         public TaskEditor(StructureIO io, StructureData data) : base(io, TitlePrompt, data?.ActiveTaskTree)
         {
             Contract.Requires(io != null);
             Contract.Requires(data != null);
             EnableDefaultInsertFunctionality(InsertTaskPrompt, DefaultNodeFactory);
-            CustomActions.Add(new UserAction("o", TaskEditorOptions, ConsoleKey.O));
-            CustomActions.Add(new UserAction("v", () => ShowChildren = !ShowChildren, ConsoleKey.V));
-            CustomActions.Add(new UserAction("c", CopyCurrentTask, ConsoleKey.C));
-            CustomActions.Add(new UserAction("n", GoToNextActiveTask, ConsoleKey.N));
+            CustomActions.Add(new UserAction("Toggle show children", () => ShowChildren = !ShowChildren, ConsoleKey.V));
+            CustomActions.Add(new UserAction("Copy current task", CopyCurrentTask, ConsoleKey.C));
             _data = data;
-            _io = io;
         }
 
         private void CopyCurrentTask()
         {
             if (TryGetSelectedTask(out var selectedTask))
             {
-                var newTask = new TaskItem
-                {
-                    Name = selectedTask.Name,
-                    Rank = selectedTask.Rank + 1,
-                    ParentID = selectedTask.ParentID,
-                };
-                Tree.Set(newTask);
+                CopyTask(selectedTask, selectedTask.ParentID);
             }
         }
 
-        private void TaskEditorOptions()
+        private void CopyTask(TaskItem task, string parentID)
         {
-            ugh++;
-            if (ugh < 5) return;
-            // This has been selected 5 times already :(
-        }
-
-        private void GoToNextActiveTask()
-        {
-            if (TreeTask.OpenEditors.Count > 1)
+            var newTask = new TaskItem
             {
-                var thisEditorsIndex = TreeTask.OpenEditors.IndexOf(this);
-                if (thisEditorsIndex >= 0)
-                {
-                    var nextEditorIndex = (thisEditorsIndex + 1) % TreeTask.OpenEditors.Count;
-                    var nextEditor = TreeTask.OpenEditors[nextEditorIndex];
-                    nextEditor.ShouldExit = false;
-                    _io.Run(nextEditor.Edit);
-                }
-            }
+                Name = task.Name,
+                Rank = task.Rank + 1,
+                ParentID = parentID,
+            };
+            Tree.Set(newTask);
+            var children = GetChildren(task.ID);
+            children.All(x => CopyTask(x, newTask.ID));
         }
 
         public override void CompleteTask(TaskItem task)

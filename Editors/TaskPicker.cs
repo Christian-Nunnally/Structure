@@ -5,14 +5,11 @@ namespace Structure
     public class TaskPicker : TreeEditor<TaskItem>
     {
         private Action<TaskItem> _pickedAction;
-        private readonly string _pickPrompt;
         private readonly bool _exitAfterPick;
-        private readonly StructureIO _io;
 
         public TaskPicker(
             StructureIO io,
             string prompt,
-            string pickPrompt,
             bool allowLeafs,
             bool allowParents,
             bool exitAfterPick,
@@ -20,26 +17,22 @@ namespace Structure
             Action<TaskItem> pickedAction = null)
             : base(io, prompt, tree)
         {
-            if (allowLeafs) EnterPressedOnLeafAction = ConfirmPick;
-            if (allowParents) EnterPressedOnParentAction = ConfirmPick;
+            if (allowLeafs) EnterPressedOnLeafAction = Pick;
+            if (allowParents) EnterPressedOnParentAction = Pick;
 
-            _pickPrompt = pickPrompt;
             _exitAfterPick = exitAfterPick;
             _pickedAction = pickedAction;
-            _io = io;
         }
 
-        public void SetPickAction(Action<TaskItem> action)
+        protected void SetPickAction(Action<TaskItem> action)
         {
             _pickedAction = action;
         }
 
-        private void ConfirmPick(TaskItem task) => _io.PromptOptions($"{_pickPrompt} {task}?", true,
-            new UserAction("no", () => { }),
-            new UserAction("yes (Enter)", () =>
-            {
-                _pickedAction(task);
-                if (_exitAfterPick) ShouldExit = true;
-            }));
+        private void Pick(TaskItem task)
+        {
+            _pickedAction(task);
+            if (_exitAfterPick) ShouldExit = true;
+        }
     }
 }

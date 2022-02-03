@@ -24,7 +24,7 @@ namespace Structure
                 }
                 else
                 {
-                    io.Run(() => io.PromptOptions($"ctrl + {$"{key.Key}".ToLower(CultureInfo.CurrentCulture)} pressed, select option:", false, actions.ToArray()));
+                    io.Run(() => io.PromptOptions($"ctrl + {$"{key.Key}".ToLower(CultureInfo.CurrentCulture)} pressed, select option:", false, "", actions.ToArray()));
                 }
             }
         }

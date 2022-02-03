@@ -1,14 +1,14 @@
 ﻿namespace Structure
 {
-    public class TaskExecutor : TaskPicker
+    public class TaskExecutorObsolete : TaskPickerObsolete
     {
         private readonly StructureIO _io;
 
-        public TaskExecutor(
+        public TaskExecutorObsolete(
             StructureIO io,
             string prompt,
             NodeTreeCollection<TaskItem> tree)
-            : base(io, prompt, true, false, false, tree)
+            : base(io, prompt, "Complete", true, false, false, tree)
         {
             SetPickAction(CompleteTask);
             _io = io;

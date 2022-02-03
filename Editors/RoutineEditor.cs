@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Structure
 {
-    public class RoutineEditor : TreeEditor<TaskItem>
+    public class RoutineEditor : TreeEditorObsolete<TaskItem>
     {
         public RoutineEditor(StructureIO io, NodeTreeCollection<TaskItem> routineTree) : base(io, "Edit routines", routineTree)
         {

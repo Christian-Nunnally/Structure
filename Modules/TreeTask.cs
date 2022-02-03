@@ -1,12 +1,18 @@
-﻿using System;
+﻿using Structure.Code.Modules;
+using System;
 using System.Collections.Generic;
 
 namespace Structure
 {
-    internal class TreeTask : StructureModule
+    internal class TreeTask : StructureModule, IObsoleteModule
     {
-        public static List<TaskEditor> OpenEditors = new List<TaskEditor>();
+        public static List<TaskEditorObsolete> OpenEditors = new List<TaskEditorObsolete>();
         private UserAction _doTasks;
+
+        public IModule UpgradeModule()
+        {
+            return new TreeTaskV2();
+        }
 
         protected override void OnDisable()
         {
@@ -20,7 +26,7 @@ namespace Structure
 
         private void Start()
         {
-            var editor = new TaskEditor(IO, Data);
+            var editor = new TaskEditorObsolete(IO, Data);
             OpenEditors.Add(editor);
             IO.Run(() => editor.Edit());
             if (OpenEditors.Count > 0) OpenEditors.RemoveAt(OpenEditors.Count - 1);

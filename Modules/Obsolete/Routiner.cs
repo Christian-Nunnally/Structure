@@ -35,7 +35,7 @@ namespace Structure
         {
             IO.Run(() =>
             {
-                var editor = new TaskEditor(IO, Data);
+                var editor = new TaskEditorObsolete(IO, Data);
                 editor.SetParent(routine);
                 editor.Edit();
             });
@@ -46,7 +46,7 @@ namespace Structure
             var start = new UserAction("Start routine", PickRoutine);
             var edit = new UserAction("Edit routines", EditRoutines);
             var options = new[] { start, edit };
-            IO.PromptOptions("Routines", false, options);
+            IO.PromptOptions("Routines", false, "", options);
         }
 
         private void EditRoutines()
@@ -56,7 +56,7 @@ namespace Structure
 
         private void PickRoutine()
         {
-            IO.Run(() => new TaskPicker(IO, "Pick routine to start", "Start", false, true, true, Data.Routines, StartRoutine).Edit());
+            IO.Run(() => new TaskPickerObsolete(IO, "Pick routine to start", "Start", false, true, true, Data.Routines, StartRoutine).Edit());
         }
 
         private void StartRoutine(TaskItem routine)

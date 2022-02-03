@@ -6,14 +6,11 @@ namespace Structure
 {
     public class ModuleManagerV2 : StructureModule
     {
-        public const string ManageModulesPrompt = "Enable/disable modules:";
-        private readonly List<IModule> _listedModules = new List<IModule>();
+        public const string ManageModulesPrompt = "Manage modules:";
+        private readonly List<IModule> _managedModules = new List<IModule>();
         private UserAction _action;
 
-        internal void RegisterModules(IModule[] modules)
-        {
-            _listedModules.AddRange(modules);
-        }
+        internal void RegisterModules(IModule[] modules) => _managedModules.AddRange(modules);
 
         protected override void OnDisable()
         {
@@ -29,24 +26,18 @@ namespace Structure
         private void ManageModules()
         {
             var options = new List<UserAction>();
-            foreach (var module in _listedModules)
+            foreach (var module in _managedModules)
             {
                 var moduleString = ModuleString(module);
-                if (module is IObsoleteModule)
-                {
-                    options.Add(new UserAction($"Upgrade {moduleString}", () => UpgradeModule(module)));
-                }
-                if (module.Enabled)
-                {
-                    options.Add(new UserAction($"Disable {moduleString}", () => DisableModule(module)));
-                }
-                else
-                {
-                    options.Add(new UserAction($"Enable {moduleString}", () => EnableModule(module)));
-                }
+                var upgradeOption = new UserAction($"Upgrade {moduleString}", () => UpgradeModule(module));
+                if (module is IObsoleteModule) options.Add(upgradeOption);
+                var enableDisableOption = module.Enabled
+                    ? new UserAction($"Disable {moduleString}", () => DisableModule(module))
+                    : new UserAction($"Enable {moduleString}", () => EnableModule(module));
+                options.Add(enableDisableOption);
             }
 
-            IO.PromptOptions(ManageModulesPrompt, false, options.ToArray());
+            IO.PromptOptions(ManageModulesPrompt, false, "", options.ToArray());
         }
 
         private static string ModuleString(IModule module)
@@ -58,7 +49,7 @@ namespace Structure
 
         private void EnableModule(IModule module)
         {
-            if (_listedModules.Contains(module))
+            if (_managedModules.Contains(module))
             {
                 module.Enable(IO, Hotkey, Data);
                 IO.News($"+{module.Name} enabled.");
@@ -67,7 +58,7 @@ namespace Structure
 
         private void DisableModule(IModule module)
         {
-            if (_listedModules.Contains(module))
+            if (_managedModules.Contains(module))
             {
                 module.Disable();
                 IO.News($"+{module.Name} disabled.");
@@ -76,14 +67,17 @@ namespace Structure
 
         private void UpgradeModule(IModule module)
         {
-            var index = _listedModules.IndexOf(module);
-            if (index >= 0 && index < _listedModules.Count)
+            var index = _managedModules.IndexOf(module);
+            if (index > 0)
             {
                 if (module is IObsoleteModule obsoleteModule)
                 {
+                    var wasEnabled = module.Enabled;
+                    if (wasEnabled) DisableModule(module);
                     var upgradedModule = obsoleteModule.UpgradeModule();
-                    _listedModules[index] = upgradedModule;
+                    _managedModules[index] = upgradedModule;
                     IO.News($"Upgraded {module.Name} to {upgradedModule.Name}");
+                    if (wasEnabled) EnableModule(upgradedModule);
                 }
             }
         }

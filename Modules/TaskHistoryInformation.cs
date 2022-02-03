@@ -11,7 +11,8 @@ namespace Structure.Modules
         private int _range = 30;
         private int _grouping = 1;
         private Func<List<TaskItem>, double> _aggregationMode = CountAggregationFunction;
-        private TaskItem _routineParent;
+        private readonly List<TaskItem> _copiedFrom = new List<TaskItem>();
+        private string _searchTerm = null;
         private bool _interpolateZeros;
         private bool _listValues;
         private (string Name, IList<TaskItem> Data) _currentDataSet;
@@ -23,21 +24,25 @@ namespace Structure.Modules
 
         private static double MaxAggregationFunction(List<TaskItem> list)
         {
+            if (list.Count == 0) return 0;
             return list.Max(x => GetNumericValueOfItem(x));
         }
 
         private static double SumAggregationFunction(List<TaskItem> list)
         {
+            if (list.Count == 0) return 0;
             return list.Sum(item => GetNumericValueOfItem(item));
         }
 
         private static double MinAggregationFunction(List<TaskItem> list)
         {
+            if (list.Count == 0) return 0;
             return list.Min(item => GetNumericValueOfItem(item));
         }
 
         private static double MeanAggregationFunction(List<TaskItem> list)
         {
+            if (list.Count == 0) return 0;
             return SumAggregationFunction(list) / list.Count;
         }
 
@@ -70,14 +75,23 @@ namespace Structure.Modules
                 _currentDataSet = DataSets.First();
             }
         }
-
+athe
         private void Start()
         {
             while(!_exit)
             {
-                IO.Run(() => ShowHistoryAndListOptions(x => true));
+                IO.Run(() => ShowHistoryAndListOptions(BasicFilter));
             }
             _exit = false;
+        }
+
+        private bool BasicFilter(TaskItem task)
+        {
+            if (_searchTerm != null)
+            {
+                return task.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase);
+            }
+            return true;
         }
 
         private void ShowHistoryAndListOptions(Predicate<TaskItem> filter)
@@ -118,9 +132,9 @@ namespace Structure.Modules
         private List<(string Label, double Value)> ComputeValues(Predicate<TaskItem> filter)
         {
             var tasks = _currentDataSet.Data.Where(x => x.CompletedDate + new TimeSpan(_range, 0, 0, 0, 0) > DateTime.Now && filter(x)).ToList();
-            if (_routineParent is object)
+            if (_copiedFrom.Count > 0)
             {
-                tasks = tasks.Where(t => t.CopiedFromID == _routineParent.ID).ToList();
+                tasks = tasks.Where(t => _copiedFrom.Any(x => x.ID == t.CopiedFromID)).ToList();
             }
             var values = new List<(string Label, double Value)>();
             for (int i = 1; i < _range; i += _grouping)
@@ -205,23 +219,40 @@ namespace Structure.Modules
         {
             var changeRangeOption = new UserAction("Change range", ChangeRange);
             var changeGroupingOption = new UserAction("Change grouping", ChangeGrouping);
-            var setRoutineParent = new UserAction("Set routine parent", SetRoutineParent);
+            var addCopiedTasks = new UserAction("Add tasks copied from another task", AddCopiedTasks);
             var changeYAxisOption = new UserAction("Y axis", ChangeYAxisMode);
             var listRawValues = new UserAction("List raw values", ToggleListValues);
             var toggleInterpolateZeros = new UserAction("Toggle interpolate zeros", ToggleInterpolateZeros);
             var selectDataSet = new UserAction("Select data set", SelectDataSet);
+            var setSearchTerm = new UserAction("Filter by word", SetSearchTerm);
+            var clearFilters = new UserAction("Clear filters", ClearFilters);
             var exit = new UserAction("Exit", Exit, ConsoleKey.Escape);
 
             IO.PromptOptions(
                 "Task history options",
-                false, changeRangeOption,
+                false,
+                 "",
+                changeRangeOption, 
                 changeGroupingOption,
-                setRoutineParent,
+                addCopiedTasks,
                 changeYAxisOption,
                 listRawValues,
                 toggleInterpolateZeros,
                 selectDataSet,
+                setSearchTerm,
+                clearFilters,
                 exit);
+        }
+
+        private void SetSearchTerm()
+        {
+            IO.Read(x => _searchTerm = x, KeyGroups.AlphanumericKeysPlus, new[] { ConsoleKey.Enter, ConsoleKey.LeftArrow });
+        }
+
+        private void ClearFilters()
+        {
+            _copiedFrom.Clear();
+            _searchTerm = null;
         }
 
         private void Exit()
@@ -236,7 +267,7 @@ namespace Structure.Modules
             {
                 options.Add(new UserAction(dataSet.Name, () => SelectDataSet(dataSet)));
             }
-            IO.PromptOptions("Select data set", false, options.ToArray());
+            IO.PromptOptions("Select data set", false, "", options.ToArray());
         }
 
         private void SelectDataSet((string Name, IList<TaskItem> Data) dataSet)
@@ -249,14 +280,14 @@ namespace Structure.Modules
             _interpolateZeros = !_interpolateZeros;
         }
 
-        private void SetRoutineParent()
+        private void AddCopiedTasks()
         {
-            IO.Run(() => new TaskPicker(IO, "Pick routine parent", "Select", true, true, true, Data.Routines, SetRoutineParentToTask).Edit());
+            IO.Run(() => new TaskPickerObsolete(IO, "Pick routine parent", "Select", true, true, true, Data.Routines, AddTasksCopiedFrom).Edit());
         }
 
-        private void SetRoutineParentToTask(TaskItem routineParent)
+        private void AddTasksCopiedFrom(TaskItem task)
         {
-            _routineParent = routineParent;
+            _copiedFrom.Add(task);
         }
 
         private void ToggleListValues()
@@ -283,7 +314,8 @@ namespace Structure.Modules
 
             IO.PromptOptions(
                 "Set y axis mode", 
-                false, 
+                false,
+                 "",
                 setToCountMode, 
                 setToMaxValueMode,
                 setToMinValueMode,

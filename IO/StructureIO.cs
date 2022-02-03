@@ -71,11 +71,12 @@ namespace Structure
             }, KeyGroups.NoKeys, new[] { ConsoleKey.Enter });
         }
 
-        public void PromptOptions(string prompt, bool useDefault, params UserAction[] options)
+        public void PromptOptions(string prompt, bool useDefault, string helpString, params UserAction[] options)
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
             Write($"{prompt}\n");
-            keyedOptions.All(x => Write($" {Utility.KeyToKeyString(x.Key)} - {x.Value.Description}"));
+            if (string.IsNullOrEmpty(helpString)) keyedOptions.All(x => Write($" {Utility.KeyToKeyString(x.Key)} - {x.Value.Description}"));
+            else Write(helpString);
 
             ConsoleKeyInfo key;
             
