@@ -8,11 +8,11 @@ namespace Structure
     {
         public int RecordedInteger { get; set; }
 
-        public override void DoTask(StructureIO io, NodeTreeCollection<TaskItem> tree)
+        public override bool CanDoTask(StructureIO io)
         {
             Contract.Requires(io != null);
             io.ReadInteger($"Record integer metric for: {Name}", RecordInteger);
-            base.DoTask(io, tree);
+            return true;
         }
 
         public override TaskItem Copy()

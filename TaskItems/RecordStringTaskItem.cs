@@ -8,11 +8,11 @@ namespace Structure
     {
         public string RecordedString { get; set; }
 
-        public override void DoTask(StructureIO io, NodeTreeCollection<TaskItem> tree)
+        public override bool CanDoTask(StructureIO io)
         {
             Contract.Requires(io != null);
             io.Read(RecordString, KeyGroups.NoKeys, new[] { ConsoleKey.Enter });
-            base.DoTask(io, tree);
+            return true;
         }
 
         public override TaskItem Copy()

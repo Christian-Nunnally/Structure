@@ -56,12 +56,23 @@ namespace Structure
             item.CopiedFromID = ID;
         }
 
-        public virtual void DoTask(StructureIO io, NodeTreeCollection<TaskItem> tree)
+        public virtual bool CanDoTask(StructureIO io)
         {
             Contract.Requires(io != null);
-            Contract.Requires(tree != null);
-            CompletedDate = io.CurrentTime.GetCurrentTime();
-            tree.Remove(ID);
+            var can = false;
+            io.PromptOptions(
+                $"Complete task {Name}?",
+                true,
+                null,
+                new UserAction("No", () => can = false, ConsoleKey.N),
+                new UserAction("Yes", () => can = true, ConsoleKey.Enter));
+            return can;
+        }
+
+        public virtual void DoTask(DateTime completedTime, NodeTreeCollection<TaskItem> tree)
+        {
+            CompletedDate = completedTime;
+            tree?.Remove(ID);
         }
     }
 }

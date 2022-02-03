@@ -16,7 +16,17 @@
 
         public virtual void CompleteTask(TaskItem task)
         {
-            _io.Run(() => task?.DoTask(_io, Tree));
+            _io.Run(() =>
+            {
+                if (task != null && task is RecordFloatTaskItem || task is RecordIntegerTaskItem || task is RecordStringTaskItem)
+                {
+                    if (task.CanDoTask(_io)) task.DoTask(_io.CurrentTime.GetCurrentTime(), Tree);
+                }
+                else
+                {
+                    task.DoTask(_io.CurrentTime.GetCurrentTime(), Tree);
+                }
+            });
         }
     }
 }

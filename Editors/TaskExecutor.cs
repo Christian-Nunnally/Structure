@@ -16,7 +16,13 @@
 
         public virtual void CompleteTask(TaskItem task)
         {
-            _io.Run(() => task?.DoTask(_io, Tree));
+            _io.Run(() => 
+            { 
+                if (task != null && task.CanDoTask(_io))
+                {
+                    task?.DoTask(_io.CurrentTime.GetCurrentTime(), Tree); 
+                }
+            });
         }
     }
 }

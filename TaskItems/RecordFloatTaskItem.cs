@@ -8,12 +8,13 @@ namespace Structure
     {
         public float RecordedFloat { get; set; }
 
-        public override void DoTask(StructureIO io, NodeTreeCollection<TaskItem> tree)
+
+        public override bool CanDoTask(StructureIO io)
         {
             Contract.Requires(io != null);
             io.Write($"Record float metric for: {Name}");
             io.Read(s => RecordFloat(io, Name, s), KeyGroups.NoKeys, new[] { ConsoleKey.Enter });
-            base.DoTask(io, tree);
+            return true;
         }
 
         public override TaskItem Copy()
