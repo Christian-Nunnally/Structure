@@ -13,17 +13,18 @@ namespace Structure.Modules
         private const string CompletedTasksDataSetDescription = "Completed Tasks";
         private const string ActiveTaskCountDataSetDescription = "Active Task Count";
         private UserAction _startAction;
-        private int _range = 30;
-        private int _grouping = 1;
-        private Func<List<TaskItem>, double> _aggregationMode = AggregationFunctions.CountAggregationFunction;
-        private readonly List<TaskItem> _copiedFrom = new List<TaskItem>();
         private string _searchTerm = null;
-        private bool _interpolateZeros;
         private bool _listValues;
-        private (string Name, IList<TaskItem> Data) _currentDataSet;
         private bool _exit;
+        private TaskHistoryQuery _selectedQuery;
+        private bool _selectAllQueries = true;
+        private readonly List<TaskHistoryQuery> _queries = new List<TaskHistoryQuery>();
 
         public List<(string Name, IList<TaskItem> Data)> DataSets { get; private set; } = new List<(string Name, IList<TaskItem> Data)>();
+
+        public TaskHistoryInformation()
+        {
+        }
 
         protected override void OnDisable()
         {
@@ -39,7 +40,8 @@ namespace Structure.Modules
             {
                 DataSets.Add((CompletedTasksDataSetDescription, Data.CompletedTasks));
                 DataSets.Add((ActiveTaskCountDataSetDescription, Data.TaskCountOverTime));
-                _currentDataSet = DataSets.First();
+
+                AddQuery();
             }
         }
 
@@ -70,117 +72,40 @@ namespace Structure.Modules
 
         private void PrintTitle()
         {
-            IO.Write(_currentDataSet.Name);
+            IO.Write(_selectedQuery.DataSet.Name);
         }
 
         private void ShowData(Predicate<TaskItem> filter)
         {
-            var values = ComputeValues(filter);
+            var selectedQueriesValues = new List<List<(string, double)>>();
+            ModifySelectedQueries(x => selectedQueriesValues.Add(x.ComputeValues(filter)));
+
+            if (!selectedQueriesValues.Any()) return;
             if (_listValues)
             {
-                ListValues(values);
+                PrintValuesAsList(selectedQueriesValues);
             }
             else
             {
-                GraphValues(values);
+                GraphValues(selectedQueriesValues);
             }
         }
 
-        public TaskHistoryInformation()
+        private void PrintValuesAsList(List<List<(string Label, double Value)>> listOfValues)
         {
+            var i = 1;
+            foreach (var values in listOfValues)
+            {
+                IO.Write($"Data from query #{i++}:");
+                values.All(x => IO.Write($"{x.Label} : {x.Value}"));
+            }
         }
 
-        private void GraphValues(List<(string Label, double Value)> values)
+        private void GraphValues(List<List<(string Label, double Value)>> listOfValues)
         {
             var consoleGraph = new ConsoleGraph(80, 20);
-            consoleGraph.Print(IO, values);
+            consoleGraph.Print(IO, listOfValues);
         }
-
-        private List<(string Label, double Value)> ComputeValues(Predicate<TaskItem> filter)
-        {
-            var tasks = _currentDataSet.Data.Where(x => x.CompletedDate + new TimeSpan(_range, 0, 0, 0, 0) > DateTime.Now && filter(x)).ToList();
-            if (_copiedFrom.Count > 0)
-            {
-                tasks = tasks.Where(t => _copiedFrom.Any(x => x.ID == t.CopiedFromID)).ToList();
-            }
-            var values = new List<(string Label, double Value)>();
-            for (int i = 1; i < _range; i += _grouping)
-            {
-                var groupedTasks = tasks.Where(x => x.CompletedDate + new TimeSpan(i, 0, 0, 0, 0) > DateTime.Now).ToList();
-                foreach (var task in groupedTasks)
-                {
-                    tasks.Remove(task);
-                }
-                if (groupedTasks.Count == 0 && _interpolateZeros)
-                {
-                    values.Insert(0, ($"", 0));
-                }
-                else
-                {
-                    values.Insert(0, ($"-{i} days", _aggregationMode(groupedTasks)));
-                }
-            }
-
-            if (_interpolateZeros) values = InterpolateEmptyValues(values);
-            return values;
-        }
-
-        private static List<(string Label, double Value)> InterpolateEmptyValues(List<(string Label, double Value)> values)
-        {
-            var interpolatedValues = new List<(string Label, double Value)>();
-            for (int i = 0; i < values.Count; i++)
-            {
-                if (string.IsNullOrEmpty(values[i].Label))
-                {
-                    var min = 0.0;
-                    var indexOf = -1;
-                    var max = 0.0;
-                    var maxI = -1;
-
-                    for (int j = i; j >= 0; j--)
-                    {
-                        if (!IsValueEmpty(values[j]))
-                        {
-                            min = values[j].Value;
-                            indexOf = j;
-                            break;
-                        }
-                    }
-
-                    for (int j = i; j < values.Count; j++)
-                    {
-                        if (!IsValueEmpty(values[j]))
-                        {
-                            max = values[j].Value;
-                            maxI = j;
-                            break;
-                        }
-                    }
-                    if (indexOf == -1)
-                    {
-                        min = max;
-                        indexOf = i;
-                    }
-                    if (maxI == -1)
-                    {
-                        max = min;
-                        maxI = i;
-                    }
-
-                    var dist1 = i - indexOf;
-                    var dist2 = maxI - i;
-                    var value = (max * dist1 / (dist1 + dist2)) + (min * dist2 / (dist1 + dist2));
-                    interpolatedValues.Add((values[i].Label, value));
-                }
-                else
-                {
-                    interpolatedValues.Add((values[i].Label, values[i].Value));
-                }
-            }
-            return interpolatedValues;
-        }
-
-        private static bool IsValueEmpty((string Label, double Value) value) => string.IsNullOrEmpty(value.Label);
 
         private void ListChartOptions()
         {
@@ -195,10 +120,41 @@ namespace Structure.Modules
                 new UserAction("Select data set", SelectDataSet),
                 new UserAction("Filter by word", SetSearchTerm),
                 new UserAction("Clear filters", ClearFilters),
+                new UserAction("Select query", SelectQuery),
+                new UserAction("Add query", AddQuery),
                 new UserAction("Exit", Exit, ConsoleKey.Escape),
             };
 
             IO.PromptOptions("Task history options", false, options);
+        }
+
+        private void AddQuery()
+        {
+            _selectedQuery = new TaskHistoryQuery { DataSet = DataSets.First(), SearchTerm = _searchTerm };
+            _queries.Add(_selectedQuery);
+        }
+
+        private void SelectQuery()
+        {
+            var options = new List<UserAction>();
+            int i = 0;
+            foreach (var query in _queries)
+            {
+                options.Add(new UserAction($"{i}", () => SelectQuery(query)));
+            }
+            options.Add(new UserAction("All", SelectAllQueries));
+            IO.Run(() => IO.PromptOptions("Select a query or all", false, options.ToArray()));
+        }
+
+        private void SelectQuery(TaskHistoryQuery query)
+        {
+            _selectedQuery = query;
+            _selectAllQueries = false;
+        }
+
+        private void SelectAllQueries()
+        {
+            _selectAllQueries = true;
         }
 
         private void SetSearchTerm()
@@ -208,7 +164,7 @@ namespace Structure.Modules
 
         private void ClearFilters()
         {
-            _copiedFrom.Clear();
+            ModifySelectedQueries(x => { x.CopiedFromIds.Clear(); });
             _searchTerm = null;
         }
 
@@ -229,36 +185,30 @@ namespace Structure.Modules
 
         private void SelectDataSet((string Name, IList<TaskItem> Data) dataSet)
         {
-            _currentDataSet = dataSet;
+            ModifySelectedQueries(x => x.DataSet = dataSet);
         }
 
         private void ToggleInterpolateZeros()
         {
-            _interpolateZeros = !_interpolateZeros;
+            bool currentValue = false;
+            ModifySelectedQueries(x => currentValue = x.InterpolateEmptyRanges);
+            ModifySelectedQueries(x => x.InterpolateEmptyRanges = !currentValue);
         }
 
         private void AddCopiedTasks()
         {
-            IO.Run(() => new TaskPickerObsolete(IO, "Pick routine parent", "Select", true, true, true, Data.Routines, AddTasksCopiedFrom).Edit());
+            var taskPicker = new TaskPicker(IO, "Pick task to include copies of", true, true, true, Data.Routines, AddTasksCopiedFrom);
+            IO.Run(taskPicker.Edit);
         }
 
         private void AddTasksCopiedFrom(TaskItem task)
         {
-            _copiedFrom.Add(task);
+            ModifySelectedQueries(x => x.CopiedFromIds.Add(task));
         }
 
         private void ToggleListValues()
         {
             _listValues = !_listValues;
-        }
-
-        private void ListValues(List<(string Label, double Value)> values)
-        {
-            IO.Write();
-            foreach (var (Label, Value) in values)
-            {
-                IO.Write($"{Label} : {Value}");
-            }
         }
 
         private void ChangeYAxisMode()
@@ -277,27 +227,27 @@ namespace Structure.Modules
 
         private void SetToSumValueMode()
         {
-            _aggregationMode = AggregationFunctions.SumAggregationFunction;
+            ModifySelectedQueries(x => x.AggregationMode = AggregationFunctions.SumAggregationFunction);
         }
 
         private void SetToMaxValueMode()
         {
-            _aggregationMode = AggregationFunctions.MaxAggregationFunction;
+            ModifySelectedQueries(x => x.AggregationMode = AggregationFunctions.MaxAggregationFunction);
         }
 
         private void SetToCountMode()
         {
-            _aggregationMode = AggregationFunctions.CountAggregationFunction;
+            ModifySelectedQueries(x => x.AggregationMode = AggregationFunctions.CountAggregationFunction);
         }
 
         private void SetToMinValueMode()
         {
-            _aggregationMode = AggregationFunctions.MinAggregationFunction;
+            ModifySelectedQueries(x => x.AggregationMode = AggregationFunctions.MinAggregationFunction);
         }
 
         private void SetToMeanValueMode()
         {
-            _aggregationMode = AggregationFunctions.MeanAggregationFunction;
+            ModifySelectedQueries(x => x.AggregationMode = AggregationFunctions.MeanAggregationFunction);
         }
 
         private void ChangeRange()
@@ -307,7 +257,7 @@ namespace Structure.Modules
 
         private void SetRange(int range)
         {
-            if (range > 0) _range = range;
+            if (range > 0) ModifySelectedQueries(x => x.Range = new TimeSpan(range, 0, 0, 0));
         }
 
         private void ChangeGrouping()
@@ -317,7 +267,13 @@ namespace Structure.Modules
 
         private void SetGrouping(int grouping)
         {
-            if (grouping > 0)  _grouping = grouping;
+            if (grouping > 0) ModifySelectedQueries(x => x.AggregationRange = new TimeSpan(grouping, 0, 0, 0));
+        }
+
+        private void ModifySelectedQueries(Action<TaskHistoryQuery> modify)
+        {
+            if (_selectAllQueries) _queries.All(modify);
+            else modify(_selectedQuery);
         }
     }
 }

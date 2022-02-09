@@ -8,66 +8,74 @@ namespace Structure.Graphing
 {
     public class ConsoleGraph
     {
-        private readonly int _width;
-        private readonly int _height;
+        private readonly int _totalColumns;
+        private readonly int _totalRows;
         private const int XLabelRightPadding = 10;
         private const int XLabelRows = 6;
 
         public ConsoleGraph(int width, int height)
         {
-            _width = width;
-            _height = height;
+            _totalColumns = width;
+            _totalRows = height;
         }
 
-        public void Print(StructureIO io, List<(string, double)> values)
+        public void Print(StructureIO io, List<List<(string Label, double Value)>> listOfValues)
         {
-            Contract.Requires(values != null);
+            Contract.Requires(listOfValues != null);
             Contract.Requires(io != null);
 
-            var chart = RenderChart(values);
-            var yLabels = GenerateYLabels(values);
+            if (!listOfValues.Any()) return;
+            var firstValues = listOfValues.First();
+            var allValues = listOfValues.SelectMany(x => x).Select(x => x.Value);
+            var maxValue = allValues.Max();
+            var minValue = allValues.Min();
+            var chart = CreateChart();
+            foreach (var values in listOfValues)
+            {
+                chart = CombineCharts(chart, RenderChart(values, minValue, maxValue));
+            }
+            var yLabels = GenerateYLabels(firstValues);
             PrintChart(io, chart, yLabels);
 
-            var xLabelIndexes = GetXLabelIndexes(values);
+            var xLabelIndexes = GetXLabelIndexes(firstValues);
             PrintXAxis(io, xLabelIndexes);
 
-            var xNamesCharacters = InitializeXNameCharacterMap(values);
+            var xNamesCharacters = InitializeXNameCharacterMap(firstValues);
             PrintXNameCharacters(io, xNamesCharacters);
         }
 
         private double[] InterpolateValues(List<(string Label, double Value)> values)
         {
-            var interpolatedValues = new double[_width];
+            var interpolatedValues = new double[_totalColumns];
             if (values.Count == 0) return interpolatedValues;
-            for (int x = 0; x < _width; x++)
+            for (int column = 0; column < _totalColumns - 1; column++)
             {
-                double percent = x / (_width - 1.0);
-                double doubleIndex = percent * (values.Count - 1.0);
-                int index = (int)Math.Truncate(doubleIndex);
-                double percentOfNextIndex = doubleIndex - index;
-                double interpolatedValue;
-
-                if (values.Count > index + 1)
-                {
-                    interpolatedValue = values[index].Value * (1.0 - percentOfNextIndex);
-                    interpolatedValue += values[index + 1].Value * percentOfNextIndex;
-                }
-                else
-                {
-                    interpolatedValue = values[index].Value;
-                }
-                interpolatedValues[x] = interpolatedValue;
+                interpolatedValues[column] = InterpolateValue(values, column);
             }
+            interpolatedValues[^1] = values[^1].Value;
             return interpolatedValues;
+        }
+
+        private double InterpolateValue(List<(string Label, double Value)> values, int indexOfInterpolatedNumber)
+        {
+            var percent = indexOfInterpolatedNumber / (_totalColumns - 1.0);
+            var doubleIndex = percent * (values.Count - 1.0);
+            var previousValue = values[(int)doubleIndex].Value;
+            var nextValue = values[(int)doubleIndex + 1].Value;
+            var percentDistanceToNextIndex = doubleIndex - (int)doubleIndex;
+            var percentDistanceFromPreviousIndex = 1 - percentDistanceToNextIndex;
+            var contributionFromPreviousPoint = previousValue * percentDistanceFromPreviousIndex;
+            var contributionFromNextPoint = nextValue * percentDistanceToNextIndex;
+            return contributionFromPreviousPoint + contributionFromNextPoint;
         }
 
         private char[,] InitializeXNameCharacterMap(List<(string Label, double Value)> values)
         {
             var xNamesCharacters = CreateXNameCharacterMap();
             int currentXNameIndex = -1;
-            for (int x = 0; x < _width; x++)
+            for (int x = 0; x < _totalColumns; x++)
             {
-                double percent = x / (_width - 1.0);
+                double percent = x / (_totalColumns - 1.0);
                 double doubleIndex = percent * (values.Count - 1.0);
                 int index = (int)Math.Truncate(doubleIndex);
 
@@ -84,7 +92,7 @@ namespace Structure.Graphing
                     }
                     for (int i = 0; i < values[currentXNameIndex].Label.Length; i++)
                     {
-                        if (x + i < _width + XLabelRightPadding && y < XLabelRows)
+                        if (x + i < _totalColumns + XLabelRightPadding && y < XLabelRows)
                         {
                             xNamesCharacters[x + i, y] = values[currentXNameIndex].Label[i];
                         }
@@ -99,9 +107,9 @@ namespace Structure.Graphing
             var xLabelIndexes = new List<int>();
 
             int currentXNameIndex = -1;
-            for (int x = 0; x < _width; x++)
+            for (int x = 0; x < _totalColumns; x++)
             {
-                double percent = x / (_width - 1.0);
+                double percent = x / (_totalColumns - 1.0);
                 double doubleIndex = percent * (values.Count - 1.0);
                 int index = (int)Math.Truncate(doubleIndex);
                 if (index == currentXNameIndex) continue;
@@ -113,10 +121,10 @@ namespace Structure.Graphing
 
         private char[,] CreateChart()
         {
-            var chart = new char[_width, _height];
-            for (int y = 0; y < _height; y++)
+            var chart = new char[_totalColumns, _totalRows];
+            for (int y = 0; y < _totalRows; y++)
             {
-                for (int x = 0; x < _width; x++)
+                for (int x = 0; x < _totalColumns; x++)
                 {
                     chart[x, y] = ' ';
                 }
@@ -124,30 +132,51 @@ namespace Structure.Graphing
             return chart;
         }
 
-        private char[,] RenderChart(List<(string Label, double Value)> values)
+        private char[,] RenderChart(List<(string Label, double Value)> values, double yAxisMin, double yAxisMax)
         {
             var interpolatedValues = InterpolateValues(values);
-            var minValue = interpolatedValues.Min();
-            if (double.IsNaN(minValue)) minValue = 0;
-            var maxValue = interpolatedValues.Max();
-            if (double.IsNaN(maxValue)) maxValue = 0;
-            if (maxValue == 0) maxValue = 1;
+            if (yAxisMax < yAxisMin) yAxisMax = yAxisMin + 1;
             var chart = CreateChart();
-            for (int x = 0; x < _width; x++)
+            for (int column = 0; column < _totalColumns; column++)
             {
-                var scaler = _height - 1.0;
-                var numerator = interpolatedValues[x] - minValue;
-                var denominator = maxValue - minValue;
-                var row = denominator == 0 ? 0 : numerator / denominator * scaler;
-                chart[x, (int)row] = '─';
+                var scaler = _totalRows - 1.0;
+                var numerator = interpolatedValues[column] - yAxisMin;
+                var denominator = yAxisMax - yAxisMin;
+                var row = SafeDivision(numerator, denominator) * scaler;
+                MarkPointOnChart(chart, column, (int)row);
             }
             PostProcessChart(chart);
             return chart;
         }
 
+        private void MarkPointOnChart(char[,] chart, int column, int row)
+        {
+            if (column >= 0 && row >= 0 && column < _totalColumns && row < _totalRows) 
+                chart[column, row] = '─';
+        }
+
+        private char[,] CombineCharts(char[,] chartA, char[,] chartB)
+        {
+            var chart = CreateChart();
+            for (int x = 0; x < _totalColumns - 1; x++)
+            {
+                for (int y = 0; y < _totalRows - 1; y++)
+                {
+                    var isChartAEmpty = char.IsWhiteSpace(chartA[x, y]);
+                    var isChartBEmpty = char.IsWhiteSpace(chartB[x, y]);
+                    chart[x, y] = chartA[x, y];
+                    if (isChartAEmpty && !isChartBEmpty)
+                    {
+                        chart[x, y] = chartB[x, y];
+                    }
+                }
+            }
+            return chart;
+        }
+
         private void PrintChart(StructureIO io, char[,] chart, List<double> yLabels)
         {
-            for (double y = _height - 1; y >= 0; y--)
+            for (double y = _totalRows - 1; y >= 0; y--)
             {
                 PrintYLabelString(io, yLabels[(int)y]);
                 io.WriteNoLine($" ┤");
@@ -165,7 +194,7 @@ namespace Structure.Graphing
 
         private void PrintRow(StructureIO io, char[,] chart, double row)
         {
-            for (double x = 0; x < _width; x++)
+            for (double x = 0; x < _totalColumns; x++)
             {
                 io.WriteNoLine($"{chart[(int)x, (int)row]}");
             }
@@ -177,9 +206,9 @@ namespace Structure.Graphing
             var minValue = values.Min(x => x.Value);
             var maxValue = values.Max(x => x.Value);
             if (maxValue == 0) maxValue = 1;
-            for (double y = 0; y < _height; y++)
+            for (double y = 0; y < _totalRows; y++)
             {
-                var percentAlongAxis = y / (_height - 1.0);
+                var percentAlongAxis = y / (_totalRows - 1.0);
                 var range = maxValue - minValue;
                 double yValue = minValue + range * percentAlongAxis;
                 yLabels.Add(yValue);
@@ -190,7 +219,7 @@ namespace Structure.Graphing
         private void PrintXAxis(StructureIO io, List<int> xLabelIndexes)
         {
             io.WriteNoLine("           └");
-            for (int x = 0; x < _width; x++)
+            for (int x = 0; x < _totalColumns; x++)
             {
                 if (xLabelIndexes.Contains(x))
                 {
@@ -209,7 +238,7 @@ namespace Structure.Graphing
             for (int y = 0; y < XLabelRows; y++)
             {
                 io.WriteNoLine("            ");
-                for (int x = 0; x < _width + XLabelRightPadding; x++)
+                for (int x = 0; x < _totalColumns + XLabelRightPadding; x++)
                 {
                     io.WriteNoLine($"{xNamesCharacters[x, y]}");
                 }
@@ -219,8 +248,8 @@ namespace Structure.Graphing
 
         private char[,] CreateXNameCharacterMap()
         {
-            var xNamesCharacters = new char[_width + XLabelRightPadding, XLabelRows];
-            for (int x = 0; x < _width + XLabelRightPadding; x++)
+            var xNamesCharacters = new char[_totalColumns + XLabelRightPadding, XLabelRows];
+            for (int x = 0; x < _totalColumns + XLabelRightPadding; x++)
                 for (int y = 0; y < XLabelRows; y++)
                     xNamesCharacters[x, y] = ' ';
             return xNamesCharacters;
@@ -228,7 +257,7 @@ namespace Structure.Graphing
 
         private void PostProcessChart(char[,] chart)
         {
-            for (int x = 0; x < _width - 1; x++)
+            for (int x = 0; x < _totalColumns - 1; x++)
             {
                 PostProcessColumn(chart, x);
             }
@@ -244,7 +273,7 @@ namespace Structure.Graphing
 
         private int FindCharacterIndexInColumn(char[,] chart, char character, int column)
         {
-            for (int y = 0; y < _height; y++)
+            for (int y = 0; y < _totalRows; y++)
             {
                 if (chart[column, y] == character) return y;
             }
@@ -263,5 +292,7 @@ namespace Structure.Graphing
             chart[x, smallerY] = downer;
             for (int betweenY = smallerY + 1; betweenY < biggerY; betweenY++) chart[x, betweenY] = '│';
         }
+
+        private double SafeDivision(double numerator, double denominator) => denominator != 0 ? numerator / denominator : 0;
     }
 }
