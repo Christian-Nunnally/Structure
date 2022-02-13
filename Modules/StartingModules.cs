@@ -10,14 +10,14 @@ namespace Structure.Modules
 {
     public static class StartingModules
     {
-        public static List<IModule> CreateStartingModules()
+        public static IModule[] Create()
         {
             var allModuleTypes = GetLoadableModuleTypes();
             var subModuleTypes = allModuleTypes.Where(typeof(ISubModule).IsAssignableFrom);
             var moduleTypes = allModuleTypes.Except(subModuleTypes);
             var startingModules = DetermineModulesThatUpgradeIntoAllOtherModules(moduleTypes);
             var startingModuleInstances = startingModules.Select(Activator.CreateInstance);
-            return startingModuleInstances.OfType<IModule>().ToList();
+            return startingModuleInstances.OfType<IModule>().ToArray();
         }
 
         private static List<Type> DetermineModulesThatUpgradeIntoAllOtherModules(IEnumerable<Type> moduleTypes)

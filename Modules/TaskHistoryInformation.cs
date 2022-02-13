@@ -61,7 +61,7 @@ namespace Structure.Modules
             var input = new ExitingStructureInput(io, news);
             io.ProgramInput = input;
             io.ProgramOutput = new NoOpOutput();
-            var modules = StartingModules.CreateStartingModules();
+            var modules = StartingModules.Create().ToList();
             var analyzeTaskCountModule = new AnalyzeTaskCount();
             analyzeTaskCountModule.Enable(io, hotkey, data);
             modules.Add(analyzeTaskCountModule);
