@@ -1,7 +1,7 @@
 ﻿using Structure.IO;
 using Structure.Structure;
 
-namespace Structure.Modules
+namespace Structure.Modules.Interface
 {
     public interface IModule
     {

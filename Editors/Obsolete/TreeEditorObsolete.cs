@@ -207,6 +207,7 @@ namespace Structure.Editors.Obsolete
                 options.Add(new UserAction($"{i}", EditorInteractionWrapper(() => SetCursor(b))));
             }
             CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action))));
+            //CustomActions.All(x => options.Add(!x.HotkeyOverridden ? new UserAction(x.Description, EditorInteractionWrapper(x.Action)) : new UserAction(x.Description, EditorInteractionWrapper(x.Action), x.Hotkey.Key)));
 
             options.Add(new UserAction("exit", EditorInteractionWrapper(() => { _return = true; }), ConsoleKey.Escape));
 

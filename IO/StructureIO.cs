@@ -84,6 +84,7 @@ namespace Structure.IO
             ConsoleKeyInfo key;
 
             var possibleKeys = options.Select(x => x.Hotkey.Key).ToArray();
+            if (useDefault) possibleKeys = KeyGroups.MiscKeys;
             key = ReadKey(possibleKeys);
             if (char.IsUpper(key.KeyChar))
             {

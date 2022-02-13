@@ -1,6 +1,7 @@
 ﻿using Structure.Editors;
 using Structure.Editors.Obsolete;
 using Structure.IO;
+using Structure.Modules.Interface;
 using Structure.TaskItems;
 using System;
 using System.Linq;

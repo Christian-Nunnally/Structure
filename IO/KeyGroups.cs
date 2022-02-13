@@ -17,6 +17,11 @@ namespace Structure.IO
         };
         public static readonly ConsoleKey[] NoKeys = Array.Empty<ConsoleKey>();
 
+        public static readonly ConsoleKey[] BackspaceKey = new ConsoleKey[]
+        {
+            ConsoleKey.Backspace,
+        };
+
         public static readonly ConsoleKey[] SpaceKey = new ConsoleKey[]
         {
             ConsoleKey.Spacebar,

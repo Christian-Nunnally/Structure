@@ -1,4 +1,5 @@
 ﻿using Structure.IO;
+using Structure.Modules.Interface;
 using Structure.Modules.Obsolete;
 using System;
 using System.Collections.Generic;

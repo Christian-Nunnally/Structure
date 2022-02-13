@@ -3,6 +3,7 @@ using Structure.Graphing;
 using Structure.IO;
 using Structure.IO.Input;
 using Structure.IO.Output;
+using Structure.Modules.Interface;
 using Structure.Modules.SubModules;
 using Structure.Structure;
 using Structure.TaskItems;

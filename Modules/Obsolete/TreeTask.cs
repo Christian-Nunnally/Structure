@@ -1,5 +1,6 @@
 ﻿using Structure.Editors.Obsolete;
 using Structure.IO;
+using Structure.Modules.Interface;
 using System;
 using System.Collections.Generic;
 

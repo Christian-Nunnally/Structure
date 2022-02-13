@@ -1,4 +1,4 @@
-﻿namespace Structure.Modules.Obsolete
+﻿namespace Structure.Modules.Interface
 {
     internal interface IObsoleteModule
     {

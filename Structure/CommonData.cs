@@ -1,5 +1,5 @@
 ﻿using Structure.IO.Persistence;
-using Structure.Modules;
+using Structure.Modules.Interface;
 using Structure.TaskItems;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

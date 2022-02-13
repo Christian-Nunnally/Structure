@@ -1,4 +1,4 @@
-﻿using Structure.Modules.Obsolete;
+﻿using Structure.Modules.Interface;
 using Structure.Modules.SubModules;
 using Structure.Structure;
 using System;
