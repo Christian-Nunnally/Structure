@@ -86,5 +86,7 @@ namespace Structure.IO
         public static readonly ConsoleKey[] AlphanumericKeys = NumberKeys.Concat(LetterKeys).ToArray();
 
         public static readonly ConsoleKey[] AlphanumericKeysPlus = AlphanumericKeys.Concat(SpaceKey).ToArray();
+
+        public static readonly ConsoleKey[] AlphanumericInputKeys = AlphanumericKeysPlus.Concat(SpaceKey).Concat(BackspaceKey).ToArray();
     }
 }

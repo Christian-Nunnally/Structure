@@ -51,7 +51,7 @@ namespace Structure.Modules.Obsolete
             var start = new UserAction("Start routine", PickRoutine);
             var edit = new UserAction("Edit routines", EditRoutines);
             var options = new[] { start, edit };
-            IO.PromptOptions("Routines", false, "", options);
+            IO.PromptOptionsObsolete("Routines", false, "", options);
         }
 
         private void EditRoutines()

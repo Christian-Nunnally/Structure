@@ -51,7 +51,7 @@ namespace Structure.Modules.Obsolete
             IO.Write(ToggleModuleHintText);
             IO.Write(UpgradeModuleHintText);
             _listedModules.All(m => IO.Write(ModuleString(m)));
-            IO.Read(ToggleModule, KeyGroups.AlphanumericKeys, new[] { ConsoleKey.Enter });
+            IO.ReadObsolete(ToggleModule, KeyGroups.AlphanumericInputKeys, new[] { ConsoleKey.Enter });
         }
 
         private string ModuleString(IModule module)

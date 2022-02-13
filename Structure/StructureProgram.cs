@@ -42,7 +42,7 @@ namespace Structure.Structure
         {
             _io.Write(TitleString);
             _hotkey.Print(_io);
-            _io.Read(x => { }, KeyGroups.NoKeys, KeyGroups.NoKeys);
+            _io.Read(x => { }, KeyGroups.NoKeys, KeyGroups.MiscKeys);
         }
     }
 }

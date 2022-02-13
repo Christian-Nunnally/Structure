@@ -136,7 +136,7 @@ namespace Structure.Editors.Obsolete
                         var userAction = new UserAction(description, action);
                         actions.Add(userAction);
                     }
-                    _io.PromptOptions($"Change the type of '{selectedTask.ToString()}'", false, "", actions.ToArray());
+                    _io.PromptOptionsObsolete($"Change the type of '{selectedTask.ToString()}'", false, "", actions.ToArray());
                 }
             }
         }
@@ -206,12 +206,12 @@ namespace Structure.Editors.Obsolete
                 var b = i;
                 options.Add(new UserAction($"{i}", EditorInteractionWrapper(() => SetCursor(b))));
             }
-            CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action))));
-            //CustomActions.All(x => options.Add(!x.HotkeyOverridden ? new UserAction(x.Description, EditorInteractionWrapper(x.Action)) : new UserAction(x.Description, EditorInteractionWrapper(x.Action), x.Hotkey.Key)));
+            //CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action))));
+            CustomActions.All(x => options.Add(!x.HotkeyOverridden ? new UserAction(x.Description, EditorInteractionWrapper(x.Action)) : new UserAction(x.Description, EditorInteractionWrapper(x.Action), x.Hotkey.Key)));
 
             options.Add(new UserAction("exit", EditorInteractionWrapper(() => { _return = true; }), ConsoleKey.Escape));
 
-            _io.PromptOptions("", false, "", options.ToArray());
+            _io.PromptOptionsObsolete("", false, "", options.ToArray());
             if (_return) return false;
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {
@@ -252,7 +252,7 @@ namespace Structure.Editors.Obsolete
             if (siblings.Contains(task)) siblings.Remove(task);
             if (!siblings.Any()) return;
             int i = 0;
-            _io.PromptOptions($"Select the new parent for {task}", false, "", siblings.Select(s => new UserAction($"{i++} {s}", () => task.ParentID = s.ID)).ToArray());
+            _io.PromptOptionsObsolete($"Select the new parent for {task}", false, "", siblings.Select(s => new UserAction($"{i++} {s}", () => task.ParentID = s.ID)).ToArray());
         }
 
         private void EnterPressed(T item) => (IsParent(item) ? EnterPressedOnParentAction : EnterPressedOnLeafAction)(item);
@@ -308,7 +308,7 @@ namespace Structure.Editors.Obsolete
             _io.WriteNoLine($"\n{insertPrompt}: ");
 
             var submitKeys = new ConsoleKey[] { ConsoleKey.Enter, ConsoleKey.LeftArrow };
-            _io.Read(s => AddNode(nodeFactory, s, CurrentParentCached, index), KeyGroups.AlphanumericKeysPlus, submitKeys);
+            _io.ReadObsolete(s => AddNode(nodeFactory, s, CurrentParentCached, index), KeyGroups.AlphanumericInputKeys, submitKeys);
             if (NumberOfVisibleTasks == 0) ViewParent();
         };
 

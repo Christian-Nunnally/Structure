@@ -1,5 +1,6 @@
 ﻿using Structure.IO.Input;
 using Structure.IO.Output;
+using Structure.IO.Persistence;
 using Structure.Structure;
 using System;
 using System.Collections.Generic;
@@ -38,6 +39,21 @@ namespace Structure.IO
         {
             _currentBuffer.Append(text);
             ProgramOutput.Write(text);
+        }
+
+        public void ReadObsolete(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, bool echo = true)
+        {
+            var line = new StringBuilder();
+            while (true)
+            {
+                var key = ReadKey(KeyGroups.MiscKeys);
+                ProcessReadKeyIntoLine(key, line, echo, allowedKeys);
+
+                if (submitKeys.Contains(key.Key)) break;
+                if (submitKeys == KeyGroups.NoKeys) break;
+            }
+            if (echo) Write();
+            continuation?.Invoke(line.ToString());
         }
 
         public void Read(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, bool echo = true)
@@ -108,6 +124,39 @@ namespace Structure.IO
             }
         }
 
+        public void PromptOptionsObsolete(string prompt, bool useDefault, string helpString, params UserAction[] options)
+        {
+            var keyedOptions = CreateOptionKeysDictionary(options);
+            Write($"{prompt}\n");
+            if (string.IsNullOrEmpty(helpString)) keyedOptions.All(x => Write($" {Utility.KeyToKeyString(x.Key)} - {x.Value.Description}"));
+            else Write(helpString);
+
+            ConsoleKeyInfo key;
+
+            var possibleKeys = KeyGroups.MiscKeys;
+            key = ReadKey(possibleKeys);
+            if (char.IsUpper(key.KeyChar))
+            {
+                if (useDefault) options.Last().Action();
+                return;
+            }
+            var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
+            var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
+            if (useDefault && !exactMatchExists)
+            {
+                options.Last().Action();
+            }
+            else if (exactMatchExists)
+            {
+                match.Value.Action();
+            }
+            else if (int.TryParse($"{key.KeyChar}", out var _) && keyedOptions.Any(x => x.Key.KeyChar == key.KeyChar))
+            {
+                var selectedNumericOption = keyedOptions.First(x => x.Key.KeyChar == key.KeyChar);
+                selectedNumericOption.Value.Action();
+            }
+        }
+
         public void News(string news)
         {
             _newsPrinter.EnqueueNews(news);
@@ -138,7 +187,9 @@ namespace Structure.IO
                     if (char.IsWhiteSpace(possibleKeys[i])) continue;
                     if (!keys.Any(x => x.Key.KeyChar == ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]).KeyChar))
                     {
-                        keys.Add((ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]), option));
+                        var consoleKeyInfo = ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]);
+                        keys.Add((consoleKeyInfo, option));
+                        option.Hotkey = consoleKeyInfo;
                         break;
                     }
                 }
@@ -184,7 +235,7 @@ namespace Structure.IO
                     return keyInfo;
                 }
                 //TODO: Temp
-                else if (allowedKeys == KeyGroups.MiscKeys)
+                else if (allowedKeys.SequenceEqual(KeyGroups.MiscKeys))
                 {
                     News($"{keyInfo.KeyChar} relying on misc keys hack.");
                     return keyInfo;
@@ -192,15 +243,20 @@ namespace Structure.IO
                 else
                 {
                     News($"{keyInfo.KeyChar} is not a currently recognized input.");
+                    _invalidInputs.Add(_lastInput);
                     // throw new InvalidOperationException("Not allowed key");
                     return keyInfo;
                 }
             }
         }
 
+        private ProgramInputData _lastInput;
+        private PersistedListCollection<ProgramInputData> _invalidInputs = new PersistedListCollection<ProgramInputData>("invalid-inputs");
+
         private ConsoleKeyInfo ReadKeyAndSetTime()
         {
             var key = ProgramInput.ReadKey();
+            _lastInput = key;
             CurrentTime.SetArtificialTime(key.Time);
             return key.GetKeyInfo();
         }
@@ -219,7 +275,8 @@ namespace Structure.IO
             }
             else if (allowedKeys.Contains(key.Key))
             {
-                ReadStringIntoLine($"{{{key.Key}}}", line, echo);
+                if (key.Key == ConsoleKey.Backspace) BackspaceFromLine(line, echo);
+                else ReadStringIntoLine($"{{{key.Key}}}", line, echo);
             }
             else
             {
