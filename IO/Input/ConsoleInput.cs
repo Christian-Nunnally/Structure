@@ -11,5 +11,9 @@ namespace Structure.IO.Input
             var key = Console.ReadKey(true);
             return new ProgramInputData(key, DateTime.Now);
         }
+
+        public void RemoveLastReadKey()
+        {
+        }
     }
 }

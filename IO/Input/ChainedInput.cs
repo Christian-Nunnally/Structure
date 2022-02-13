@@ -55,5 +55,7 @@ namespace Structure.IO.Input
                 }
             }
         }
+
+        public void RemoveLastReadKey() => _currentInput?.RemoveLastReadKey();
     }
 }

@@ -237,21 +237,24 @@ namespace Structure.IO
                 //TODO: Temp
                 else if (allowedKeys.SequenceEqual(KeyGroups.MiscKeys))
                 {
+                    // TODO: Make more robust with obscure key.
                     News($"{keyInfo.KeyChar} relying on misc keys hack.");
                     return keyInfo;
                 }
                 else
                 {
+                    // TODO: Uncomment when safe.
+                    //ProgramInput.RemoveLastReadKey();
                     News($"{keyInfo.KeyChar} is not a currently recognized input.");
                     _invalidInputs.Add(_lastInput);
-                    // throw new InvalidOperationException("Not allowed key");
                     return keyInfo;
                 }
             }
         }
 
+        // TODO: Mabe remove.
         private ProgramInputData _lastInput;
-        private PersistedListCollection<ProgramInputData> _invalidInputs = new PersistedListCollection<ProgramInputData>("invalid-inputs");
+        private readonly PersistedListCollection<ProgramInputData> _invalidInputs = new PersistedListCollection<ProgramInputData>("invalid-inputs");
 
         private ConsoleKeyInfo ReadKeyAndSetTime()
         {

@@ -58,5 +58,7 @@ namespace Structure.IO.Input
             io.CurrentTime.SetToRealTime();
             io.Refresh();
         }
+
+        public void RemoveLastReadKey() => InputSource.RemoveLastReadKey();
     }
 }

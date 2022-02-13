@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace Structure.IO.Input
@@ -28,6 +27,10 @@ namespace Structure.IO.Input
             _currentInputIndex++;
             Enumerator.MoveNext();
             return Enumerator.Current;
+        }
+
+        public void RemoveLastReadKey()
+        {
         }
     }
 }

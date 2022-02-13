@@ -6,6 +6,7 @@ namespace Structure.IO.Input
     {
         private readonly IProgramInput _inputSource;
         private readonly PersistedListCollection<ProgramInputData> _recordedInputs;
+        private ProgramInputData _lastInput;
 
         public RecordingInput(IProgramInput inputSource, PersistedListCollection<ProgramInputData> logDestiation)
         {
@@ -17,9 +18,14 @@ namespace Structure.IO.Input
 
         public ProgramInputData ReadKey()
         {
-            var key = _inputSource.ReadKey();
-            _recordedInputs.Add(key);
-            return key;
+            _lastInput = _inputSource.ReadKey();
+            _recordedInputs.Add(_lastInput);
+            return _lastInput;
+        }
+
+        public void RemoveLastReadKey()
+        {
+            _recordedInputs.Remove(_lastInput);
         }
     }
 }
