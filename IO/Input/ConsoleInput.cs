@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Structure.Code
+namespace Structure.IO.Input
 {
     public class ConsoleInput : IProgramInput
     {

@@ -1,5 +1,6 @@
-﻿using Structure.Code;
-using Structure.IO;
+﻿using Structure.IO.Input;
+using Structure.IO.Output;
+using Structure.Structure;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -7,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace Structure
+namespace Structure.IO
 {
     public class StructureIO
     {

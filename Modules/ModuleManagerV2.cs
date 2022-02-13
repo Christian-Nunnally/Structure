@@ -1,8 +1,9 @@
-﻿using Structure.Code.Modules;
+﻿using Structure.IO;
+using Structure.Modules.Obsolete;
 using System;
 using System.Collections.Generic;
 
-namespace Structure
+namespace Structure.Modules
 {
     public class ModuleManagerV2 : StructureModule
     {

@@ -1,11 +1,24 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
-namespace Structure
+namespace Structure.IO.Persistence
 {
     public class NodeTreeCollection<TValue> : IEnumerable<KeyValuePair<string, TValue>> where TValue : Node
     {
+        private int _oldCount;
+
+        private void DidCountChange()
+        {
+            if (_oldCount != Dictionary.Count)
+            {
+                _oldCount = Dictionary.Count;
+                CountChanged?.Invoke();
+            }
+        }
         protected Dictionary<string, TValue> Dictionary { get; } = new Dictionary<string, TValue>();
+        
+        public event Action CountChanged;
 
         public TValue this[string key]
         {
@@ -20,6 +33,7 @@ namespace Structure
             if (Get(key) != value)
             {
                 Dictionary[key] = value;
+                DidCountChange();
             }
         }
 
@@ -32,6 +46,7 @@ namespace Structure
             if (Dictionary.ContainsKey(key))
             {
                 Dictionary.Remove(key);
+                DidCountChange();
             }
         }
 

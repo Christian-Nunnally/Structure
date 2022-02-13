@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Structure
+namespace Structure.IO
 {
     public static class KeyGroups
     {

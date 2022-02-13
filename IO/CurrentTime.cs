@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Structure
+namespace Structure.IO
 {
     public class CurrentTime
     {

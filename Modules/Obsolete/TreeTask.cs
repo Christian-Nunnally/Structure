@@ -1,8 +1,9 @@
-﻿using Structure.Code.Modules;
+﻿using Structure.Editors.Obsolete;
+using Structure.IO;
 using System;
 using System.Collections.Generic;
 
-namespace Structure
+namespace Structure.Modules.Obsolete
 {
     internal class TreeTask : StructureModule, IObsoleteModule
     {

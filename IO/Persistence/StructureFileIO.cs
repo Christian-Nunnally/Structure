@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Structure
+namespace Structure.IO.Persistence
 {
     public static class StructureFileIO
     {
@@ -15,6 +15,8 @@ namespace Structure
 
         public static string ReadFromFile(string key) => _cache.TryGetValue(key, out var value) ? value
             : (_cache[key] = File.Exists(GetFileName(key)) ? File.ReadAllText(GetFileName(key)) : string.Empty);
+
+        public static bool DoesFileExist(string key) => _cache.ContainsKey(key) || File.Exists(GetFileName(key));
 
         public static void Set(string key, string value)
         {

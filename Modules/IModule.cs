@@ -1,4 +1,7 @@
-﻿namespace Structure
+﻿using Structure.IO;
+using Structure.Structure;
+
+namespace Structure.Modules
 {
     public interface IModule
     {

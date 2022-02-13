@@ -1,15 +1,19 @@
-﻿using Structure.Modules;
+﻿using Structure.IO;
+using Structure.Modules;
+using Structure.Modules.Obsolete;
 using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 
-namespace Structure
+namespace Structure.Structure
 {
     public class StructureProgram
     {
         private readonly StructureIO _io;
         private readonly Hotkey _hotkey;
+        private readonly StructureData _data;
+        private readonly IModule[] _modules;
 
         public bool Exit { get; set; }
 
@@ -17,22 +21,20 @@ namespace Structure
 
         public static string TitleString => $"Structure {Version.Major}.{Version.Minor}.{Version.Build}";
 
-        public StructureProgram(StructureIO io)
+        public StructureProgram(StructureIO io, StructureData data, IModule[] modules)
         {
             Contract.Requires(io != null);
             _io = io;
             _hotkey = io.Hotkey;
+            _modules = modules;
+            _data = data;
         }
 
         public void Run()
         {
-            var modules = StartingModules.CreateStartingModules();
-            var manager = modules.OfType<ModuleManager>().First();
-            var data = new StructureData();
-
-            manager.RegisterModules(modules);
-            manager.Enable(_io, _hotkey, data);
-            new AnalyzeTaskCount().Enable(_io, _hotkey, data);
+            var manager = _modules.OfType<ModuleManager>().First();
+            manager.RegisterModules(_modules);
+            manager.Enable(_io, _hotkey, _data);
             while (!Exit) _io.Run(Loop);
         }
 

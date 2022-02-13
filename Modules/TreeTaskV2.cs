@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Structure.Editors;
+using Structure.IO;
+using System;
 
-namespace Structure
+namespace Structure.Modules
 {
     internal class TreeTaskV2 : StructureModule
     {

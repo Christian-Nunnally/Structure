@@ -1,9 +1,8 @@
-﻿using Structure.Code;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Structure
+namespace Structure.IO.Input
 {
     public class ChainedInput : IProgramInput
     {

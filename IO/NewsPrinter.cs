@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Structure.IO.Output;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 

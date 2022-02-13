@@ -1,9 +1,10 @@
-﻿using Structure.Code.Modules;
+﻿using Structure.IO;
+using Structure.Structure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Structure
+namespace Structure.Modules.Obsolete
 {
     public class ModuleManager : StructureModule, IObsoleteModule
     {
@@ -18,9 +19,12 @@ namespace Structure
             var newModule = new ModuleManagerV2();
             var thisIndex = _listedModules.IndexOf(this);
             var moduleListCopy = _listedModules.ToArray();
-            moduleListCopy[thisIndex] = newModule;
-            newModule.RegisterModules(moduleListCopy);
-            newModule.Enable(IO, Hotkey, Data);
+            if (thisIndex >= 0)
+            {
+                moduleListCopy[thisIndex] = newModule;
+                newModule.RegisterModules(moduleListCopy);
+                newModule.Enable(IO, Hotkey, Data);
+            }
             return newModule;
         }
 

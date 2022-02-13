@@ -1,6 +1,6 @@
 ﻿using Structure.IO;
 
-namespace Structure.Code
+namespace Structure.IO.Input
 {
     public class DevelopmentStructureInput : StructureInput
     {

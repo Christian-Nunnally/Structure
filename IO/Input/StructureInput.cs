@@ -1,9 +1,10 @@
-﻿using Structure.Code.ProgramInput;
-using Structure.IO;
+﻿using Structure.IO.Output;
+using Structure.IO.Persistence;
+using Structure.Structure;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace Structure.Code
+namespace Structure.IO.Input
 {
     public class StructureInput : IProgramInput
     {
@@ -42,7 +43,11 @@ namespace Structure.Code
         protected static void SetToLoadMode(StructureIO io)
         {
             Contract.Requires(io != null);
-            io.ProgramOutput = new NoOpOutput();
+            io.Run(() =>
+            {
+                io.Write("Loading...");
+                io.ProgramOutput = new NoOpOutput();
+            });
         }
 
         protected static void SetToUserMode(StructureIO io, NewsPrinter newsPrinter)

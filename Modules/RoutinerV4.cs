@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Structure.Editors;
+using Structure.IO;
+using Structure.TaskItems;
+using System;
 using System.Linq;
 
-namespace Structure
+namespace Structure.Modules
 {
     public class RoutinerV4 : StructureModule
     {

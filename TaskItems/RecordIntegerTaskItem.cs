@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Structure.IO;
+using System;
 using System.Diagnostics.Contracts;
 
-namespace Structure
+namespace Structure.TaskItems
 {
     [Serializable]
     public class RecordIntegerTaskItem : TaskItem

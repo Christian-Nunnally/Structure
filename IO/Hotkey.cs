@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
+using Structure.Structure;
 
-namespace Structure
+namespace Structure.IO
 {
     public class Hotkey
     {

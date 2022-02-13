@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Structure.TaskItems;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 

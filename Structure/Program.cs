@@ -1,7 +1,9 @@
-﻿using Structure.Code;
-using Structure.IO;
+﻿using Structure.IO;
+using Structure.IO.Input;
+using Structure.IO.Output;
+using Structure.Modules;
 
-namespace Structure
+namespace Structure.Structure
 {
     public static class Program
     {
@@ -13,7 +15,8 @@ namespace Structure
             io.ProgramInput = new StructureInput(io, newsPrinter);
             io.ProgramInput = new DevelopmentStructureInput(io, newsPrinter, true);
             io.ProgramOutput = new ConsoleOutput();
-            var program = new StructureProgram(io);
+            var data = new StructureData();
+            var program = new StructureProgram(io, data, StartingModules.CreateStartingModules().ToArray());
             program.Run();
         }
     }

@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Structure.IO;
+using Structure.Structure;
+using Structure.TaskItems;
+using System;
 using System.Diagnostics.Contracts;
 
-namespace Structure
+namespace Structure.Editors
 {
     public class TaskEditor : TaskExecutor
     {

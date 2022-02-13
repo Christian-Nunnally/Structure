@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Structure.Structure;
+using System;
 
-namespace Structure
+namespace Structure.IO
 {
     public class UserAction
     {

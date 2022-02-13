@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Structure
+namespace Structure.IO.Output
 {
     public class ConsoleOutput : IProgramOutput
     {

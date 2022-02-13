@@ -2,28 +2,32 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Structure.Code
+namespace Structure.IO.Input
 {
     public class PredeterminedInput : IProgramInput
     {
-        private readonly IEnumerator<ProgramInputData> _enumerator;
-        private readonly int _numberOfInputs;
+        private readonly IEnumerable<ProgramInputData> _inputData;
+        private IEnumerator<ProgramInputData> _cachedEnumerator;
+        private int? _cachedNumberOfInputs;
         private int _currentInputIndex;
+
+        private int NumberOfInputs => _cachedNumberOfInputs ?? (_cachedNumberOfInputs = _inputData.Count()) ?? 0;
+
+        private IEnumerator<ProgramInputData> Enumerator => _cachedEnumerator ?? (_cachedEnumerator = _inputData.GetEnumerator());
 
         public PredeterminedInput(IEnumerable<ProgramInputData> inputData)
         {
             if (inputData is null) return;
-            _numberOfInputs = inputData.Count();
-            _enumerator = inputData.GetEnumerator();
+            _inputData = inputData;
         }
 
-        public bool IsKeyAvailable() => _currentInputIndex < _numberOfInputs;
+        public bool IsKeyAvailable() => _currentInputIndex < NumberOfInputs;
 
         public ProgramInputData ReadKey()
         {
             _currentInputIndex++;
-            _enumerator.MoveNext();
-            return _enumerator.Current;
+            Enumerator.MoveNext();
+            return Enumerator.Current;
         }
     }
 }

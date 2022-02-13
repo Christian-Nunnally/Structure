@@ -1,4 +1,8 @@
-﻿namespace Structure
+﻿using Structure.IO;
+using Structure.IO.Persistence;
+using Structure.TaskItems;
+
+namespace Structure.Editors
 {
     public class TaskExecutor : TaskPicker
     {

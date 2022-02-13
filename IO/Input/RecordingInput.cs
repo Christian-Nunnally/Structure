@@ -1,7 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using Structure.IO.Persistence;
 
-namespace Structure.Code
+namespace Structure.IO.Input
 {
     public class RecordingInput : IProgramInput
     {

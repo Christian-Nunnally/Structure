@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using Structure.IO.Input;
+using System.Collections.Generic;
 
-namespace Structure.Code.ProgramInput
+namespace Structure.IO.Persistence
 {
     public static class SavedSessionUtilities
     {
@@ -10,7 +10,7 @@ namespace Structure.Code.ProgramInput
             var sessions = new List<PersistedListCollection<ProgramInputData>>();
             var currentSession = 0;
             PersistedListCollection<ProgramInputData> session = LoadSession(currentSession++);
-            while (session.Any())
+            while (session.HasBeenSaved)
             {
                 sessions.Add(session);
                 session = LoadSession(currentSession++);

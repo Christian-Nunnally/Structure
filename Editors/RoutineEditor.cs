@@ -1,7 +1,11 @@
-﻿using System;
+﻿using Structure.Editors.Obsolete;
+using Structure.IO;
+using Structure.IO.Persistence;
+using Structure.TaskItems;
+using System;
 using System.Collections.Generic;
 
-namespace Structure
+namespace Structure.Editors
 {
     public class RoutineEditor : TreeEditorObsolete<TaskItem>
     {

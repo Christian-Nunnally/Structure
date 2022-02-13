@@ -1,7 +1,11 @@
-﻿using System;
+﻿using Structure.IO;
+using Structure.Modules.Obsolete;
+using Structure.Structure;
+using Structure.TaskItems;
+using System;
 using System.Diagnostics.Contracts;
 
-namespace Structure
+namespace Structure.Editors.Obsolete
 {
     public class TaskEditorObsolete : TaskExecutorObsolete
     {

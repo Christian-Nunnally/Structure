@@ -2,21 +2,29 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Structure
+namespace Structure.IO.Persistence
 {
     public class PersistedListCollection<T> : IEnumerable<T>
     {
         private readonly string _name;
+        private List<T> _list;
 
         public PersistedListCollection(string name)
         {
             _name = name;
-            List = JsonConvert.DeserializeObject<List<T>>(StructureFileIO.ReadFromFile(_name)) ?? new List<T>();
+            HasBeenSaved = StructureFileIO.DoesFileExist(_name);
         }
+
+        public bool HasBeenSaved { get; private set; }
 
         public int Count => List.Count;
 
-        private List<T> List { get; }
+        private List<T> List => _list ?? (_list = LoadList() ?? new List<T>());
+
+        private List<T> LoadList()
+        {
+            return JsonConvert.DeserializeObject<List<T>>(StructureFileIO.ReadFromFile(_name));
+        }
 
         public void Add(T value)
         {

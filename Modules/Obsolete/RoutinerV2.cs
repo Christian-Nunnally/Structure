@@ -1,8 +1,11 @@
-﻿using Structure.Code.Modules;
+﻿using Structure.Editors;
+using Structure.Editors.Obsolete;
+using Structure.IO;
+using Structure.TaskItems;
 using System;
 using System.Linq;
 
-namespace Structure
+namespace Structure.Modules.Obsolete
 {
     public class RoutinerV2 : StructureModule, IObsoleteModule
     {

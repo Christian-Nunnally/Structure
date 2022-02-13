@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Structure.IO;
+using Structure.IO.Persistence;
+using System;
 using System.Diagnostics.Contracts;
 
-namespace Structure
+namespace Structure.TaskItems
 {
     [Serializable]
     public class TaskItem : Node

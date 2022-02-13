@@ -1,15 +1,60 @@
-﻿using Structure.Modules;
+﻿using Structure.Modules.Obsolete;
+using Structure.Modules.SubModules;
+using Structure.Structure;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
-namespace Structure
+namespace Structure.Modules
 {
     public static class StartingModules
     {
-        public static StructureModule[] CreateStartingModules() => new StructureModule[]
+        public static List<IModule> CreateStartingModules()
         {
-            new ModuleManager(),
-            new TreeTask(),
-            new Routiner(),
-            new TaskHistoryInformation(),
-        };
+            var allModuleTypes = GetLoadableModuleTypes();
+            var subModuleTypes = allModuleTypes.Where(typeof(ISubModule).IsAssignableFrom);
+            var moduleTypes = allModuleTypes.Except(subModuleTypes);
+            var startingModules = DetermineModulesThatUpgradeIntoAllOtherModules(moduleTypes);
+            var startingModuleInstances = startingModules.Select(Activator.CreateInstance);
+            return startingModuleInstances.OfType<IModule>().ToList();
+        }
+
+        private static List<Type> DetermineModulesThatUpgradeIntoAllOtherModules(IEnumerable<Type> moduleTypes)
+        {
+            var obsolete = moduleTypes.Where(typeof(IObsoleteModule).IsAssignableFrom).ToList();
+            var nonObsolete = moduleTypes.Except(obsolete).ToList();
+            bool keepLooping = true;
+            while (keepLooping)
+            {
+                keepLooping = false;
+                for (int i = obsolete.Count - 1; i >= 0; i--)
+                {
+                    var obsoleteType = obsolete[i];
+                    var typeOfUpgrade = GetTypeOfUpgrade(obsoleteType);
+                    if (nonObsolete.Contains(typeOfUpgrade)) nonObsolete[nonObsolete.IndexOf(typeOfUpgrade)] = obsoleteType;
+                    else if (obsolete.Contains(typeOfUpgrade)) keepLooping = true;
+                    else obsolete.Remove(obsoleteType);
+                }
+            }
+            return nonObsolete;
+        }
+
+        private static Type GetTypeOfUpgrade(Type obsoleteModuleType)
+        {
+            var obsoleteModule = (IObsoleteModule)Activator.CreateInstance(obsoleteModuleType);
+            var newModule = obsoleteModule.UpgradeModule();
+            return newModule.GetType();
+        }
+
+        private static IEnumerable<Type> GetLoadableModuleTypes()
+        {
+            var moduleType = typeof(IModule);
+            var assembly = moduleType.Assembly;
+            return assembly.GetLoadableTypes()
+                .Where(moduleType.IsAssignableFrom)
+                .Where(x => !x.IsAbstract && !x.IsInterface)
+                .ToList();
+        }
     }
 }

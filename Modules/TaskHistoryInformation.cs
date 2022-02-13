@@ -1,5 +1,11 @@
-﻿using Structure.Graphing;
+﻿using Structure.Editors;
+using Structure.Graphing;
+using Structure.IO;
+using Structure.IO.Input;
+using Structure.IO.Output;
+using Structure.Modules.SubModules;
 using Structure.Structure;
+using Structure.TaskItems;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,16 +39,34 @@ namespace Structure.Modules
 
         protected override void OnEnable()
         {
+            GetData();
             _startAction = new UserAction(ModuleHotkeyDescription, Start);
             Hotkey.Add(ConsoleKey.H, _startAction);
 
             if (DataSets.Count == 0)
             {
                 DataSets.Add((CompletedTasksDataSetDescription, Data.CompletedTasks));
-                DataSets.Add((ActiveTaskCountDataSetDescription, Data.TaskCountOverTime));
 
                 AddQuery();
             }
+        }
+
+        private void GetData()
+        {
+            var data = new StructureData();
+            var news = new NewsPrinter();
+            var hotkey = new Hotkey();
+            var io = new StructureIO(hotkey, news);
+            var input = new ExitingStructureInput(io, news);
+            io.ProgramInput = input;
+            io.ProgramOutput = new NoOpOutput();
+            var modules = StartingModules.CreateStartingModules();
+            var analyzeTaskCountModule = new AnalyzeTaskCount();
+            analyzeTaskCountModule.Enable(io, hotkey, data);
+            modules.Add(analyzeTaskCountModule);
+            var program = new StructureProgram(io, data, modules.ToArray());
+            program.Run();
+            DataSets.Add((ActiveTaskCountDataSetDescription, analyzeTaskCountModule.TaskCountOverTime));
         }
 
         private void Start()

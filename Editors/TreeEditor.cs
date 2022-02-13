@@ -1,8 +1,12 @@
-﻿using System;
+﻿using Structure.IO;
+using Structure.IO.Persistence;
+using Structure.TaskItems;
+using Structure.Structure;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Structure
+namespace Structure.Editors
 {
     public class TreeEditor<T> where T : Node
     {
