@@ -252,7 +252,7 @@ namespace Structure.IO
             }
         }
 
-        // TODO: Mabe remove.
+        // TODO: Maybe remove.
         private ProgramInputData _lastInput;
         private readonly PersistedListCollection<ProgramInputData> _invalidInputs = new PersistedListCollection<ProgramInputData>("invalid-inputs");
 
