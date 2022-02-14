@@ -5,19 +5,19 @@ using System;
 
 namespace Structure.Editors
 {
-    public class TaskPicker : TreeEditor<TaskItem>
+    public class ItemPicker<T> : TreeEditor<T> where T : Node
     {
-        private Action<TaskItem> _pickedAction;
+        private Action<T> _pickedAction;
         private readonly bool _exitAfterPick;
 
-        public TaskPicker(
+        public ItemPicker(
             StructureIO io,
             string prompt,
             bool allowLeafs,
             bool allowParents,
             bool exitAfterPick,
-            NodeTreeCollection<TaskItem> tree,
-            Action<TaskItem> pickedAction = null)
+            NodeTreeCollection<T> tree,
+            Action<T> pickedAction = null)
             : base(io, prompt, tree)
         {
             if (allowLeafs) EnterPressedOnLeafAction = Pick;
@@ -27,14 +27,14 @@ namespace Structure.Editors
             _pickedAction = pickedAction;
         }
 
-        protected void SetPickAction(Action<TaskItem> action)
+        protected void SetPickAction(Action<T> action)
         {
             _pickedAction = action;
         }
 
-        private void Pick(TaskItem task)
+        private void Pick(T item)
         {
-            _pickedAction(task);
+            _pickedAction(item);
             if (_exitAfterPick) ShouldExit = true;
         }
     }

@@ -4,7 +4,7 @@ using Structure.TaskItems;
 
 namespace Structure.Editors
 {
-    public class TaskExecutor : TaskPicker
+    public class TaskExecutor : ItemPicker<TaskItem>
     {
         private readonly StructureIO _io;
 

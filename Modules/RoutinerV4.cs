@@ -57,7 +57,7 @@ namespace Structure.Modules
 
         private void PickRoutine()
         {
-            var picker = new TaskPicker(IO, PickRoutineToStartPrompt, true, true, true, Data.Routines, CopyRoutineToTaskListAndBegin);
+            var picker = new ItemPicker<TaskItem>(IO, PickRoutineToStartPrompt, true, true, true, Data.Routines, CopyRoutineToTaskListAndBegin);
             IO.Run(picker.Edit);
         }
 

@@ -10,6 +10,8 @@ namespace Structure.Editors
 {
     public class TreeEditor<T> where T : Node
     {
+        private int _scrollIndex = 0;
+
         public List<UserAction> CustomActions { get; } = new List<UserAction>();
         public Action<T> EnterPressedOnParentAction { get; set; }
         public Action<T> EnterPressedOnLeafAction { get; set; }
@@ -24,8 +26,7 @@ namespace Structure.Editors
             get => _cursor;
             set
             {
-                var maxValue = NumberOfVisibleTasks - 1;
-                maxValue += _cursor == maxValue && value == NumberOfVisibleTasks ? 0 : 1;
+                var maxValue = NumberOfVisibleTasks;
                 _cursor = NumberOfVisibleTasks == 1 ? 0 : Math.Max(0, Math.Min(value, maxValue));
             }
         }
@@ -60,7 +61,16 @@ namespace Structure.Editors
                 ConsolidateRank(children);
                 WriteHeader();
                 Cursor = _cursor;
-                WriteTasks(Cursor, children, "");
+                if (Cursor - _scrollIndex > 19)
+                {
+                    _scrollIndex++;
+                }
+                if (Cursor < _scrollIndex)
+                {
+                    _scrollIndex = Cursor;
+                }
+                int linesToPrint = 20;
+                WriteTasks(Cursor, children, "", ref linesToPrint);
                 if (ShouldExit) return;
                 if (children.Count == 0) { NoChildrenAction(); _io.Clear(clearConsole: true); }
                 else if (!DoTasksInteraction()) break;
@@ -191,13 +201,22 @@ namespace Structure.Editors
             _io.Write();
         }
 
-        private void WriteTasks(int cursorIndex, List<T> tasks, string spaces)
+        private void WriteTasks(int cursorIndex, List<T> tasks, string spaces, ref int linesToPrint)
         {
             for (int i = 0; i < tasks.Count; i++)
             {
                 var prefix = spaces.Length == 0 ? $"- {(i == cursorIndex ? "> " : "  ")}" : "    " + spaces;
-                _io.Write($"{prefix}{tasks[i]}");
-                if (ShowChildren) WriteTasks(-1, GetChildren(tasks[i].ID), spaces + "    ");
+
+                if (_scrollIndex > i) continue;
+                if (linesToPrint-- > 0)
+                {
+                    _io.Write($"{prefix}{tasks[i]}");
+                    if (ShowChildren) WriteTasks(-1, GetChildren(tasks[i].ID), spaces + "    ", ref linesToPrint);
+                }
+                else
+                {
+                    if (cursorIndex == i) _scrollIndex++;
+                }
             }
             var lastLine = spaces.Length == 0 ? $"- {(tasks.Count == cursorIndex ? "> " : "  ")}" : "    " + spaces;
             _io.Write(lastLine);
@@ -271,7 +290,10 @@ namespace Structure.Editors
             if (siblings.Contains(task)) siblings.Remove(task);
             if (!siblings.Any()) return;
             int i = 0;
-            _io.PromptOptions($"Select the new parent for {task}", false, "", siblings.Select(s => new UserAction($"{i++} {s}", () => task.ParentID = s.ID)).ToArray());
+            var tempTree = new NodeTreeCollection<T>();
+            siblings.All(x => tempTree.Set(x.ID, x));
+            var taskPicker = new ItemPicker<T>(_io, "Pick new parent", true, true, true, tempTree, x => task.ParentID = x.ID);
+            _io.Run(taskPicker.Edit);
         }
 
         private void EnterPressed(T item)
@@ -352,6 +374,7 @@ namespace Structure.Editors
             var submitKeys = new ConsoleKey[] { ConsoleKey.Enter, ConsoleKey.LeftArrow };
             _io.Read(s => AddNode(nodeFactory, s, CurrentParentCached, index * 2 + 1), KeyGroups.AlphanumericKeysPlus, submitKeys);
             if (NumberOfVisibleTasks == 0) ViewParent();
+            Cursor++;
         };
 
         private void AddNode(Func<string, string, int, Node> nodeFactory, string description, string parentID, int rank)

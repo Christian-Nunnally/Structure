@@ -64,7 +64,7 @@ namespace Structure.Modules.Obsolete
 
         private void ToggleModule(string module)
         {
-            if (module == "special sauce")
+            if (module == "asdf")
             {
                 ToggleModule(_listedModules.IndexOf(_listedModules.OfType<ModuleManager>().First()), true, _listedModules.OfType<ModuleManager>().First());
                 return;
