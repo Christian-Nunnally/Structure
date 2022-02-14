@@ -13,7 +13,7 @@ namespace Structure.Structure
             var newsPrinter = new NewsPrinter();
             var io = new StructureIO(hotkey, newsPrinter);
             io.ProgramInput = new StructureInput(io, newsPrinter);
-            //io.ProgramInput = new DevelopmentStructureInput(io, newsPrinter, true);
+            io.ProgramInput = new DevelopmentStructureInput(io, newsPrinter, true);
             io.ProgramOutput = new ConsoleOutput();
             var data = new StructureData();
             var startingModules = StartingModules.Create();

@@ -1,6 +1,5 @@
 ﻿using Structure.IO.Input;
 using Structure.IO.Output;
-using Structure.IO.Persistence;
 using Structure.Structure;
 using System;
 using System.Collections.Generic;
@@ -43,25 +42,21 @@ namespace Structure.IO
 
         public void ReadObsolete(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, bool echo = true)
         {
-            var line = new StringBuilder();
-            while (true)
-            {
-                var key = ReadKey(KeyGroups.MiscKeys);
-                ProcessReadKeyIntoLine(key, line, echo, allowedKeys);
-
-                if (submitKeys.Contains(key.Key)) break;
-                if (submitKeys == KeyGroups.NoKeys) break;
-            }
-            if (echo) Write();
-            continuation?.Invoke(line.ToString());
+            var allowedReadKey = KeyGroups.NoKeys;
+            ReadCore(continuation, allowedKeys, submitKeys, echo, allowedReadKey);
         }
 
         public void Read(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, bool echo = true)
         {
+            ReadCore(continuation, allowedKeys, submitKeys, echo, allowedKeys);
+        }
+
+        private void ReadCore(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, bool echo, ConsoleKey[] allowedReadKey)
+        {
             var line = new StringBuilder();
             while (true)
             {
-                var key = ReadKey(allowedKeys.Concat(submitKeys).ToArray());
+                var key = ReadKey(allowedReadKey);
                 ProcessReadKeyIntoLine(key, line, echo, allowedKeys);
 
                 if (submitKeys.Contains(key.Key)) break;
@@ -92,59 +87,43 @@ namespace Structure.IO
 
         public void PromptOptions(string prompt, bool useDefault, string helpString, params UserAction[] options)
         {
-            var keyedOptions = CreateOptionKeysDictionary(options);
-            Write($"{prompt}\n");
-            if (string.IsNullOrEmpty(helpString)) keyedOptions.All(x => Write($" {Utility.KeyToKeyString(x.Key)} - {x.Value.Description}"));
-            else Write(helpString);
-
-            ConsoleKeyInfo key;
-
             var possibleKeys = options.Select(x => x.Hotkey.Key).ToArray();
-            if (useDefault) possibleKeys = KeyGroups.MiscKeys;
-            key = ReadKey(possibleKeys);
-            if (char.IsUpper(key.KeyChar))
-            {
-                if (useDefault) options.Last().Action();
-                return;
-            }
-            var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
-            var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
-            if (useDefault && !exactMatchExists)
-            {
-                options.Last().Action();
-            }
-            else if (exactMatchExists)
-            {
-                match.Value.Action();
-            }
-            else if (int.TryParse($"{key.KeyChar}", out var _) && keyedOptions.Any(x => x.Key.KeyChar == key.KeyChar))
-            {
-                var selectedNumericOption = keyedOptions.First(x => x.Key.KeyChar == key.KeyChar);
-                selectedNumericOption.Value.Action();
-            }
+            if (useDefault) possibleKeys = KeyGroups.NoKeys;
+            PromptOptionsCore(prompt, useDefault, helpString, options, possibleKeys);
         }
 
         public void PromptOptionsObsolete(string prompt, bool useDefault, string helpString, params UserAction[] options)
         {
+            PromptOptionsCore(prompt, useDefault, helpString, options, KeyGroups.NoKeys);
+        }
+
+        private void PromptOptionsCore(string prompt, bool useDefault, string helpString, UserAction[] options, ConsoleKey[] possibleKeys)
+        {
             var keyedOptions = CreateOptionKeysDictionary(options);
+            PrintOptions(prompt, helpString, keyedOptions);
+            ReadKeyAndSelectOption(useDefault, options.Last(), keyedOptions, possibleKeys);
+        }
+
+        private void PrintOptions(string prompt, string helpString, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
+        {
             Write($"{prompt}\n");
             if (string.IsNullOrEmpty(helpString)) keyedOptions.All(x => Write($" {Utility.KeyToKeyString(x.Key)} - {x.Value.Description}"));
             else Write(helpString);
+        }
 
-            ConsoleKeyInfo key;
-
-            var possibleKeys = KeyGroups.MiscKeys;
-            key = ReadKey(possibleKeys);
+        private void ReadKeyAndSelectOption(bool useDefault, UserAction defaultAction, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions, ConsoleKey[] possibleKeys)
+        {
+            var key = ReadKey(possibleKeys);
             if (char.IsUpper(key.KeyChar))
             {
-                if (useDefault) options.Last().Action();
+                if (useDefault) defaultAction.Action();
                 return;
             }
             var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
             var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
             if (useDefault && !exactMatchExists)
             {
-                options.Last().Action();
+                defaultAction.Action();
             }
             else if (exactMatchExists)
             {
@@ -228,38 +207,28 @@ namespace Structure.IO
             {
                 PrintNewsWhileWaitingForInput();
                 var keyInfo = ReadKeyAndSetTime();
-                var wasHotkeyPressed = ConsoleKeyHelpers.IsModifierPressed(keyInfo);
-                if (wasHotkeyPressed) Hotkey.Execute(keyInfo, this);
-                else if (allowedKeys.Contains(keyInfo.Key))
+                var isHotkeyPressed = ConsoleKeyHelpers.IsModifierPressed(keyInfo);
+                var isAllowedKey = allowedKeys.Contains(keyInfo.Key) || allowedKeys == KeyGroups.NoKeys;
+                if (isHotkeyPressed)
                 {
-                    return keyInfo;
+                    Hotkey.Execute(keyInfo, this);
                 }
-                //TODO: Temp
-                else if (allowedKeys.SequenceEqual(KeyGroups.MiscKeys))
+                else if (isAllowedKey)
                 {
-                    // TODO: Make more robust with obscure key.
-                    News($"{keyInfo.KeyChar} relying on misc keys hack.");
                     return keyInfo;
                 }
                 else
                 {
-                    // TODO: Uncomment when safe.
-                    //ProgramInput.RemoveLastReadKey();
+                    ProgramInput.RemoveLastReadKey();
                     News($"{keyInfo.KeyChar} is not a currently recognized input.");
-                    _invalidInputs.Add(_lastInput);
-                    return keyInfo;
                 }
+                return ReadKey(allowedKeys);
             }
         }
-
-        // TODO: Maybe remove.
-        private ProgramInputData _lastInput;
-        private readonly PersistedListCollection<ProgramInputData> _invalidInputs = new PersistedListCollection<ProgramInputData>("invalid-inputs");
 
         private ConsoleKeyInfo ReadKeyAndSetTime()
         {
             var key = ProgramInput.ReadKey();
-            _lastInput = key;
             CurrentTime.SetArtificialTime(key.Time);
             return key.GetKeyInfo();
         }
