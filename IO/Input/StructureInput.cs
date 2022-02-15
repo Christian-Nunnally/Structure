@@ -35,10 +35,7 @@ namespace Structure.IO.Input
 
         public bool IsKeyAvailable() => InputSource.IsKeyAvailable();
 
-        public ProgramInputData ReadKey()
-        {
-            return InputSource.ReadKey();
-        }
+        public ProgramInputData ReadKey() => InputSource.ReadKey();
 
         protected static void SetToLoadMode(StructureIO io)
         {

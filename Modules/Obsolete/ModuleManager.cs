@@ -106,17 +106,17 @@ namespace Structure.Modules.Obsolete
                     {
                         _indexMap[index] = upgradedModule.GetType();
                     }
-                    IO.News($"Upgraded {name} to {upgradedModule.Name}");
+                    IO.SubmitNews($"Upgraded {name} to {upgradedModule.Name}");
                     module = upgradedModule;
                 }
 
                 module.Enable(IO, Hotkey, Data);
-                IO.News($"+{name} enabled.");
+                IO.SubmitNews($"+{name} enabled.");
             }
             else
             {
                 module.Disable();
-                IO.News($"+{name} disabled.");
+                IO.SubmitNews($"+{name} disabled.");
 
                 if (module is IObsoleteModule obsoleteModule && upgrade)
                 {
@@ -126,7 +126,7 @@ namespace Structure.Modules.Obsolete
                     {
                         _indexMap[index] = upgradedModule.GetType();
                     }
-                    IO.News($"Upgraded {name} to {upgradedModule.Name}");
+                    IO.SubmitNews($"Upgraded {name} to {upgradedModule.Name}");
                 }
             }
         }

@@ -3,6 +3,7 @@ using Structure.Modules.Obsolete;
 using Structure.Structure;
 using Structure.TaskItems;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 
 namespace Structure.Editors.Obsolete
@@ -51,13 +52,13 @@ namespace Structure.Editors.Obsolete
 
         private void GoToNextActiveTask()
         {
-            if (TreeTask.OpenEditors.Count > 1)
+            if (_data.OpenEditors.Count > 1)
             {
-                var thisEditorsIndex = TreeTask.OpenEditors.IndexOf(this);
+                var thisEditorsIndex = _data.OpenEditors.IndexOf(this);
                 if (thisEditorsIndex >= 0)
                 {
-                    var nextEditorIndex = (thisEditorsIndex + 1) % TreeTask.OpenEditors.Count;
-                    var nextEditor = TreeTask.OpenEditors[nextEditorIndex];
+                    var nextEditorIndex = (thisEditorsIndex + 1) % _data.OpenEditors.Count;
+                    var nextEditor = _data.OpenEditors[nextEditorIndex];
                     nextEditor.ShouldExit = false;
                     _io.Run(nextEditor.Edit);
                 }

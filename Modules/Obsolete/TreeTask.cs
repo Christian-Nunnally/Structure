@@ -30,9 +30,9 @@ namespace Structure.Modules.Obsolete
         private void Start()
         {
             var editor = new TaskEditorObsolete(IO, Data);
-            OpenEditors.Add(editor);
+            Data.OpenEditors.Add(editor);
             IO.Run(() => editor.Edit());
-            if (OpenEditors.Count > 0) OpenEditors.RemoveAt(OpenEditors.Count - 1);
+            if (Data.OpenEditors.Count > 0) Data.OpenEditors.RemoveAt(Data.OpenEditors.Count - 1);
         }
     }
 }

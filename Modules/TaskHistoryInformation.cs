@@ -9,7 +9,9 @@ using Structure.Structure;
 using Structure.TaskItems;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 
 namespace Structure.Modules
 {
@@ -40,34 +42,40 @@ namespace Structure.Modules
 
         protected override void OnEnable()
         {
+            
             GetData();
             _startAction = new UserAction(ModuleHotkeyDescription, Start);
             Hotkey.Add(ConsoleKey.H, _startAction);
 
-            if (DataSets.Count == 0)
-            {
-                DataSets.Add((CompletedTasksDataSetDescription, Data.CompletedTasks));
-
-                AddQuery();
-            }
+            DataSets.Add((CompletedTasksDataSetDescription, Data.CompletedTasks));
+            AddQuery();
         }
 
         private void GetData()
         {
+            AnalyzeTaskCount analyzeTaskCountModule = new AnalyzeTaskCount();
+            if (IO.ProgramInput is StructureInput)
+            {
+                RunStructureWithModule(analyzeTaskCountModule);
+            }
+            DataSets.Add((ActiveTaskCountDataSetDescription, analyzeTaskCountModule.TaskCountOverTime));
+        }
+
+        private void RunStructureWithModule(IModule module)
+        {
             var data = new StructureData();
-            var news = new NewsPrinter();
+            var news = new NoOpNewsPrinter();
             var hotkey = new Hotkey();
             var io = new StructureIO(hotkey, news);
-            var input = new ExitingStructureInput(io, news);
-            io.ProgramInput = input;
-            io.ProgramOutput = new NoOpOutput();
             var modules = StartingModules.Create().ToList();
-            var analyzeTaskCountModule = new AnalyzeTaskCount();
-            analyzeTaskCountModule.Enable(io, hotkey, data);
-            modules.Add(analyzeTaskCountModule);
+            module.Enable(io, hotkey, data);
+            modules.Add(module);
             var program = new StructureProgram(io, data, modules.ToArray());
-            program.Run();
-            DataSets.Add((ActiveTaskCountDataSetDescription, analyzeTaskCountModule.TaskCountOverTime));
+            io.ProgramInput = new ExitingStructureInput(program);
+            io.ProgramOutput = new NoOpOutput();
+            var thread = new Thread(program.Run);
+            thread.Start();
+            while (io.ProgramInput.IsKeyAvailable()) { Thread.Sleep(100); }
         }
 
         private void Start()

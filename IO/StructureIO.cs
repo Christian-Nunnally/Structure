@@ -14,7 +14,7 @@ namespace Structure.IO
     {
         private readonly Stack<string> _buffers = new Stack<string>();
         private readonly StringBuilder _currentBuffer = new StringBuilder();
-        private readonly NewsPrinter _newsPrinter;
+        private readonly INewsPrinter _newsPrinter;
 
         public CurrentTime CurrentTime { get; } = new CurrentTime();
 
@@ -26,7 +26,7 @@ namespace Structure.IO
 
         public IProgramOutput ProgramOutput { get; set; }
 
-        public StructureIO(Hotkey hotkey, NewsPrinter newsPrinter)
+        public StructureIO(Hotkey hotkey, INewsPrinter newsPrinter)
         {
             Hotkey = hotkey;
             _newsPrinter = newsPrinter;
@@ -87,19 +87,20 @@ namespace Structure.IO
 
         public void PromptOptions(string prompt, bool useDefault, string helpString, params UserAction[] options)
         {
-            var possibleKeys = options.Select(x => x.Hotkey.Key).ToArray();
+            var keyedOptions = CreateOptionKeysDictionary(options);
+            var possibleKeys = keyedOptions.Select(x => x.Key.Key).ToArray();
             if (useDefault) possibleKeys = KeyGroups.NoKeys;
-            PromptOptionsCore(prompt, useDefault, helpString, options, possibleKeys);
+            PromptOptionsCore(prompt, useDefault, helpString, options, possibleKeys, keyedOptions);
         }
 
         public void PromptOptionsObsolete(string prompt, bool useDefault, string helpString, params UserAction[] options)
         {
-            PromptOptionsCore(prompt, useDefault, helpString, options, KeyGroups.NoKeys);
+            var keyedOptions = CreateOptionKeysDictionary(options);
+            PromptOptionsCore(prompt, useDefault, helpString, options, KeyGroups.NoKeys, keyedOptions);
         }
 
-        private void PromptOptionsCore(string prompt, bool useDefault, string helpString, UserAction[] options, ConsoleKey[] possibleKeys)
+        private void PromptOptionsCore(string prompt, bool useDefault, string helpString, UserAction[] options, ConsoleKey[] possibleKeys, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
         {
-            var keyedOptions = CreateOptionKeysDictionary(options);
             PrintOptions(prompt, helpString, keyedOptions);
             ReadKeyAndSelectOption(useDefault, options.Last(), keyedOptions, possibleKeys);
         }
@@ -136,9 +137,9 @@ namespace Structure.IO
             }
         }
 
-        public void News(string news)
+        public void SubmitNews(string news)
         {
-            _newsPrinter.EnqueueNews(news);
+            _newsPrinter?.EnqueueNews(news);
         }
 
         public void Clear(bool clearConsole)
@@ -185,10 +186,11 @@ namespace Structure.IO
             {
                 action();
             }
-            catch (Exception e)
+            catch
             {
-                if (ThrowExceptions) throw new Exception("Exception" + e.Message, e);
-                Write(e.Message);
+                int pleaseHlp = 0;
+                //if (ThrowExceptions) throw new Exception("Exception" + e.Message, e);
+                //Write(e.Message);
             }
             Clear(true);
             WriteNoLine(_buffers.Pop());
@@ -220,7 +222,7 @@ namespace Structure.IO
                 else
                 {
                     ProgramInput.RemoveLastReadKey();
-                    News($"{keyInfo.KeyChar} is not a currently recognized input.");
+                    SubmitNews($"{keyInfo.KeyChar} is not a currently recognized input.");
                 }
                 return ReadKey(allowedKeys);
             }

@@ -33,7 +33,7 @@ namespace Structure.Editors.Obsolete
         {
             EnterPressedOnParentAction = SetParent;
             EnterPressedOnLeafAction = SetParent;
-            NoChildrenAction = () => { _io.News("No children"); ViewParent(); };
+            NoChildrenAction = () => { _io.SubmitNews("No children"); ViewParent(); };
             CustomActions.Add(new UserAction("t", ChangeItemType));
             _prompt = prompt;
             Tree = tree;
@@ -46,7 +46,7 @@ namespace Structure.Editors.Obsolete
 
         public void Edit()
         {
-            while(true)
+            while (true)
             {
                 var children = GetChildren(CurrentParentCached);
                 ConsolidateRank(children);

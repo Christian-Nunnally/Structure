@@ -5,13 +5,13 @@ using System.Linq;
 
 namespace Structure.IO
 {
-    public class NewsPrinter
+    public class NewsPrinter : INewsPrinter
     {
         private readonly Queue<string> _newsQueue = new Queue<string>();
         private string _currentNews;
         private int _newsCursorLeft = 40;
 
-        internal bool PrintNews(IProgramOutput programOutput)
+        public bool PrintNews(IProgramOutput programOutput)
         {
             if (!_newsQueue.Any() && _currentNews == null) return false;
             if (_currentNews == null)
@@ -51,12 +51,12 @@ namespace Structure.IO
             return true;
         }
 
-        internal void ClearNews()
+        public void ClearNews()
         {
             _newsQueue.Clear();
         }
 
-        internal void EnqueueNews(string news)
+        public void EnqueueNews(string news)
         {
             _newsQueue.Enqueue(news);
         }

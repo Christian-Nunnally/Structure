@@ -1,4 +1,5 @@
-﻿using Structure.IO.Persistence;
+﻿using Structure.Editors.Obsolete;
+using Structure.IO.Persistence;
 using Structure.Modules.Interface;
 using Structure.TaskItems;
 using System.Collections.Generic;
@@ -21,5 +22,7 @@ namespace Structure.Structure
         public int Points { get; set; }
 
         public int Level { get; set; }
+
+        public List<TaskEditorObsolete> OpenEditors = new List<TaskEditorObsolete>();
     }
 }

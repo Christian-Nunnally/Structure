@@ -54,7 +54,7 @@ namespace Structure.Modules
             if (_managedModules.Contains(module))
             {
                 module.Enable(IO, Hotkey, Data);
-                IO.News($"+{module.Name} enabled.");
+                IO.SubmitNews($"+{module.Name} enabled.");
             }
         }
 
@@ -63,7 +63,7 @@ namespace Structure.Modules
             if (_managedModules.Contains(module))
             {
                 module.Disable();
-                IO.News($"+{module.Name} disabled.");
+                IO.SubmitNews($"+{module.Name} disabled.");
             }
         }
 
@@ -78,7 +78,7 @@ namespace Structure.Modules
                     if (wasEnabled) DisableModule(module);
                     var upgradedModule = obsoleteModule.UpgradeModule();
                     _managedModules[index] = upgradedModule;
-                    IO.News($"Upgraded {module.Name} to {upgradedModule.Name}");
+                    IO.SubmitNews($"Upgraded {module.Name} to {upgradedModule.Name}");
                     if (wasEnabled) EnableModule(upgradedModule);
                 }
             }
