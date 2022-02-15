@@ -186,11 +186,9 @@ namespace Structure.IO
             {
                 action();
             }
-            catch
+            catch (Exception e)
             {
-                int pleaseHlp = 0;
-                //if (ThrowExceptions) throw new Exception("Exception" + e.Message, e);
-                //Write(e.Message);
+                if (ThrowExceptions) throw new Exception("Exception" + e.Message, e);
             }
             Clear(true);
             WriteNoLine(_buffers.Pop());
@@ -231,6 +229,7 @@ namespace Structure.IO
         private ConsoleKeyInfo ReadKeyAndSetTime()
         {
             var key = ProgramInput.ReadKey();
+            if (key == null) throw new InvalidProgramException();
             CurrentTime.SetArtificialTime(key.Time);
             return key.GetKeyInfo();
         }
