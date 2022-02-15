@@ -23,6 +23,6 @@ namespace Structure.Structure
 
         public int Level { get; set; }
 
-        public List<TaskEditorObsolete> OpenEditors = new List<TaskEditorObsolete>();
+        public List<TaskEditorObsolete> OpenEditors { get; } = new List<TaskEditorObsolete>();
     }
 }
