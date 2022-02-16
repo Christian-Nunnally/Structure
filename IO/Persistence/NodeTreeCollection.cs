@@ -6,19 +6,15 @@ namespace Structure.IO.Persistence
 {
     public class NodeTreeCollection<TValue> : IEnumerable<KeyValuePair<string, TValue>> where TValue : Node
     {
-        private int _oldCount;
-
-        private void DidCountChange()
+        public NodeTreeCollection()
         {
-            if (_oldCount != Dictionary.Count)
-            {
-                _oldCount = Dictionary.Count;
-                CountChanged?.Invoke();
-            }
+            NodeRemoved += x => CountChanged?.Invoke();
         }
+
         protected Dictionary<string, TValue> Dictionary { get; } = new Dictionary<string, TValue>();
         
         public event Action CountChanged;
+        public event Action<TValue> NodeRemoved;
 
         public TValue this[string key]
         {
@@ -30,10 +26,11 @@ namespace Structure.IO.Persistence
 
         public void Set(string key, TValue value)
         {
-            if (Get(key) != value)
+            var oldValue = Get(key);
+            if (oldValue != value)
             {
                 Dictionary[key] = value;
-                DidCountChange();
+                if (oldValue == null) CountChanged?.Invoke();
             }
         }
 
@@ -45,8 +42,9 @@ namespace Structure.IO.Persistence
         {
             if (Dictionary.ContainsKey(key))
             {
+                var removedItem = Dictionary[key];
                 Dictionary.Remove(key);
-                DidCountChange();
+                NodeRemoved?.Invoke(removedItem);
             }
         }
 

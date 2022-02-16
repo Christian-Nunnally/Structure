@@ -43,34 +43,36 @@ namespace Structure.Modules
         protected override void OnEnable()
         {
             
-            GetData();
             _startAction = new UserAction(ModuleHotkeyDescription, Start);
             Hotkey.Add(ConsoleKey.H, _startAction);
-
-            DataSets.Add((CompletedTasksDataSetDescription, Data.CompletedTasks));
+            PopulateDataSets();
             AddQuery();
         }
 
-        private void GetData()
+        private void PopulateDataSets()
         {
-            AnalyzeTaskCount analyzeTaskCountModule = new AnalyzeTaskCount();
-            if (IO.ProgramInput is StructureInput)
-            {
-                RunStructureWithModule(analyzeTaskCountModule);
-            }
-            DataSets.Add((ActiveTaskCountDataSetDescription, analyzeTaskCountModule.TaskCountOverTime));
+            var activeTaskCountCollector = new ActiveTaskCountCollector();
+            var completedTaskCollector = new CompletedTaskCollector();
+            if (IsUserMode()) RunStructureWithModules(activeTaskCountCollector, completedTaskCollector);
+            DataSets.Add((ActiveTaskCountDataSetDescription, activeTaskCountCollector.TaskCountOverTime));
+            DataSets.Add((CompletedTasksDataSetDescription, completedTaskCollector.CompletedTasks));
         }
 
-        private void RunStructureWithModule(IModule module)
+        private bool IsUserMode()
+        {
+            return IO.ProgramInput is StructureInput;
+        }
+
+        private void RunStructureWithModules(params IModule[] modules)
         {
             var data = new StructureData();
             var news = new NoOpNewsPrinter();
             var hotkey = new Hotkey();
             var io = new StructureIO(hotkey, news);
-            var modules = StartingModules.Create().ToList();
-            module.Enable(io, hotkey, data);
-            modules.Add(module);
-            var program = new StructureProgram(io, data, modules.ToArray());
+            var startingModules = StartingModules.Create().ToList();
+            modules.All(x => x.Enable(io, hotkey, data));
+            startingModules.AddRange(modules);
+            var program = new StructureProgram(io, data, startingModules.ToArray());
             io.ProgramInput = new ExitingStructureInput(program);
             io.ProgramOutput = new NoOpOutput();
             var thread = new Thread(program.Run);

@@ -2,13 +2,11 @@
 using Structure.IO;
 using Structure.Modules.Interface;
 using System;
-using System.Collections.Generic;
 
 namespace Structure.Modules.Obsolete
 {
-    internal class TreeTask : StructureModule, IObsoleteModule
+    public class TreeTask : StructureModule, IObsoleteModule
     {
-        public static List<TaskEditorObsolete> OpenEditors = new List<TaskEditorObsolete>();
         private UserAction _doTasks;
 
         public IModule UpgradeModule()
@@ -31,7 +29,7 @@ namespace Structure.Modules.Obsolete
         {
             var editor = new TaskEditorObsolete(IO, Data);
             Data.OpenEditors.Add(editor);
-            IO.Run(() => editor.Edit());
+            IO.Run(editor.Edit);
             if (Data.OpenEditors.Count > 0) Data.OpenEditors.RemoveAt(Data.OpenEditors.Count - 1);
         }
     }

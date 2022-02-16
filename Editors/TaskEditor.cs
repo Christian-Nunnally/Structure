@@ -10,7 +10,6 @@ namespace Structure.Editors
     {
         public const string InsertTaskPrompt = "Insert task";
         public const string TitlePrompt = "Task tree";
-        private readonly StructureData _data;
 
         public TaskEditor(StructureIO io, StructureData data) : base(io, TitlePrompt, data?.ActiveTaskTree)
         {
@@ -19,7 +18,6 @@ namespace Structure.Editors
             EnableDefaultInsertFunctionality(InsertTaskPrompt, DefaultNodeFactory);
             CustomActions.Add(new UserAction("Toggle show children", () => ShowChildren = !ShowChildren, ConsoleKey.V));
             CustomActions.Add(new UserAction("Copy current task", CopyCurrentTask, ConsoleKey.C));
-            _data = data;
         }
 
         private void CopyCurrentTask()
@@ -41,12 +39,6 @@ namespace Structure.Editors
             Tree.Set(newTask);
             var children = GetChildren(task.ID);
             children.All(x => CopyTask(x, newTask.ID));
-        }
-
-        public override void CompleteTask(TaskItem task)
-        {
-            base.CompleteTask(task);
-            _data.CompletedTasks.Add(task);
         }
     }
 }

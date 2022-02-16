@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Structure.Modules.SubModules
 {
-    public class AnalyzeTaskCount : StructureModule, ISubModule
+    public class ActiveTaskCountCollector : StructureModule, ISubModule
     {
         public List<TaskItem> TaskCountOverTime { get; } = new List<TaskItem>();
 
