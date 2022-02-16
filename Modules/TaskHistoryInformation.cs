@@ -75,7 +75,11 @@ namespace Structure.Modules
             io.ProgramOutput = new NoOpOutput();
             var thread = new Thread(program.Run);
             thread.Start();
-            while (io.ProgramInput.IsKeyAvailable()) { Thread.Sleep(100); }
+            io.Run(() =>
+            {
+                io.Write("Loading data sets...");
+                while (io.ProgramInput.IsKeyAvailable()) { Thread.Sleep(100); }
+            });
         }
 
         private void Start()

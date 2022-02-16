@@ -8,36 +8,11 @@ namespace Structure.TaskItems
     [Serializable]
     public class TaskItem : Node
     {
-        private DateTime _completedDate;
-        private string _name;
-
         public string CopiedFromID { get; set; }
 
-        public string Name
-        {
-            get => _name;
-            set
-            {
-                if (_name != value)
-                {
-                    _name = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        public string Name { get; set; }
 
-        public DateTime CompletedDate
-        {
-            get => _completedDate;
-            set
-            {
-                if (_completedDate != value)
-                {
-                    _completedDate = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        public DateTime CompletedDate { get; set; }
 
         public override string ToString() => Name;
 
