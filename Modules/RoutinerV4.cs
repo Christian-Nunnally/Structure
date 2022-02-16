@@ -45,7 +45,7 @@ namespace Structure.Modules
         private void DoRoutine(TaskItem routine)
         {
             var editor = new TaskEditor(IO, Data);
-            editor.SetParent(routine);
+            editor.ItemPicker.TreeEditor.SetParent(routine);
             IO.Run(editor.Edit);
         }
 

@@ -1,14 +1,14 @@
 ﻿using Structure.IO;
 using Structure.IO.Persistence;
-using Structure.TaskItems;
 using System;
 
 namespace Structure.Editors
 {
-    public class ItemPicker<T> : TreeEditor<T> where T : Node
+    public class ItemPicker<T> where T : Node
     {
         private Action<T> _pickedAction;
         private readonly bool _exitAfterPick;
+        public TreeEditor<T> TreeEditor { get; }
 
         public ItemPicker(
             StructureIO io,
@@ -18,16 +18,16 @@ namespace Structure.Editors
             bool exitAfterPick,
             NodeTreeCollection<T> tree,
             Action<T> pickedAction = null)
-            : base(io, prompt, tree)
         {
-            if (allowLeafs) EnterPressedOnLeafAction = Pick;
-            if (allowParents) EnterPressedOnParentAction = Pick;
+            TreeEditor = new TreeEditor<T>(io, prompt, tree);
+            if (allowLeafs) TreeEditor.EnterPressedOnLeafAction = Pick;
+            if (allowParents) TreeEditor.EnterPressedOnParentAction = Pick;
 
             _exitAfterPick = exitAfterPick;
             _pickedAction = pickedAction;
         }
 
-        protected void SetPickAction(Action<T> action)
+        public void SetPickAction(Action<T> action)
         {
             _pickedAction = action;
         }
@@ -35,7 +35,14 @@ namespace Structure.Editors
         private void Pick(T item)
         {
             _pickedAction(item);
-            if (_exitAfterPick) ShouldExit = true;
+            if (_exitAfterPick) TreeEditor.ShouldExit = true;
+        }
+
+        public void Edit() => TreeEditor.Edit();
+
+        public void AddCustomAction(UserAction action)
+        {
+            TreeEditor.CustomActions.Add(action);
         }
     }
 }

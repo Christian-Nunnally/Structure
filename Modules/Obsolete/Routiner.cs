@@ -56,7 +56,7 @@ namespace Structure.Modules.Obsolete
 
         private void EditRoutines()
         {
-            IO.Run(() => new RoutineEditor(IO, Data.Routines).Edit());
+            IO.Run(() => new RoutineEditorObsolete(IO, Data.Routines).Edit());
         }
 
         private void PickRoutine()

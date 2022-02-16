@@ -19,8 +19,8 @@ namespace Structure.Editors
         protected Dictionary<Type, Dictionary<Type, Func<T, T>>> ItemConversionMap { get; } = new Dictionary<Type, Dictionary<Type, Func<T, T>>>();
         protected string CurrentParentCached { get; set; }
         protected NodeTreeCollection<T> Tree { get; set; }
-        protected bool ShowChildren { get; set; }
-        protected bool ShouldExit { get; set; }
+        public bool ShowChildren { get; set; }
+        public bool ShouldExit { get; set; }
         protected int Cursor
         {
             get => _cursor;
@@ -112,7 +112,7 @@ namespace Structure.Editors
             return childrenOfCurrentParent.ToList();
         }
 
-        protected bool TryGetSelectedTask(out T selectedTask)
+        public bool TryGetSelectedTask(out T selectedTask)
         {
             selectedTask = null;
             var children = GetChildren(CurrentParentCached);
@@ -123,13 +123,13 @@ namespace Structure.Editors
             return selectedTask is object;
         }
 
-        protected void EnableDefaultInsertFunctionality(string insertPrompt, Func<string, string, int, Node> nodeFactory)
+        public void EnableDefaultInsertFunctionality(string insertPrompt, Func<string, string, int, Node> nodeFactory)
         {
             CustomActions.Add(new UserAction("Insert new item", () => _io.Run(PromptToInsertNode(insertPrompt, nodeFactory)), ConsoleKey.I));
             NoChildrenAction = PromptToInsertNode(insertPrompt, nodeFactory);
         }
 
-        protected Node DefaultNodeFactory(string task, string parentId, int rank) => new TaskItem
+        public Node DefaultNodeFactory(string task, string parentId, int rank) => new TaskItem
         {
             Name = task,
             ParentID = parentId,

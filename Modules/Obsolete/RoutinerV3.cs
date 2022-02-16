@@ -55,7 +55,7 @@ namespace Structure.Modules.Obsolete
         private void EditRoutines()
         {
             IO.SubmitNews("Editing");
-            IO.Run(() => new RoutineEditor(IO, Data.Routines).Edit());
+            IO.Run(() => new RoutineEditorObsolete(IO, Data.Routines).Edit());
         }
 
         private void PickRoutine()
