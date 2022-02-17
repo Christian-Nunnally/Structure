@@ -9,9 +9,9 @@ using Structure.Structure;
 using Structure.TaskItems;
 using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
+using Structure.IO.Persistence;
 
 namespace Structure.Modules
 {
@@ -27,9 +27,11 @@ namespace Structure.Modules
         private bool _exit;
         private TaskHistoryQuery _selectedQuery;
         private bool _selectAllQueries = true;
+        private NodeTreeCollection<TaskItem> _dataRoutines;
         private readonly List<TaskHistoryQuery> _queries = new List<TaskHistoryQuery>();
+        private bool _dataSetsInitialized;
 
-        public List<(string Name, IList<TaskItem> Data)> DataSets { get; private set; } = new List<(string Name, IList<TaskItem> Data)>();
+        private List<(string Name, IList<TaskItem> Data)> _dataSets = new List<(string Name, IList<TaskItem> Data)>();
 
         public TaskHistoryInformation()
         {
@@ -45,22 +47,21 @@ namespace Structure.Modules
             
             _startAction = new UserAction(ModuleHotkeyDescription, Start);
             Hotkey.Add(ConsoleKey.H, _startAction);
-            PopulateDataSets();
             AddQuery();
         }
 
         private void PopulateDataSets()
         {
+            _dataSets.Clear();
             var activeTaskCountCollector = new ActiveTaskCountCollector();
             var completedTaskCollector = new CompletedTaskCollector();
-            if (IsUserMode()) RunStructureWithModules(activeTaskCountCollector, completedTaskCollector);
-            DataSets.Add((ActiveTaskCountDataSetDescription, activeTaskCountCollector.TaskCountOverTime));
-            DataSets.Add((CompletedTasksDataSetDescription, completedTaskCollector.CompletedTasks));
-        }
-
-        private bool IsUserMode()
-        {
-            return IO.ProgramInput is StructureInput;
+            if (!IO.SkipUnescesscaryOpterations)
+            {
+                RunStructureWithModules(activeTaskCountCollector, completedTaskCollector);
+                _dataSetsInitialized = true;
+            }
+            _dataSets.Add((ActiveTaskCountDataSetDescription, activeTaskCountCollector.TaskCountOverTime));
+            _dataSets.Add((CompletedTasksDataSetDescription, completedTaskCollector.CompletedTasks));
         }
 
         private void RunStructureWithModules(params IModule[] modules)
@@ -68,24 +69,29 @@ namespace Structure.Modules
             var data = new StructureData();
             var news = new NoOpNewsPrinter();
             var hotkey = new Hotkey();
-            var io = new StructureIO(hotkey, news);
+            var localIO = new StructureIO(hotkey, news);
             var startingModules = StartingModules.Create().ToList();
-            modules.All(x => x.Enable(io, hotkey, data));
+            modules.All(x => x.Enable(localIO, hotkey, data));
             startingModules.AddRange(modules);
-            var program = new StructureProgram(io, data, startingModules.ToArray());
-            io.ProgramInput = new ExitingStructureInput(program);
-            io.ProgramOutput = new NoOpOutput();
+            var program = new StructureProgram(localIO, data, startingModules.ToArray());
+            localIO.ProgramInput = new ExitingStructureInput(program);
+            localIO.ProgramOutput = new NoOpOutput();
             var thread = new Thread(program.Run);
-            thread.Start();
-            io.Run(() =>
+            IO.Run(() =>
             {
-                io.Write("Loading data sets...");
-                while (io.ProgramInput.IsKeyAvailable()) { Thread.Sleep(100); }
+                IO.Write("Loading data sets...");
+                thread.Start();
+                while (localIO.ProgramInput.IsKeyAvailable()) { Thread.Sleep(100); }
             });
+            _dataRoutines = data.Routines;
         }
 
         private void Start()
         {
+            if (!_dataSetsInitialized)
+            {
+                PopulateDataSets();
+            }
             while(!_exit)
             {
                 IO.Run(() => ShowHistoryAndListOptions(BasicFilter));
@@ -111,7 +117,11 @@ namespace Structure.Modules
 
         private void PrintTitle()
         {
-            IO.Write(_selectedQuery.DataSet.Name);
+            IO.Write("Task History");
+            IO.Write();
+            int i = 0;
+            ModifySelectedQueries(x => IO.Write($"Query {i++} - AggregationMode: {x.AggregationMode.Method.Name} - Range: {x.AggregationRange} - Data: {x.DataSet.Name}"));
+            IO.Write();
         }
 
         private void ShowData(Predicate<TaskItem> filter)
@@ -169,7 +179,7 @@ namespace Structure.Modules
 
         private void AddQuery()
         {
-            _selectedQuery = new TaskHistoryQuery { DataSet = DataSets.First(), SearchTerm = _searchTerm };
+            _selectedQuery = new TaskHistoryQuery { DataSet = _dataSets.First(), SearchTerm = _searchTerm };
             _queries.Add(_selectedQuery);
         }
 
@@ -179,9 +189,9 @@ namespace Structure.Modules
             int i = 0;
             foreach (var query in _queries)
             {
-                options.Add(new UserAction($"{i}", () => SelectQuery(query)));
+                options.Add(new UserAction($"{i++}", () => SelectQuery(query)));
             }
-            options.Add(new UserAction("All", SelectAllQueries));
+            options.Add(new UserAction("All", SelectAllQueries, ConsoleKey.A));
             IO.Run(() => IO.PromptOptions("Select a query or all", false, options.ToArray()));
         }
 
@@ -215,7 +225,7 @@ namespace Structure.Modules
         private void SelectDataSet()
         {
             var options = new List<UserAction>();
-            foreach (var dataSet in DataSets)
+            foreach (var dataSet in _dataSets)
             {
                 options.Add(new UserAction(dataSet.Name, () => SelectDataSet(dataSet)));
             }
@@ -236,7 +246,7 @@ namespace Structure.Modules
 
         private void AddCopiedTasks()
         {
-            var taskPicker = new ItemPicker<TaskItem>(IO, "Pick task to include copies of", true, true, true, Data.Routines, AddTasksCopiedFrom);
+            var taskPicker = new ItemPicker<TaskItem>(IO, "Pick task to include copies of", true, true, true, _dataRoutines, AddTasksCopiedFrom);
             IO.Run(taskPicker.Edit);
         }
 

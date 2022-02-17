@@ -22,26 +22,28 @@ namespace Structure.Graphing
 
         public void Print(StructureIO io, List<List<(string Label, double Value)>> listOfValues)
         {
-            Contract.Requires(listOfValues != null);
-            Contract.Requires(io != null);
+            if (io is null || listOfValues is null || !listOfValues.Any()) return;
 
-            if (!listOfValues.Any()) return;
             var firstValues = listOfValues.First();
             var allValues = listOfValues.SelectMany(x => x).Select(x => x.Value);
             var maxValue = allValues.Max();
             var minValue = allValues.Min();
+
             var chart = CreateChart();
             foreach (var values in listOfValues)
             {
                 chart = CombineCharts(chart, RenderChart(values, minValue, maxValue));
             }
-            var yLabels = GenerateYLabels(firstValues);
+            Print(io, firstValues, chart);
+        }
+
+        private void Print(StructureIO io, List<(string Label, double Value)> labelInfo, char[,] chart)
+        {
+            var yLabels = GenerateYLabels(labelInfo);
             PrintChart(io, chart, yLabels);
-
-            var xLabelIndexes = GetXLabelIndexes(firstValues);
+            var xLabelIndexes = GetXLabelIndexes(labelInfo);
             PrintXAxis(io, xLabelIndexes);
-
-            var xNamesCharacters = InitializeXNameCharacterMap(firstValues);
+            var xNamesCharacters = InitializeXNameCharacterMap(labelInfo);
             PrintXNameCharacters(io, xNamesCharacters);
         }
 
@@ -62,7 +64,9 @@ namespace Structure.Graphing
             var percent = indexOfInterpolatedNumber / (_totalColumns - 1.0);
             var doubleIndex = percent * (values.Count - 1.0);
             var previousValue = values[(int)doubleIndex].Value;
-            var nextValue = values[(int)doubleIndex + 1].Value;
+            var nextValue = (values.Count > 1)
+                ? values[(int)doubleIndex + 1].Value
+                : 0;
             var percentDistanceToNextIndex = doubleIndex - (int)doubleIndex;
             var percentDistanceFromPreviousIndex = 1 - percentDistanceToNextIndex;
             var contributionFromPreviousPoint = previousValue * percentDistanceFromPreviousIndex;

@@ -82,9 +82,10 @@ namespace Structure.Modules
                 : values[indexOfValueToTheLeft].Value;
             if (indexOfValueToTheRight == -1) indexOfValueToTheRight = indexToInterpolate;
 
-            var dist1 = indexToInterpolate - indexOfValueToTheLeft;
-            var dist2 = indexOfValueToTheRight - indexToInterpolate;
-            var value = (valueToTheRight * dist1 / (dist1 + dist2)) + (valueToTheLeft * dist2 / (dist1 + dist2));
+            var leftDistance = indexToInterpolate - indexOfValueToTheLeft;
+            var rightDistance = indexOfValueToTheRight - indexToInterpolate;
+            if (leftDistance + rightDistance == 0) return ("", 0);
+            var value = (valueToTheRight * leftDistance / (leftDistance + rightDistance)) + (valueToTheLeft * rightDistance / (leftDistance + rightDistance));
             return (values[indexToInterpolate].Label, value);
         }
 

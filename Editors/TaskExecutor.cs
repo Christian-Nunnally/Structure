@@ -1,7 +1,6 @@
 ﻿using Structure.IO;
 using Structure.IO.Persistence;
 using Structure.TaskItems;
-using System;
 
 namespace Structure.Editors
 {

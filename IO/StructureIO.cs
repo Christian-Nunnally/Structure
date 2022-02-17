@@ -26,6 +26,8 @@ namespace Structure.IO
 
         public IProgramOutput ProgramOutput { get; set; }
 
+        public bool SkipUnescesscaryOpterations { get; set; }
+
         public StructureIO(Hotkey hotkey, INewsPrinter newsPrinter)
         {
             Hotkey = hotkey;
@@ -153,14 +155,12 @@ namespace Structure.IO
         {
             if (options == null) return null;
             var keys = new List<(ConsoleKeyInfo Key, UserAction Action)>();
-            foreach (var option in options)
+            foreach (var option in options.Where(x => x.HotkeyOverridden))
             {
-                if (option.HotkeyOverridden)
-                {
-                    keys.Add((option.Hotkey, option));
-                    continue;
-                }
-
+                keys.Add((option.Hotkey, option));
+            }
+            foreach (var option in options.Where(x => !x.HotkeyOverridden))
+            {
                 var possibleKeys = $"{option.Description.ToLower(CultureInfo.CurrentCulture)}abcdefghijklmnopqrstuvwxyz1234567890";
                 for (int i = 0; i < possibleKeys.Length; i++)
                 {
@@ -168,6 +168,7 @@ namespace Structure.IO
                     if (!keys.Any(x => x.Key.KeyChar == ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]).KeyChar))
                     {
                         var consoleKeyInfo = ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]);
+                        if (consoleKeyInfo.Key == ConsoleKey.NumPad0) keys.Add((new ConsoleKeyInfo('0', ConsoleKey.D0, false, false, false), option));
                         keys.Add((consoleKeyInfo, option));
                         option.Hotkey = consoleKeyInfo;
                         break;

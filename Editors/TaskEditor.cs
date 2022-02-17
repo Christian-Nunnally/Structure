@@ -7,27 +7,28 @@ using System.Diagnostics.Contracts;
 
 namespace Structure.Editors
 {
-    public class TaskEditor : TaskExecutor
+    public class TaskEditor
     {
         public const string InsertTaskPrompt = "Insert task";
         public const string TitlePrompt = "Task tree";
-        private readonly TaskExecutor _taskExecutor;
         private readonly NodeTreeCollection<TaskItem> _tree;
+        
+        public TaskExecutor TaskExecutor { get; }
 
-        public TaskEditor(StructureIO io, StructureData data) : base(io, TitlePrompt, data?.ActiveTaskTree)
+        public TaskEditor(StructureIO io, StructureData data)
         {
             Contract.Requires(io != null);
             Contract.Requires(data != null);
-            _taskExecutor = new TaskExecutor(io, TitlePrompt, data?.ActiveTaskTree);
-            _taskExecutor.ItemPicker.TreeEditor.EnableDefaultInsertFunctionality(InsertTaskPrompt, _taskExecutor.ItemPicker.TreeEditor.DefaultNodeFactory);
-            AddCustomAction(new UserAction("Toggle show children", () => _taskExecutor.ItemPicker.TreeEditor.ShowChildren = !_taskExecutor.ItemPicker.TreeEditor.ShowChildren, ConsoleKey.V));
-            AddCustomAction(new UserAction("Copy current task", CopyCurrentTask, ConsoleKey.C));
+            TaskExecutor = new TaskExecutor(io, TitlePrompt, data?.ActiveTaskTree);
+            TaskExecutor.ItemPicker.TreeEditor.EnableDefaultInsertFunctionality(InsertTaskPrompt, TreeEditor<TaskItem>.DefaultNodeFactory);
+            TaskExecutor.AddCustomAction(new UserAction("Toggle show children", () => TaskExecutor.ItemPicker.TreeEditor.ShowChildren = !TaskExecutor.ItemPicker.TreeEditor.ShowChildren, ConsoleKey.V));
+            TaskExecutor.AddCustomAction(new UserAction("Copy current task", CopyCurrentTask, ConsoleKey.C));
             _tree = data?.ActiveTaskTree;
         }
 
         private void CopyCurrentTask()
         {
-            if (_taskExecutor.ItemPicker.TreeEditor.TryGetSelectedTask(out var selectedTask))
+            if (TaskExecutor.ItemPicker.TreeEditor.TryGetSelectedTask(out var selectedTask))
             {
                 CopyTask(selectedTask, selectedTask.ParentID);
             }
@@ -42,10 +43,10 @@ namespace Structure.Editors
                 ParentID = parentID,
             };
             _tree.Set(newTask);
-            var children = _taskExecutor.ItemPicker.TreeEditor.GetChildren(task.ID);
+            var children = TaskExecutor.ItemPicker.TreeEditor.GetChildren(task.ID);
             children.All(x => CopyTask(x, newTask.ID));
         }
 
-        public void Edit() => _taskExecutor.Edit();
+        public void Edit() => TaskExecutor.Edit();
     }
 }

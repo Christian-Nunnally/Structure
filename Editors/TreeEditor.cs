@@ -13,14 +13,23 @@ namespace Structure.Editors
         private int _scrollIndex = 0;
 
         public List<UserAction> CustomActions { get; } = new List<UserAction>();
+
         public Action<T> EnterPressedOnParentAction { get; set; }
+
         public Action<T> EnterPressedOnLeafAction { get; set; }
+
         public Action NoChildrenAction { get; set; }
+
         protected Dictionary<Type, Dictionary<Type, Func<T, T>>> ItemConversionMap { get; } = new Dictionary<Type, Dictionary<Type, Func<T, T>>>();
+
         protected string CurrentParentCached { get; set; }
+
         protected NodeTreeCollection<T> Tree { get; set; }
+
         public bool ShowChildren { get; set; }
+
         public bool ShouldExit { get; set; }
+
         protected int Cursor
         {
             get => _cursor;
@@ -37,6 +46,13 @@ namespace Structure.Editors
         private bool _return;
         private int _cursor;
         private readonly StructureIO _io;
+
+        public void AddToItemConversionMap(Type from, Type to, Func<T, T> conversionFunction)
+        {
+            if (!ItemConversionMap.ContainsKey(from)) ItemConversionMap.Add(from, new Dictionary<Type, Func<T, T>>());
+            var dictionary = ItemConversionMap[from];
+            if (!dictionary.ContainsKey(to)) dictionary.Add(to, conversionFunction);
+        }
 
         public TreeEditor(StructureIO io, string prompt, NodeTreeCollection<T> tree)
         {
@@ -129,7 +145,7 @@ namespace Structure.Editors
             NoChildrenAction = PromptToInsertNode(insertPrompt, nodeFactory);
         }
 
-        public Node DefaultNodeFactory(string task, string parentId, int rank) => new TaskItem
+        public static Node DefaultNodeFactory(string task, string parentId, int rank) => new TaskItem
         {
             Name = task,
             ParentID = parentId,

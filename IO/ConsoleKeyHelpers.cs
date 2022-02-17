@@ -7,6 +7,8 @@ namespace Structure.IO
     {
         public static ConsoleKeyInfo ConvertCharToConsoleKey(char character)
         {
+            if (int.TryParse($"{character}", out int result))
+                return new ConsoleKeyInfo(character, ConsoleKey.NumPad0 + result, false, false, false);
             if (Enum.TryParse(character.ToString(CultureInfo.InvariantCulture), true, out ConsoleKey consoleKey))
                 return new ConsoleKeyInfo(character, consoleKey, false, false, false);
             if (character == ' ')

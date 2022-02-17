@@ -44,6 +44,7 @@ namespace Structure.IO.Input
             {
                 io.Write("Loading...");
                 io.ProgramOutput = new NoOpOutput();
+                io.SkipUnescesscaryOpterations = true;
             });
         }
 
@@ -54,6 +55,7 @@ namespace Structure.IO.Input
             io.ProgramOutput = new ConsoleOutput();
             io.CurrentTime.SetToRealTime();
             io.Refresh();
+            io.SkipUnescesscaryOpterations = false;
         }
 
         public void RemoveLastReadKey() => InputSource.RemoveLastReadKey();

@@ -30,6 +30,7 @@ namespace Structure.TaskItems
             item.CompletedDate = CompletedDate;
             item.ParentID = ParentID;
             item.Rank = Rank;
+            // todo fix.
             item.CopiedFromID = ID;
         }
 

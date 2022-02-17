@@ -8,6 +8,7 @@ namespace Structure.Editors
     {
         private Action<T> _pickedAction;
         private readonly bool _exitAfterPick;
+
         public TreeEditor<T> TreeEditor { get; }
 
         public ItemPicker(
