@@ -181,7 +181,7 @@ namespace Structure.Editors
                         var userAction = new UserAction(description, action);
                         actions.Add(userAction);
                     }
-                    _io.PromptOptions($"Change the type of '{selectedTask.ToString()}'", false, "", actions.ToArray());
+                    _io.ReadOptions($"Change the type of '{selectedTask.ToString()}'", false, "", actions.ToArray());
                 }
             }
         }
@@ -267,7 +267,7 @@ namespace Structure.Editors
             helpString += "<Delete> - Delete item\n";
             helpString += "<Escape> - Back\n";
 
-            _io.PromptOptions("", false, helpString, options.ToArray());
+            _io.ReadOptions("", false, helpString, options.ToArray());
             if (_return) return false;
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {

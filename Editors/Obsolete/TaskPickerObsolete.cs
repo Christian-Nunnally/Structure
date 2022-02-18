@@ -37,7 +37,7 @@ namespace Structure.Editors.Obsolete
             _pickedAction = action;
         }
 
-        private void ConfirmPick(TaskItem task) => _io.PromptOptions($"{_pickPrompt} {task}?", true, "",
+        private void ConfirmPick(TaskItem task) => _io.ReadOptions($"{_pickPrompt} {task}?", true, "",
             new UserAction("no", () => { }),
             new UserAction("yes (Enter)", () =>
             {

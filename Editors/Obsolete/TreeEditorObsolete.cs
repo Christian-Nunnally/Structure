@@ -136,7 +136,7 @@ namespace Structure.Editors.Obsolete
                         var userAction = new UserAction(description, action);
                         actions.Add(userAction);
                     }
-                    _io.PromptOptionsObsolete($"Change the type of '{selectedTask.ToString()}'", false, "", actions.ToArray());
+                    _io.ReadOptionsObsolete($"Change the type of '{selectedTask.ToString()}'", false, "", actions.ToArray());
                 }
             }
         }
@@ -211,7 +211,7 @@ namespace Structure.Editors.Obsolete
 
             options.Add(new UserAction("exit", EditorInteractionWrapper(() => { _return = true; }), ConsoleKey.Escape));
 
-            _io.PromptOptionsObsolete("", false, "", options.ToArray());
+            _io.ReadOptionsObsolete("", false, "", options.ToArray());
             if (_return) return false;
             if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
             {
@@ -252,7 +252,7 @@ namespace Structure.Editors.Obsolete
             if (siblings.Contains(task)) siblings.Remove(task);
             if (!siblings.Any()) return;
             int i = 0;
-            _io.PromptOptionsObsolete($"Select the new parent for {task}", false, "", siblings.Select(s => new UserAction($"{i++} {s}", () => task.ParentID = s.ID)).ToArray());
+            _io.ReadOptionsObsolete($"Select the new parent for {task}", false, "", siblings.Select(s => new UserAction($"{i++} {s}", () => task.ParentID = s.ID)).ToArray());
         }
 
         private void EnterPressed(T item) => (IsParent(item) ? EnterPressedOnParentAction : EnterPressedOnLeafAction)(item);

@@ -38,7 +38,7 @@ namespace Structure.Modules
                 options.Add(enableDisableOption);
             }
 
-            IO.PromptOptions(ManageModulesPrompt, false, "", options.ToArray());
+            IO.ReadOptions(ManageModulesPrompt, false, "", options.ToArray());
         }
 
         private static string ModuleString(IModule module)

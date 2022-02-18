@@ -27,6 +27,11 @@ namespace Structure.IO
             ConsoleKey.Spacebar,
         };
 
+        public static readonly ConsoleKey[] EnterKey = new ConsoleKey[]
+{
+            ConsoleKey.Enter,
+};
+
         public static readonly ConsoleKey[] NumberKeys = new ConsoleKey[]
         {
             ConsoleKey.NumPad0,
@@ -87,6 +92,6 @@ namespace Structure.IO
 
         public static readonly ConsoleKey[] AlphanumericKeysPlus = AlphanumericKeys.Concat(SpaceKey).ToArray();
 
-        public static readonly ConsoleKey[] AlphanumericInputKeys = AlphanumericKeysPlus.Concat(SpaceKey).Concat(BackspaceKey).ToArray();
+        public static readonly ConsoleKey[] AlphanumericInputKeys = AlphanumericKeysPlus.Concat(SpaceKey).Concat(BackspaceKey).Concat(EnterKey).ToArray();
     }
 }

@@ -16,15 +16,15 @@ namespace Structure.IO
         private readonly StringBuilder _currentBuffer = new StringBuilder();
         private readonly List<IBackgroundProcess> _backgroundProcesses;
 
+        public IProgramInput ProgramInput { get; set; }
+
+        public IProgramOutput ProgramOutput { get; set; }
+
         public Action<ConsoleKeyInfo, StructureIO> ModifierKeyAction { get; set; } 
 
         public CurrentTime CurrentTime { get; }
 
         public bool ThrowExceptions { get; set; }
-
-        public IProgramInput ProgramInput { get; set; }
-
-        public IProgramOutput ProgramOutput { get; set; }
 
         public bool SkipUnescesscaryOperations { get; set; }
 
@@ -33,104 +33,12 @@ namespace Structure.IO
             _backgroundProcesses = ioc?.GetAll<IBackgroundProcess>().ToList();
             CurrentTime = ioc.Get<CurrentTime>();
         }
-        
-        public void Write(string text = "") => WriteNoLine($"{text}\n");
 
-        public void WriteNoLine(string text)
+        public void Refresh()
         {
-            _currentBuffer.Append(text);
-            ProgramOutput.Write(text);
-        }
-
-        public void Read(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys)
-        {
-            ReadCore(continuation, allowedKeys, submitKeys, allowedKeys);
-        }
-
-        private void ReadCore(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, ConsoleKey[] allowedReadKey)
-        {
-            var line = new StringBuilder();
-            while (true)
-            {
-                var key = ReadKey(allowedReadKey);
-                ProcessReadKeyIntoLine(key, line, true, allowedKeys);
-
-                if (submitKeys.Contains(key.Key)) break;
-                if (submitKeys == KeyGroups.NoKeys) break;
-            }
-            Write();
-            continuation?.Invoke(line.ToString());
-        }
-
-        public void ReadInteger(string prompt, Action<int> continuation)
-        {
-            Write(prompt);
-            Read(x =>
-            {
-                if (int.TryParse(x, out var integer))
-                {
-                    continuation(integer);
-                }
-                else
-                {
-                    Write($"'{x}' is not a valid integer.");
-                    ReadInteger(prompt, continuation);
-                }
-            }, KeyGroups.NoKeys, new[] { ConsoleKey.Enter });
-        }
-
-        public void PromptOptions(string prompt, bool useDefault, params UserAction[] options) => PromptOptions(prompt, useDefault, null, options);
-
-        public void PromptOptions(string prompt, bool useDefault, string helpString, params UserAction[] options)
-        {
-            var keyedOptions = CreateOptionKeysDictionary(options);
-            var possibleKeys = keyedOptions.Select(x => x.Key.Key).ToArray();
-            if (useDefault) possibleKeys = KeyGroups.NoKeys;
-            PromptOptionsCore(prompt, useDefault, helpString, options, possibleKeys, keyedOptions);
-        }
-
-        public void PromptOptionsObsolete(string prompt, bool useDefault, string helpString, params UserAction[] options)
-        {
-            var keyedOptions = CreateOptionKeysDictionary(options);
-            PromptOptionsCore(prompt, useDefault, helpString, options, KeyGroups.NoKeys, keyedOptions);
-        }
-
-        private void PromptOptionsCore(string prompt, bool useDefault, string helpString, UserAction[] options, ConsoleKey[] possibleKeys, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
-        {
-            PrintOptions(prompt, helpString, keyedOptions);
-            ReadKeyAndSelectOption(useDefault, options.Last(), keyedOptions, possibleKeys);
-        }
-
-        private void PrintOptions(string prompt, string helpString, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
-        {
-            Write($"{prompt}\n");
-            if (string.IsNullOrEmpty(helpString)) keyedOptions.All(x => Write($" {Utility.KeyToKeyString(x.Key)} - {x.Value.Description}"));
-            else Write(helpString);
-        }
-
-        private void ReadKeyAndSelectOption(bool useDefault, UserAction defaultAction, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions, ConsoleKey[] possibleKeys)
-        {
-            var key = ReadKey(possibleKeys);
-            if (char.IsUpper(key.KeyChar))
-            {
-                if (useDefault) defaultAction.Action();
-                return;
-            }
-            var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
-            var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
-            if (useDefault && !exactMatchExists)
-            {
-                defaultAction.Action();
-            }
-            else if (exactMatchExists)
-            {
-                match.Value.Action();
-            }
-            else if (int.TryParse($"{key.KeyChar}", out var _) && keyedOptions.Any(x => x.Key.KeyChar == key.KeyChar))
-            {
-                var selectedNumericOption = keyedOptions.First(x => x.Key.KeyChar == key.KeyChar);
-                selectedNumericOption.Value.Action();
-            }
+            var buffer = _currentBuffer.ToString();
+            Clear(true);
+            WriteNoLine(buffer);
         }
 
         public void Clear(bool clearConsole)
@@ -140,7 +48,82 @@ namespace Structure.IO
             ProgramOutput.SetCursorPosition(0, 1);
         }
 
-        public static Dictionary<ConsoleKeyInfo, UserAction> CreateOptionKeysDictionary(UserAction[] options)
+        public void Run(Action action)
+        {
+            _buffers.Push($"{_currentBuffer}");
+            Clear(true);
+            SafelyExecute(action);
+            Clear(true);
+            WriteNoLine(_buffers.Pop());
+        }
+
+        public void Write(string text = "") => WriteNoLine($"{text}\n");
+
+        public void WriteNoLine(string text)
+        {
+            _currentBuffer.Append(text);
+            ProgramOutput.Write(text);
+        }
+
+        public void Read(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys) 
+            => ReadCore(continuation, allowedKeys, submitKeys, allowedKeys);
+
+        private void ReadCore(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, ConsoleKey[] allowedReadKey)
+        {
+            var line = new StringBuilder();
+            while (true)
+            {
+                var key = ReadKey(allowedReadKey);
+                ProcessReadKeyIntoLine(key, line, true, allowedKeys);
+                if (submitKeys.Contains(key.Key) || submitKeys == KeyGroups.NoKeys) break;
+            }
+            Write();
+            continuation?.Invoke(line.ToString());
+        }
+
+        public void ReadInteger(string prompt, Action<int> continuation)
+        {
+            void continueWhenInteger(string x)
+            {
+                if (!int.TryParse(x, out var integer))
+                {
+                    Write($"'{x}' is not a valid integer.");
+                    Run(() => ReadInteger(prompt, continuation));
+                    return;
+                }
+                continuation(integer);
+            }
+            Write(prompt);
+            Read(continueWhenInteger, KeyGroups.NoKeys, new[] { ConsoleKey.Enter });
+        }
+
+        public void ReadOptions(string prompt, bool useDefault, params UserAction[] options) => ReadOptions(prompt, useDefault, null, options);
+
+        public void ReadOptions(string prompt, bool useDefault, string helpString, params UserAction[] options)
+        {
+            var keyedOptions = CreateOptionKeysDictionary(options);
+            var possibleKeys = keyedOptions.Select(x => x.Key.Key).ToArray();
+            if (useDefault) possibleKeys = KeyGroups.NoKeys;
+            ReadOptionsCore(prompt, useDefault, helpString, options, possibleKeys, keyedOptions);
+        }
+
+        public ConsoleKeyInfo ReadKey(ConsoleKey[] allowedKeys)
+        {
+            while (true)
+            {
+                ProcessInBackgroundWhileWaitingForInput();
+                var keyInfo = ReadKeyAndSetTime();
+                var isHotkeyPressed = ConsoleKeyHelpers.IsModifierPressed(keyInfo);
+                var isAllowedKey = allowedKeys.Contains(keyInfo.Key) || allowedKeys == KeyGroups.NoKeys;
+                if (isHotkeyPressed) ModifierKeyAction?.Invoke(keyInfo, this);
+                else if (isAllowedKey) return keyInfo;
+                else ProgramInput.RemoveLastReadKey();
+                return ReadKey(allowedKeys);
+            }
+        }
+
+        // TODO: probs remove.
+        private static Dictionary<ConsoleKeyInfo, UserAction> CreateOptionKeysDictionary(UserAction[] options)
         {
             if (options == null) return null;
             var keys = new List<(ConsoleKeyInfo Key, UserAction Action)>();
@@ -167,43 +150,32 @@ namespace Structure.IO
             return keys.ToDictionary(x => x.Key, x => x.Action);
         }
 
-        public void Run(Action action)
+        private void ReadOptionsCore(string prompt, bool useDefault, string helpString, UserAction[] options, ConsoleKey[] possibleKeys, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
         {
-            if (action is null) return;
-            _buffers.Push($"{_currentBuffer}");
-            Clear(true);
-            try
-            {
-                action();
-            }
-            catch (Exception e)
-            {
-                if (ThrowExceptions) throw new Exception("Exception" + e.Message, e);
-            }
-            Clear(true);
-            WriteNoLine(_buffers.Pop());
+            PrintOptions(prompt, helpString, keyedOptions);
+            ReadKeyAndSelectOption(useDefault, options.Last(), keyedOptions, possibleKeys);
         }
 
-        public void Refresh()
+        private void PrintOptions(string prompt, string helpString, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
         {
-            var buffer = _currentBuffer.ToString();
-            Clear(true);
-            WriteNoLine(buffer);
+            Write($"{prompt}\n");
+            if (string.IsNullOrEmpty(helpString)) keyedOptions.All(x => Write($" {Utility.KeyToKeyString(x.Key)} - {x.Value.Description}"));
+            else Write(helpString);
         }
 
-        public ConsoleKeyInfo ReadKey(ConsoleKey[] allowedKeys)
+        private void ReadKeyAndSelectOption(bool useDefault, UserAction defaultAction, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions, ConsoleKey[] possibleKeys)
         {
-            while (true)
-            {
-                ProcessInBackgroundWhileWaitingForInput();
-                var keyInfo = ReadKeyAndSetTime();
-                var isHotkeyPressed = ConsoleKeyHelpers.IsModifierPressed(keyInfo);
-                var isAllowedKey = allowedKeys.Contains(keyInfo.Key) || allowedKeys == KeyGroups.NoKeys;
-                if (isHotkeyPressed) ModifierKeyAction?.Invoke(keyInfo, this);
-                else if (isAllowedKey) return keyInfo;
-                else ProgramInput.RemoveLastReadKey();
-                return ReadKey(allowedKeys);
-            }
+            var key = ReadKey(possibleKeys);
+            if (char.IsUpper(key.KeyChar) && useDefault) defaultAction.Action();
+            if (char.IsUpper(key.KeyChar)) return;
+            var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
+            var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
+            if (useDefault && !exactMatchExists)
+                defaultAction.Action();
+            else if (exactMatchExists)
+                match.Value.Action();
+            else if (int.TryParse($"{key.KeyChar}", out var _) && keyedOptions.Any(x => x.Key.KeyChar == key.KeyChar))
+                keyedOptions.First(x => x.Key.KeyChar == key.KeyChar).Value.Action();
         }
 
         private ConsoleKeyInfo ReadKeyAndSetTime()
@@ -229,6 +201,7 @@ namespace Structure.IO
             else if (allowedKeys.Contains(key.Key))
             {
                 if (key.Key == ConsoleKey.Backspace) BackspaceFromLine(line, echo);
+                else if (key.Key == ConsoleKey.Enter && echo) Write();
                 else ReadStringIntoLine($"{{{key.Key}}}", line, echo);
             }
             else
@@ -253,10 +226,28 @@ namespace Structure.IO
             line.Append(text);
         }
 
+        private void SafelyExecute(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                if (ThrowExceptions) throw new Exception("Exception" + e.Message, e);
+            }
+        }
+
         public void ReadObsolete(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys)
         {
             var allowedReadKey = KeyGroups.NoKeys;
             ReadCore(continuation, allowedKeys, submitKeys, allowedReadKey);
+        }
+
+        public void ReadOptionsObsolete(string prompt, bool useDefault, string helpString, params UserAction[] options)
+        {
+            var keyedOptions = CreateOptionKeysDictionary(options);
+            ReadOptionsCore(prompt, useDefault, helpString, options, KeyGroups.NoKeys, keyedOptions);
         }
     }
 }

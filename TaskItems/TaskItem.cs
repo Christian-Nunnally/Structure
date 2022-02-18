@@ -38,7 +38,7 @@ namespace Structure.TaskItems
         {
             Contract.Requires(io != null);
             var can = false;
-            io.PromptOptions(
+            io.ReadOptions(
                 $"Complete task {Name}?",
                 true,
                 new UserAction("No", () => can = false, ConsoleKey.N),
