@@ -6,8 +6,10 @@ namespace Structure.IO
     {
         bool PrintNews(IProgramOutput programOutput);
 
-        void ClearNews();
-
         void EnqueueNews(string news);
+
+        void Disable();
+
+        void Enable();
     }
 }

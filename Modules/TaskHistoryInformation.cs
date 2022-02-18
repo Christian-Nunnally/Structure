@@ -73,7 +73,6 @@ namespace Structure.Modules
             ioc.Register<IBackgroundProcess>(() => news);
             ioc.Register<INewsPrinter>(() => news);
             var localIO = new StructureIO(ioc);
-            localIO.ModifierKeyAction = ioc.Get<Hotkey>().Execute;
             var startingModules = StartingModules.Create().ToList();
             modules.All(x => x.Enable(ioc, localIO));
             startingModules.AddRange(modules);
@@ -183,7 +182,7 @@ namespace Structure.Modules
 
         private void AddQuery()
         {
-            _selectedQuery = new TaskHistoryQuery { DataSet = _dataSets.First(), SearchTerm = _searchTerm };
+            _selectedQuery = new TaskHistoryQuery { DataSet = _dataSets.FirstOrDefault(), SearchTerm = _searchTerm };
             _queries.Add(_selectedQuery);
         }
 

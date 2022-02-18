@@ -26,8 +26,8 @@ namespace Structure.Graphing
 
             var firstValues = listOfValues.First();
             var allValues = listOfValues.SelectMany(x => x).Select(x => x.Value);
-            var maxValue = allValues.Max();
-            var minValue = allValues.Min();
+            var maxValue = allValues.Any() ? allValues.Max() : 0;
+            var minValue = allValues.Any() ? allValues.Min() : 0;
 
             var chart = CreateChart();
             foreach (var values in listOfValues)

@@ -10,9 +10,7 @@ namespace Structure.Structure
         public static void Main()
         {
             var ioc = CreateIoCContainer();
-
             var io = new StructureIO(ioc);
-            io.ModifierKeyAction = ioc.Get<Hotkey>().Execute;
             var startingModules = StartingModules.Create();
             var program = new StructureProgram(ioc, io, startingModules);
             io.ProgramInput = new StructureInput(io, ioc.Get<INewsPrinter>());

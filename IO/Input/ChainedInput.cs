@@ -21,39 +21,28 @@ namespace Structure.IO.Input
 
         public bool IsKeyAvailable()
         {
-            if (_currentInput is object && _currentInput.IsKeyAvailable())
-            {
-                return true;
-            }
+            if (_currentInput is object && _currentInput.IsKeyAvailable()) return true;
             LoadNextInput();
             return _currentInput.IsKeyAvailable();
         }
 
         public ProgramInputData ReadKey()
         {
-            if (!_currentInput.IsKeyAvailable())
-            {
-                LoadNextInput();
-            }
+            if (!_currentInput.IsKeyAvailable()) LoadNextInput();
             return _currentInput.ReadKey();
         }
 
         private void LoadNextInput()
         {
-            if (_chainedInputs.Any())
+            if (!_chainedInputs.Any()) return;
+            var nextInput = _chainedInputs.Dequeue();
+            while (nextInput is Action action)
             {
-                var nextInput = _chainedInputs.Dequeue();
-                while (nextInput is Action action)
-                {
-                    action();
-                    if (!_chainedInputs.Any()) break;
-                    nextInput = _chainedInputs.Dequeue();
-                }
-                if (nextInput is IProgramInput input)
-                {
-                    _currentInput = input;
-                }
+                action();
+                if (!_chainedInputs.Any()) break;
+                nextInput = _chainedInputs.Dequeue();
             }
+            if (nextInput is IProgramInput input) _currentInput = input;
         }
 
         public void RemoveLastReadKey() => _currentInput?.RemoveLastReadKey();

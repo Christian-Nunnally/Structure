@@ -1,13 +1,15 @@
 ﻿using Structure.IO.Output;
 using Structure.IO.Persistence;
 using Structure.Structure;
-using System.Diagnostics.Contracts;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Structure.IO.Input
 {
     public class StructureInput : IProgramInput
     {
+        private List<IBackgroundProcess> _savedBackgroundProcesses;
+
         protected ChainedInput InputSource { get; set; }
 
         public StructureInput(StructureIO io, INewsPrinter newsPrinter)
@@ -20,10 +22,16 @@ namespace Structure.IO.Input
         {
             InputSource = new ChainedInput();
             InputSource.AddAction(() => SetToLoadMode(io));
-            var savedDataSessions = SavedSessionUtilities.LoadSavedDataSessions();
-            var sessionsInputs = savedDataSessions.Select(x => new PredeterminedInput(x));
+            var sessionsInputs = CreateInputsFromSavedSessions();
             sessionsInputs.All(x => InputSource.AddInput(x));
             InputSource.AddAction(() => SetToUserMode(io, newsPrinter));
+        }
+
+        private static IEnumerable<PredeterminedInput> CreateInputsFromSavedSessions()
+        {
+            var savedDataSessions = SavedSessionUtilities.LoadSavedDataSessions();
+            var sessionsInputs = savedDataSessions.Select(x => new PredeterminedInput(x));
+            return sessionsInputs;
         }
 
         private void AddRecordingInputForEmptySaveSession()
@@ -37,25 +45,24 @@ namespace Structure.IO.Input
 
         public ProgramInputData ReadKey() => InputSource.ReadKey();
 
-        protected static void SetToLoadMode(StructureIO io)
+        protected void SetToLoadMode(StructureIO io)
         {
-            Contract.Requires(io != null);
-            io.Run(() =>
-            {
-                io.Write("Loading...");
-                io.ProgramOutput = new NoOpOutput();
-                io.SkipUnescesscaryOperations = true;
-            });
+            io.Clear(true);
+            io.Write("Loading...");
+            io.ProgramOutput = new NoOpOutput();
+            io.SkipUnescesscaryOperations = true;
+            _savedBackgroundProcesses = io.BackgroundProcesses.ToList();
+            _savedBackgroundProcesses.Clear();
         }
 
-        protected static void SetToUserMode(StructureIO io, INewsPrinter newsPrinter)
+        protected void SetToUserMode(StructureIO io, INewsPrinter newsPrinter)
         {
-            Contract.Requires(io != null);
-            newsPrinter?.ClearNews();
+            newsPrinter.Disable();
             io.ProgramOutput = new ConsoleOutput();
             io.CurrentTime.SetToRealTime();
             io.Refresh();
             io.SkipUnescesscaryOperations = false;
+            io.BackgroundProcesses.AddRange(_savedBackgroundProcesses);
         }
 
         public void RemoveLastReadKey() => InputSource.RemoveLastReadKey();

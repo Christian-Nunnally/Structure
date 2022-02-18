@@ -24,12 +24,13 @@ namespace Structure.Modules
 
         public List<(string Label, double Value)> ComputeValues(Predicate<TaskItem> filter)
         {
+            var values = new List<(string Label, double Value)>();
+            if (DataSet.Data is null) return values;
             var tasks = DataSet.Data.Where(x => x.CompletedDate + Range > DateTime.Now && filter(x)).ToList();
             if (CopiedFromIds.Count > 0)
             {
                 tasks = tasks.Where(t => CopiedFromIds.Any(x => x.ID == t.CopiedFromID)).ToList();
             }
-            var values = new List<(string Label, double Value)>();
             for (var aggregationSearchPoint = new TimeSpan(); aggregationSearchPoint < Range; aggregationSearchPoint += AggregationRange)
             {
                 var groupedTasks = tasks.Where(x => x.CompletedDate + aggregationSearchPoint > DateTime.Now).ToList();

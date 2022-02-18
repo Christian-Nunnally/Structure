@@ -14,7 +14,8 @@ namespace Structure.IO
     {
         private readonly Stack<string> _buffers = new Stack<string>();
         private readonly StringBuilder _currentBuffer = new StringBuilder();
-        private readonly List<IBackgroundProcess> _backgroundProcesses;
+
+        public List<IBackgroundProcess> BackgroundProcesses { get; }
 
         public IProgramInput ProgramInput { get; set; }
 
@@ -30,7 +31,8 @@ namespace Structure.IO
 
         public StructureIO(StructureIoC ioc)
         {
-            _backgroundProcesses = ioc?.GetAll<IBackgroundProcess>().ToList();
+            ModifierKeyAction = ioc.Get<Hotkey>().Execute;
+            BackgroundProcesses = ioc?.GetAll<IBackgroundProcess>().ToList();
             CurrentTime = ioc.Get<CurrentTime>();
         }
 
@@ -188,7 +190,7 @@ namespace Structure.IO
 
         private void ProcessInBackgroundWhileWaitingForInput()
         {
-            bool isNoInputAndBackgroundprocessesWorking() => !ProgramInput.IsKeyAvailable() && _backgroundProcesses.All(x => x.DoProcess(this));
+            bool isNoInputAndBackgroundprocessesWorking() => !ProgramInput.IsKeyAvailable() && BackgroundProcesses.All(x => x.DoProcess(this));
             while (isNoInputAndBackgroundprocessesWorking()) Thread.Sleep(10);
         }
 

@@ -6,10 +6,12 @@ namespace Structure.IO
     {
         public bool PrintNews(IProgramOutput programOutput) => false;
 
-        public void ClearNews() { }
-
         public void EnqueueNews(string news) { }
 
         public bool DoProcess(StructureIO io) => false;
+
+        public void Disable() { }
+
+        public void Enable() { }
     }
 }
