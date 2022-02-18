@@ -10,13 +10,13 @@ namespace Structure.IO.Input
     {
         protected ChainedInput InputSource { get; set; }
 
-        public StructureInput(StructureIO io, NewsPrinter newsPrinter)
+        public StructureInput(StructureIO io, INewsPrinter newsPrinter)
         {
             InitializeNewInputFromSavedSessions(io, newsPrinter);
             AddRecordingInputForEmptySaveSession();
         }
 
-        protected void InitializeNewInputFromSavedSessions(StructureIO io, NewsPrinter newsPrinter)
+        protected void InitializeNewInputFromSavedSessions(StructureIO io, INewsPrinter newsPrinter)
         {
             InputSource = new ChainedInput();
             InputSource.AddAction(() => SetToLoadMode(io));
@@ -44,18 +44,18 @@ namespace Structure.IO.Input
             {
                 io.Write("Loading...");
                 io.ProgramOutput = new NoOpOutput();
-                io.SkipUnescesscaryOpterations = true;
+                io.SkipUnescesscaryOperations = true;
             });
         }
 
-        protected static void SetToUserMode(StructureIO io, NewsPrinter newsPrinter)
+        protected static void SetToUserMode(StructureIO io, INewsPrinter newsPrinter)
         {
             Contract.Requires(io != null);
             newsPrinter?.ClearNews();
             io.ProgramOutput = new ConsoleOutput();
             io.CurrentTime.SetToRealTime();
             io.Refresh();
-            io.SkipUnescesscaryOpterations = false;
+            io.SkipUnescesscaryOperations = false;
         }
 
         public void RemoveLastReadKey() => InputSource.RemoveLastReadKey();

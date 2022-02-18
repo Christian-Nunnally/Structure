@@ -10,9 +10,9 @@ namespace Structure.Structure
 {
     public class StructureProgram
     {
+        private readonly StructureIoC _ioc;
         private readonly StructureIO _io;
         private readonly Hotkey _hotkey;
-        private readonly StructureData _data;
         private readonly IModule[] _modules;
 
         public bool Exit { get; set; }
@@ -21,20 +21,20 @@ namespace Structure.Structure
 
         public static string TitleString => $"Structure {Version.Major}.{Version.Minor}.{Version.Build}";
 
-        public StructureProgram(StructureIO io, StructureData data, IModule[] modules)
+        public StructureProgram(StructureIoC ioc, StructureIO io, IModule[] modules)
         {
             Contract.Requires(io != null);
+            _ioc = ioc;
             _io = io;
-            _hotkey = io.Hotkey;
+            _hotkey = ioc?.Get<Hotkey>();
             _modules = modules;
-            _data = data;
         }
 
         public void Run()
         {
             var manager = _modules.OfType<ModuleManager>().First();
             manager.RegisterModules(_modules);
-            manager.Enable(_io, _hotkey, _data);
+            manager.Enable(_ioc, _io);
             while (!Exit) _io.Run(Loop);
         }
 

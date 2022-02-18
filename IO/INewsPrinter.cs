@@ -2,7 +2,7 @@
 
 namespace Structure.IO
 {
-    public interface INewsPrinter
+    public interface INewsPrinter : IBackgroundProcess
     {
         bool PrintNews(IProgramOutput programOutput);
 

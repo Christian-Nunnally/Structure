@@ -5,6 +5,8 @@ namespace Structure.Modules.Interface
 {
     public abstract class StructureModule : IModule
     {
+        protected StructureIoC IoC { get; private set; }
+
         protected StructureData Data { get; private set; }
 
         protected StructureIO IO { get; private set; }
@@ -15,12 +17,13 @@ namespace Structure.Modules.Interface
 
         public bool Enabled { get; private set; }
 
-        public void Enable(StructureIO io, Hotkey hotkey, StructureData data)
+        public void Enable(StructureIoC ioc, StructureIO io)
         {
+            IoC = ioc;
             Enabled = true;
-            Data = data;
+            Data = ioc?.Get<StructureData>();
             IO = io;
-            Hotkey = hotkey;
+            Hotkey = ioc?.Get<Hotkey>();
             OnEnable();
         }
 

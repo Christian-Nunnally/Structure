@@ -9,8 +9,7 @@ namespace Structure.Modules.Interface
 
         bool Enabled { get; }
 
-        // TODO wrap these in ioc container;
-        public void Enable(StructureIO io, Hotkey hotkey, StructureData data);
+        public void Enable(StructureIoC ioc, StructureIO io);
 
         void Disable();
     }

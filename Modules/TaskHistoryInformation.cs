@@ -30,8 +30,7 @@ namespace Structure.Modules
         private NodeTreeCollection<TaskItem> _dataRoutines;
         private readonly List<TaskHistoryQuery> _queries = new List<TaskHistoryQuery>();
         private bool _dataSetsInitialized;
-
-        private List<(string Name, IList<TaskItem> Data)> _dataSets = new List<(string Name, IList<TaskItem> Data)>();
+        private readonly List<(string Name, IList<TaskItem> Data)> _dataSets = new List<(string Name, IList<TaskItem> Data)>();
 
         public TaskHistoryInformation()
         {
@@ -55,7 +54,7 @@ namespace Structure.Modules
             _dataSets.Clear();
             var activeTaskCountCollector = new ActiveTaskCountCollector();
             var completedTaskCollector = new CompletedTaskCollector();
-            if (!IO.SkipUnescesscaryOpterations)
+            if (!IO.SkipUnescesscaryOperations)
             {
                 RunStructureWithModules(activeTaskCountCollector, completedTaskCollector);
                 _dataSetsInitialized = true;
@@ -66,14 +65,19 @@ namespace Structure.Modules
 
         private void RunStructureWithModules(params IModule[] modules)
         {
-            var data = new StructureData();
+            var ioc = new StructureIoC();
+            ioc.Register<Hotkey>();
+            ioc.Register<CurrentTime>();
+            ioc.Register<StructureData>();
             var news = new NoOpNewsPrinter();
-            var hotkey = new Hotkey();
-            var localIO = new StructureIO(hotkey, news);
+            ioc.Register<IBackgroundProcess>(() => news);
+            ioc.Register<INewsPrinter>(() => news);
+            var localIO = new StructureIO(ioc);
+            localIO.ModifierKeyAction = ioc.Get<Hotkey>().Execute;
             var startingModules = StartingModules.Create().ToList();
-            modules.All(x => x.Enable(localIO, hotkey, data));
+            modules.All(x => x.Enable(ioc, localIO));
             startingModules.AddRange(modules);
-            var program = new StructureProgram(localIO, data, startingModules.ToArray());
+            var program = new StructureProgram(ioc, localIO, startingModules.ToArray());
             localIO.ProgramInput = new ExitingStructureInput(program);
             localIO.ProgramOutput = new NoOpOutput();
             var thread = new Thread(program.Run);
@@ -83,7 +87,7 @@ namespace Structure.Modules
                 thread.Start();
                 while (localIO.ProgramInput.IsKeyAvailable()) { Thread.Sleep(100); }
             });
-            _dataRoutines = data.Routines;
+            _dataRoutines = ioc.Get<StructureData>().Routines;
         }
 
         private void Start()

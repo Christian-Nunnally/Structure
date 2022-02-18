@@ -60,5 +60,10 @@ namespace Structure.IO
         {
             _newsQueue.Enqueue(news);
         }
+
+        public bool DoProcess(StructureIO io)
+        {
+            return PrintNews(io?.ProgramOutput);
+        }
     }
 }

@@ -24,7 +24,7 @@ namespace Structure.Modules.Obsolete
             {
                 moduleListCopy[thisIndex] = newModule;
                 newModule.RegisterModules(moduleListCopy);
-                newModule.Enable(IO, Hotkey, Data);
+                newModule.Enable(IoC, IO);
             }
             return newModule;
         }
@@ -106,17 +106,17 @@ namespace Structure.Modules.Obsolete
                     {
                         _indexMap[index] = upgradedModule.GetType();
                     }
-                    IO.SubmitNews($"Upgraded {name} to {upgradedModule.Name}");
+                    IoC.Get<INewsPrinter>().EnqueueNews($"Upgraded {name} to {upgradedModule.Name}");
                     module = upgradedModule;
                 }
 
-                module.Enable(IO, Hotkey, Data);
-                IO.SubmitNews($"+{name} enabled.");
+                module.Enable(IoC, IO);
+                IoC.Get<INewsPrinter>().EnqueueNews($"+{name} enabled.");
             }
             else
             {
                 module.Disable();
-                IO.SubmitNews($"+{name} disabled.");
+                IoC.Get<INewsPrinter>().EnqueueNews($"+{name} disabled.");
 
                 if (module is IObsoleteModule obsoleteModule && upgrade)
                 {
@@ -126,7 +126,7 @@ namespace Structure.Modules.Obsolete
                     {
                         _indexMap[index] = upgradedModule.GetType();
                     }
-                    IO.SubmitNews($"Upgraded {name} to {upgradedModule.Name}");
+                    IoC.Get<INewsPrinter>().EnqueueNews($"Upgraded {name} to {upgradedModule.Name}");
                 }
             }
         }

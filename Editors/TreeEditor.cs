@@ -58,7 +58,7 @@ namespace Structure.Editors
         {
             EnterPressedOnParentAction = SetParent;
             EnterPressedOnLeafAction = SetParent;
-            NoChildrenAction = () => { _io.SubmitNews("No children"); ViewParent(); };
+            NoChildrenAction = ViewParent;
             CustomActions.Add(new UserAction("Change item type", ChangeItemType, ConsoleKey.T));
             _prompt = prompt;
             Tree = tree;

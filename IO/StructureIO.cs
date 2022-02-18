@@ -14,11 +14,11 @@ namespace Structure.IO
     {
         private readonly Stack<string> _buffers = new Stack<string>();
         private readonly StringBuilder _currentBuffer = new StringBuilder();
-        private readonly INewsPrinter _newsPrinter;
+        private readonly List<IBackgroundProcess> _backgroundProcesses;
 
-        public CurrentTime CurrentTime { get; } = new CurrentTime();
+        public Action<ConsoleKeyInfo, StructureIO> ModifierKeyAction { get; set; } 
 
-        public Hotkey Hotkey { get; private set; }
+        public CurrentTime CurrentTime { get; }
 
         public bool ThrowExceptions { get; set; }
 
@@ -26,14 +26,14 @@ namespace Structure.IO
 
         public IProgramOutput ProgramOutput { get; set; }
 
-        public bool SkipUnescesscaryOpterations { get; set; }
+        public bool SkipUnescesscaryOperations { get; set; }
 
-        public StructureIO(Hotkey hotkey, INewsPrinter newsPrinter)
+        public StructureIO(StructureIoC ioc)
         {
-            Hotkey = hotkey;
-            _newsPrinter = newsPrinter;
+            _backgroundProcesses = ioc?.GetAll<IBackgroundProcess>().ToList();
+            CurrentTime = ioc.Get<CurrentTime>();
         }
-
+        
         public void Write(string text = "") => WriteNoLine($"{text}\n");
 
         public void WriteNoLine(string text)
@@ -42,29 +42,23 @@ namespace Structure.IO
             ProgramOutput.Write(text);
         }
 
-        public void ReadObsolete(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, bool echo = true)
+        public void Read(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys)
         {
-            var allowedReadKey = KeyGroups.NoKeys;
-            ReadCore(continuation, allowedKeys, submitKeys, echo, allowedReadKey);
+            ReadCore(continuation, allowedKeys, submitKeys, allowedKeys);
         }
 
-        public void Read(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, bool echo = true)
-        {
-            ReadCore(continuation, allowedKeys, submitKeys, echo, allowedKeys);
-        }
-
-        private void ReadCore(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, bool echo, ConsoleKey[] allowedReadKey)
+        private void ReadCore(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, ConsoleKey[] allowedReadKey)
         {
             var line = new StringBuilder();
             while (true)
             {
                 var key = ReadKey(allowedReadKey);
-                ProcessReadKeyIntoLine(key, line, echo, allowedKeys);
+                ProcessReadKeyIntoLine(key, line, true, allowedKeys);
 
                 if (submitKeys.Contains(key.Key)) break;
                 if (submitKeys == KeyGroups.NoKeys) break;
             }
-            if (echo) Write();
+            Write();
             continuation?.Invoke(line.ToString());
         }
 
@@ -139,11 +133,6 @@ namespace Structure.IO
             }
         }
 
-        public void SubmitNews(string news)
-        {
-            _newsPrinter?.EnqueueNews(news);
-        }
-
         public void Clear(bool clearConsole)
         {
             _currentBuffer.Clear();
@@ -206,23 +195,13 @@ namespace Structure.IO
         {
             while (true)
             {
-                PrintNewsWhileWaitingForInput();
+                ProcessInBackgroundWhileWaitingForInput();
                 var keyInfo = ReadKeyAndSetTime();
                 var isHotkeyPressed = ConsoleKeyHelpers.IsModifierPressed(keyInfo);
                 var isAllowedKey = allowedKeys.Contains(keyInfo.Key) || allowedKeys == KeyGroups.NoKeys;
-                if (isHotkeyPressed)
-                {
-                    Hotkey.Execute(keyInfo, this);
-                }
-                else if (isAllowedKey)
-                {
-                    return keyInfo;
-                }
-                else
-                {
-                    ProgramInput.RemoveLastReadKey();
-                    SubmitNews($"{keyInfo.KeyChar} is not a currently recognized input.");
-                }
+                if (isHotkeyPressed) ModifierKeyAction?.Invoke(keyInfo, this);
+                else if (isAllowedKey) return keyInfo;
+                else ProgramInput.RemoveLastReadKey();
                 return ReadKey(allowedKeys);
             }
         }
@@ -235,10 +214,10 @@ namespace Structure.IO
             return key.GetKeyInfo();
         }
 
-        private void PrintNewsWhileWaitingForInput()
+        private void ProcessInBackgroundWhileWaitingForInput()
         {
-            bool isNoInputAndNewsStillPrinting() => !ProgramInput.IsKeyAvailable() && _newsPrinter.PrintNews(ProgramOutput);
-            while (isNoInputAndNewsStillPrinting()) Thread.Sleep(10);
+            bool isNoInputAndBackgroundprocessesWorking() => !ProgramInput.IsKeyAvailable() && _backgroundProcesses.All(x => x.DoProcess(this));
+            while (isNoInputAndBackgroundprocessesWorking()) Thread.Sleep(10);
         }
 
         private void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo, ConsoleKey[] allowedKeys)
@@ -272,6 +251,12 @@ namespace Structure.IO
         {
             if (echo) WriteNoLine(text);
             line.Append(text);
+        }
+
+        public void ReadObsolete(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys)
+        {
+            var allowedReadKey = KeyGroups.NoKeys;
+            ReadCore(continuation, allowedKeys, submitKeys, allowedReadKey);
         }
     }
 }

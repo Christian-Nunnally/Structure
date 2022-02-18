@@ -54,7 +54,7 @@ namespace Structure.Modules.Obsolete
 
         private void EditRoutines()
         {
-            IO.SubmitNews("Editing");
+            IoC.Get<INewsPrinter>().EnqueueNews("Editing");
             IO.Run(() => new RoutineEditorObsolete(IO, Data.Routines).Edit());
         }
 

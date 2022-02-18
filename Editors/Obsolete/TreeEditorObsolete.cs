@@ -33,7 +33,7 @@ namespace Structure.Editors.Obsolete
         {
             EnterPressedOnParentAction = SetParent;
             EnterPressedOnLeafAction = SetParent;
-            NoChildrenAction = () => { _io.SubmitNews("No children"); ViewParent(); };
+            NoChildrenAction = ViewParent;
             CustomActions.Add(new UserAction("t", ChangeItemType));
             _prompt = prompt;
             Tree = tree;

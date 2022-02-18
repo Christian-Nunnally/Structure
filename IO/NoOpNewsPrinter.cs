@@ -9,5 +9,7 @@ namespace Structure.IO
         public void ClearNews() { }
 
         public void EnqueueNews(string news) { }
+
+        public bool DoProcess(StructureIO io) => false;
     }
 }

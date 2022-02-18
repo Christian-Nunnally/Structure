@@ -52,8 +52,8 @@ namespace Structure.Modules
         {
             if (_managedModules.Contains(module))
             {
-                module.Enable(IO, Hotkey, Data);
-                IO.SubmitNews($"+{module.Name} enabled.");
+                module.Enable(IoC, IO);
+                IoC.Get<INewsPrinter>().EnqueueNews($"+{module.Name} enabled.");
             }
         }
 
@@ -62,7 +62,7 @@ namespace Structure.Modules
             if (_managedModules.Contains(module))
             {
                 module.Disable();
-                IO.SubmitNews($"+{module.Name} disabled.");
+                IoC.Get<INewsPrinter>().EnqueueNews($"+{module.Name} disabled.");
             }
         }
 
@@ -77,7 +77,7 @@ namespace Structure.Modules
                     if (wasEnabled) DisableModule(module);
                     var upgradedModule = obsoleteModule.UpgradeModule();
                     _managedModules[index] = upgradedModule;
-                    IO.SubmitNews($"Upgraded {module.Name} to {upgradedModule.Name}");
+                    IoC.Get<INewsPrinter>().EnqueueNews($"Upgraded {module.Name} to {upgradedModule.Name}");
                     if (wasEnabled) EnableModule(upgradedModule);
                 }
             }

@@ -4,7 +4,7 @@ namespace Structure.IO.Input
 {
     public class DevelopmentStructureInput : StructureInput
     {
-        public DevelopmentStructureInput(StructureIO io, NewsPrinter newsPrinter, bool loadSave) : base(io, newsPrinter)
+        public DevelopmentStructureInput(StructureIO io, INewsPrinter newsPrinter, bool loadSave) : base(io, newsPrinter)
         {
             if (loadSave)
             {
