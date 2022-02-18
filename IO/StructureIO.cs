@@ -190,7 +190,7 @@ namespace Structure.IO
 
         private void ProcessInBackgroundWhileWaitingForInput()
         {
-            bool isNoInputAndBackgroundprocessesWorking() => !ProgramInput.IsKeyAvailable() && BackgroundProcesses.All(x => x.DoProcess(this));
+            bool isNoInputAndBackgroundprocessesWorking() => !ProgramInput.IsKeyAvailable() && BackgroundProcesses.Any(x => x.DoProcess(this));
             while (isNoInputAndBackgroundprocessesWorking()) Thread.Sleep(10);
         }
 

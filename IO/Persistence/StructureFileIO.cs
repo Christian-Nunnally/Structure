@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 
@@ -8,7 +9,7 @@ namespace Structure.IO.Persistence
     {
         public const string SaveFileExtension = ".structure";
         public const string AppDataSettingsFolderName = "Structure";
-        private static readonly Dictionary<string, string> _cache = new Dictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, string> _cache = new ConcurrentDictionary<string, string>();
         private static string savePath;
 
         public static string SavePath => savePath ?? (savePath = GetSavedDirectoryPath(nameof(SavePath)));

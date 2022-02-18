@@ -2,13 +2,14 @@
 using Structure.IO.Persistence;
 using Structure.Structure;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Structure.IO.Input
 {
     public class StructureInput : IProgramInput
     {
-        private List<IBackgroundProcess> _savedBackgroundProcesses;
+        private Stopwatch _stopwatch;
 
         protected ChainedInput InputSource { get; set; }
 
@@ -21,7 +22,7 @@ namespace Structure.IO.Input
         protected void InitializeNewInputFromSavedSessions(StructureIO io, INewsPrinter newsPrinter)
         {
             InputSource = new ChainedInput();
-            InputSource.AddAction(() => SetToLoadMode(io));
+            InputSource.AddAction(() => SetToLoadMode(io, newsPrinter));
             var sessionsInputs = CreateInputsFromSavedSessions();
             sessionsInputs.All(x => InputSource.AddInput(x));
             InputSource.AddAction(() => SetToUserMode(io, newsPrinter));
@@ -45,24 +46,26 @@ namespace Structure.IO.Input
 
         public ProgramInputData ReadKey() => InputSource.ReadKey();
 
-        protected void SetToLoadMode(StructureIO io)
+        protected void SetToLoadMode(StructureIO io, INewsPrinter newsPrinter)
         {
             io.Clear(true);
             io.Write("Loading...");
             io.ProgramOutput = new NoOpOutput();
             io.SkipUnescesscaryOperations = true;
-            _savedBackgroundProcesses = io.BackgroundProcesses.ToList();
-            _savedBackgroundProcesses.Clear();
+            newsPrinter.Disable();
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
         }
 
         protected void SetToUserMode(StructureIO io, INewsPrinter newsPrinter)
         {
-            newsPrinter.Disable();
+            newsPrinter.Enable();
             io.ProgramOutput = new ConsoleOutput();
             io.CurrentTime.SetToRealTime();
             io.Refresh();
             io.SkipUnescesscaryOperations = false;
-            io.BackgroundProcesses.AddRange(_savedBackgroundProcesses);
+            _stopwatch.Stop();
+            newsPrinter.EnqueueNews($"Load took {_stopwatch.ElapsedMilliseconds}ms");
         }
 
         public void RemoveLastReadKey() => InputSource.RemoveLastReadKey();

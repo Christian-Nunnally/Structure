@@ -10,6 +10,8 @@ namespace Structure.Modules
     public class RoutinerV4 : StructureModule
     {
         private const string PickRoutineToStartPrompt = "Pick routine to start";
+        private const string EditRoutinesPrompt = "Edit routines";
+        private const string InsertRoutineItemPrompt = "Insert routine item";
         private const string DoRoutineActionDescription = "Do routine";
         private const string EditRoutineActionDescription = "Edit routines";
         private UserAction _pickAction;
@@ -51,7 +53,9 @@ namespace Structure.Modules
 
         private void EditRoutines()
         {
-            var editor = new RoutineEditor(IO, Data.Routines);
+            var editor = new TreeEditor<TaskItem>(IO, EditRoutinesPrompt, Data.Routines);
+            editor.EnableDefaultInsertFunctionality(InsertRoutineItemPrompt, TreeEditor<TaskItem>.DefaultNodeFactory);
+            TaskItemConversions.AddTaskConversionStrategies(editor);
             IO.Run(editor.Edit);
         }
 
