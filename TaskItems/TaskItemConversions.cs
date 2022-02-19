@@ -12,22 +12,23 @@ namespace Structure.TaskItems
             var floatTask = typeof(RecordFloatTaskItem);
             var integerTask = typeof(RecordIntegerTaskItem);
             var stringTask = typeof(RecordStringTaskItem);
+            var itemConverter = tree.ItemConverter;
 
-            tree.AddToItemConversionMap(task, floatTask, ConvertToFloatTaskItem);
-            tree.AddToItemConversionMap(task, integerTask, ConvertToIntegerTaskItem);
-            tree.AddToItemConversionMap(task, stringTask, ConvertToStringTaskItem);
+            itemConverter.RegisterConversion(task, floatTask, ConvertToFloatTaskItem);
+            itemConverter.RegisterConversion(task, integerTask, ConvertToIntegerTaskItem);
+            itemConverter.RegisterConversion(task, stringTask, ConvertToStringTaskItem);
 
-            tree.AddToItemConversionMap(integerTask, floatTask, ConvertToFloatTaskItem);
-            tree.AddToItemConversionMap(integerTask, task, ConvertToTaskItem);
-            tree.AddToItemConversionMap(integerTask, stringTask, ConvertToStringTaskItem);
+            itemConverter.RegisterConversion(integerTask, floatTask, ConvertToFloatTaskItem);
+            itemConverter.RegisterConversion(integerTask, task, ConvertToTaskItem);
+            itemConverter.RegisterConversion(integerTask, stringTask, ConvertToStringTaskItem);
 
-            tree.AddToItemConversionMap(floatTask, task, ConvertToTaskItem);
-            tree.AddToItemConversionMap(floatTask, integerTask, ConvertToIntegerTaskItem);
-            tree.AddToItemConversionMap(floatTask, stringTask, ConvertToStringTaskItem);
+            itemConverter.RegisterConversion(floatTask, task, ConvertToTaskItem);
+            itemConverter.RegisterConversion(floatTask, integerTask, ConvertToIntegerTaskItem);
+            itemConverter.RegisterConversion(floatTask, stringTask, ConvertToStringTaskItem);
 
-            tree.AddToItemConversionMap(stringTask, floatTask, ConvertToFloatTaskItem);
-            tree.AddToItemConversionMap(stringTask, integerTask, ConvertToIntegerTaskItem);
-            tree.AddToItemConversionMap(stringTask, task, ConvertToTaskItem);
+            itemConverter.RegisterConversion(stringTask, floatTask, ConvertToFloatTaskItem);
+            itemConverter.RegisterConversion(stringTask, integerTask, ConvertToIntegerTaskItem);
+            itemConverter.RegisterConversion(stringTask, task, ConvertToTaskItem);
         }
 
         public static TaskItem ConvertToTaskItem(TaskItem item)

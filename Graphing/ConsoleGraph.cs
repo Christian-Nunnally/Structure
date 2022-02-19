@@ -208,6 +208,7 @@ namespace Structure.Graphing
         private List<double> GenerateYLabels(List<(string Label, double Value)> values)
         {
             var yLabels = new List<double>();
+            if (!values.Any()) return yLabels;
             var minValue = values.Min(x => x.Value);
             var maxValue = values.Max(x => x.Value);
             if (maxValue == 0) maxValue = 1;

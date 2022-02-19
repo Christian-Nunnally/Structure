@@ -70,7 +70,7 @@ namespace Structure.IO
         public void Read(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys) 
             => ReadCore(continuation, allowedKeys, submitKeys, allowedKeys);
 
-        private void ReadCore(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, ConsoleKey[] allowedReadKey)
+        public void ReadCore(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, ConsoleKey[] allowedReadKey)
         {
             var line = new StringBuilder();
             while (true)

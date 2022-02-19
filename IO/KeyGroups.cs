@@ -32,6 +32,12 @@ namespace Structure.IO
             ConsoleKey.Enter,
 };
 
+        public static readonly ConsoleKey[] SubmitKeys = new ConsoleKey[]
+        {
+            ConsoleKey.Enter,
+            ConsoleKey.LeftArrow,
+        };
+
         public static readonly ConsoleKey[] NumberKeys = new ConsoleKey[]
         {
             ConsoleKey.NumPad0,
@@ -93,5 +99,7 @@ namespace Structure.IO
         public static readonly ConsoleKey[] AlphanumericKeysPlus = AlphanumericKeys.Concat(SpaceKey).ToArray();
 
         public static readonly ConsoleKey[] AlphanumericInputKeys = AlphanumericKeysPlus.Concat(SpaceKey).Concat(BackspaceKey).Concat(EnterKey).ToArray();
+
+        public static readonly ConsoleKey[] AlphanumericPlusSubmitKeys = AlphanumericInputKeys.Concat(SubmitKeys).ToArray();
     }
 }

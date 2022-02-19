@@ -22,5 +22,12 @@ namespace Structure.IO.Persistence
             node.ParentID = ParentID;
             node.Rank = Rank + 1;
         }
+
+        public void SwapRanks(Node otherNode)
+        {
+            var tempRank = Rank;
+            Rank = otherNode.Rank;
+            otherNode.Rank = tempRank;
+        }
     }
 }
