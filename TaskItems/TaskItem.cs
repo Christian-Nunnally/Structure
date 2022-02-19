@@ -39,7 +39,6 @@ namespace Structure.TaskItems
             var can = false;
             io.ReadOptions(
                 $"Complete '{Name}'?",
-                false,
                 new UserAction("No", () => can = false, ConsoleKey.N),
                 new UserAction("Yes", () => can = true, ConsoleKey.Enter));
             return can;

@@ -99,13 +99,12 @@ namespace Structure.IO
             Read(continueWhenInteger, KeyGroups.NoKeys, new[] { ConsoleKey.Enter });
         }
 
-        public void ReadOptions(string prompt, bool useDefault, params UserAction[] options) => ReadOptions(prompt, useDefault, null, options);
+        public void ReadOptions(string prompt, params UserAction[] options) => ReadOptions(prompt, null, options);
 
-        public void ReadOptions(string prompt, bool useDefault, string helpString, params UserAction[] options)
+        public void ReadOptions(string prompt, string helpString, params UserAction[] options)
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
             var possibleKeys = keyedOptions.Select(x => x.Key.Key).ToArray();
-            if (useDefault) possibleKeys = KeyGroups.NoKeys;
             ReadOptionsCore(prompt, helpString, possibleKeys, keyedOptions);
         }
 
@@ -122,34 +121,6 @@ namespace Structure.IO
                 else ProgramInput.RemoveLastReadKey();
                 return ReadKey(allowedKeys);
             }
-        }
-
-        // TODO: probs remove.
-        private static Dictionary<ConsoleKeyInfo, UserAction> CreateOptionKeysDictionary(UserAction[] options)
-        {
-            if (options == null) return null;
-            var keys = new List<(ConsoleKeyInfo Key, UserAction Action)>();
-            foreach (var option in options.Where(x => x.HotkeyOverridden))
-            {
-                keys.Add((option.Hotkey, option));
-            }
-            foreach (var option in options.Where(x => !x.HotkeyOverridden))
-            {
-                var possibleKeys = $"{option.Description.ToLower(CultureInfo.CurrentCulture)}abcdefghijklmnopqrstuvwxyz1234567890";
-                for (int i = 0; i < possibleKeys.Length; i++)
-                {
-                    if (char.IsWhiteSpace(possibleKeys[i])) continue;
-                    if (!keys.Any(x => x.Key.KeyChar == ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]).KeyChar))
-                    {
-                        var consoleKeyInfo = ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]);
-                        if (consoleKeyInfo.Key == ConsoleKey.NumPad0) keys.Add((new ConsoleKeyInfo('0', ConsoleKey.D0, false, false, false), option));
-                        keys.Add((consoleKeyInfo, option));
-                        option.Hotkey = consoleKeyInfo;
-                        break;
-                    }
-                }
-            }
-            return keys.ToDictionary(x => x.Key, x => x.Action);
         }
 
         private void ReadOptionsCore(string prompt, string helpString, ConsoleKey[] possibleKeys, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
@@ -246,10 +217,38 @@ namespace Structure.IO
             ReadCore(continuation, allowedKeys, submitKeys, allowedReadKey);
         }
 
-        public void ReadOptionsObsolete(string prompt, bool useDefault, string helpString, params UserAction[] options)
+        public void ReadOptionsObsolete(string prompt, string helpString, params UserAction[] options)
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
             ReadOptionsCore(prompt, helpString, KeyGroups.NoKeys, keyedOptions);
+        }
+
+        // TODO: probs remove.
+        private static Dictionary<ConsoleKeyInfo, UserAction> CreateOptionKeysDictionary(UserAction[] options)
+        {
+            if (options == null) return null;
+            var keys = new List<(ConsoleKeyInfo Key, UserAction Action)>();
+            foreach (var option in options.Where(x => x.HotkeyOverridden))
+            {
+                keys.Add((option.Hotkey, option));
+            }
+            foreach (var option in options.Where(x => !x.HotkeyOverridden))
+            {
+                var possibleKeys = $"{option.Description.ToLower(CultureInfo.CurrentCulture)}abcdefghijklmnopqrstuvwxyz1234567890";
+                for (int i = 0; i < possibleKeys.Length; i++)
+                {
+                    if (char.IsWhiteSpace(possibleKeys[i])) continue;
+                    if (!keys.Any(x => x.Key.KeyChar == ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]).KeyChar))
+                    {
+                        var consoleKeyInfo = ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]);
+                        if (consoleKeyInfo.Key == ConsoleKey.NumPad0) keys.Add((new ConsoleKeyInfo('0', ConsoleKey.D0, false, false, false), option));
+                        keys.Add((consoleKeyInfo, option));
+                        option.Hotkey = consoleKeyInfo;
+                        break;
+                    }
+                }
+            }
+            return keys.ToDictionary(x => x.Key, x => x.Action);
         }
     }
 }

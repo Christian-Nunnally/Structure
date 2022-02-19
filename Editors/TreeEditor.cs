@@ -21,10 +21,9 @@ namespace Structure.Editors
             "< Escape> - Back");
         const int NUMBER_OF_VISIBLE_ITEMS = 20;
         private readonly NodeTreeCollection<T> _tree;
-        private readonly bool _allowInserting;
         private readonly string _prompt;
         private readonly StructureIO _io;
-        private UserAction[] _options;
+        private readonly UserAction[] _options;
         private string _currentParentCached;
         private bool _goBackIfNoChild;
         private int _scrollIndex = 0;
@@ -62,7 +61,6 @@ namespace Structure.Editors
             _prompt = prompt;
             _tree = tree;
             _io = io;
-            _allowInserting = allowInserting;
 
             _options = new UserAction[]
             {
@@ -171,7 +169,7 @@ namespace Structure.Editors
         private bool DoTasksInteraction()
         {
             _return = false;
-            _io.ReadOptions("", false, HELP_STRING, _options);
+            _io.ReadOptions("", HELP_STRING, _options);
             if (_return) return false;
             if (GetChildren(_currentParentCached).Count == 0 && _goBackIfNoChild) ViewParent();
             _goBackIfNoChild = true;
@@ -274,7 +272,7 @@ namespace Structure.Editors
             if (item == null) return;
             if (!ItemConverter.CanConvert(item.GetType())) return;
             var posibleConversions = ItemConverter.GetPossibleConversions(_tree, item);
-            _io.ReadOptions($"Change the type of '{item}'", false, "", posibleConversions);
+            _io.ReadOptions($"Change the type of '{item}'", "", posibleConversions);
         }
 
         private void ParentUnderSibling(T task)

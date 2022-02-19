@@ -25,7 +25,7 @@ namespace Structure.IO
                 }
                 else
                 {
-                    io.Run(() => io.ReadOptions($"ctrl + {$"{key.Key}".ToLower(CultureInfo.CurrentCulture)} pressed, select option:", false, "", actions.ToArray()));
+                    io.Run(() => io.ReadOptions($"ctrl + {$"{key.Key}".ToLower(CultureInfo.CurrentCulture)} pressed, select option:", "", actions.ToArray()));
                 }
             }
         }

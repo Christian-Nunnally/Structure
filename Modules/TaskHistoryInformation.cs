@@ -177,7 +177,7 @@ namespace Structure.Modules
                 new UserAction("Exit", Exit, ConsoleKey.Escape),
             };
 
-            IO.ReadOptions("Task history options", false, options);
+            IO.ReadOptions("Task history options", options);
         }
 
         private void AddQuery()
@@ -195,7 +195,7 @@ namespace Structure.Modules
                 options.Add(new UserAction($"{i++}", () => SelectQuery(query)));
             }
             options.Add(new UserAction("All", SelectAllQueries, ConsoleKey.A));
-            IO.Run(() => IO.ReadOptions("Select a query or all", false, options.ToArray()));
+            IO.Run(() => IO.ReadOptions("Select a query or all", options.ToArray()));
         }
 
         private void SelectQuery(TaskHistoryQuery query)
@@ -232,7 +232,7 @@ namespace Structure.Modules
             {
                 options.Add(new UserAction(dataSet.Name, () => SelectDataSet(dataSet)));
             }
-            IO.ReadOptions("Select data set", false, "", options.ToArray());
+            IO.ReadOptions("Select data set", "", options.ToArray());
         }
 
         private void SelectDataSet((string Name, IList<TaskItem> Data) dataSet)
@@ -274,7 +274,7 @@ namespace Structure.Modules
                 new UserAction("Average value", SetToMeanValueMode)
             };
 
-            IO.ReadOptions(SetYAxisModeActionDescription, false, options);
+            IO.ReadOptions(SetYAxisModeActionDescription, options);
         }
 
         private void SetToSumValueMode()

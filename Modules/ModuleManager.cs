@@ -44,7 +44,7 @@ namespace Structure.Modules
             options.Add(new UserAction("", () => { }, ConsoleKey.Escape));
             options.Add(new UserAction("Exit", () => { }, ConsoleKey.Enter));
             options.Add(new UserAction("", () => { }, ConsoleKey.LeftArrow));
-            IO.ReadOptions(ManageModulesPrompt, false, "", options.ToArray());
+            IO.ReadOptions(ManageModulesPrompt, "", options.ToArray());
         }
 
         private static string ModuleString(IModule module)
