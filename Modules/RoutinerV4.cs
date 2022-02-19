@@ -11,7 +11,6 @@ namespace Structure.Modules
     {
         private const string PickRoutineToStartPrompt = "Pick routine to start";
         private const string EditRoutinesPrompt = "Edit routines";
-        private const string InsertRoutineItemPrompt = "Insert routine item";
         private const string DoRoutineActionDescription = "Do routine";
         private const string EditRoutineActionDescription = "Edit routines";
         private UserAction _pickAction;
@@ -33,7 +32,7 @@ namespace Structure.Modules
 
         private TaskItem CopyRoutineToTaskList(TaskItem task, string parentId = null)
         {
-            var copy = task.Copy();
+            var copy = (TaskItem)task.Copy();
             copy.ParentID = parentId;
             Data.ActiveTaskTree.Set(copy);
             var children = Data.Routines.Where(x => x.Value.ParentID == task.ID);
@@ -53,15 +52,14 @@ namespace Structure.Modules
 
         private void EditRoutines()
         {
-            var editor = new TreeEditor<TaskItem>(IO, EditRoutinesPrompt, Data.Routines);
-            editor.EnableDefaultInsertFunctionality(InsertRoutineItemPrompt, TreeEditor<TaskItem>.DefaultNodeFactory);
+            var editor = new TreeEditor<TaskItem>(IO, EditRoutinesPrompt, Data.Routines, true);
             TaskItemConversions.AddTaskConversionStrategies(editor);
             IO.Run(editor.Edit);
         }
 
         private void PickRoutine()
         {
-            var picker = new ItemPicker<TaskItem>(IO, PickRoutineToStartPrompt, true, true, true, Data.Routines, CopyRoutineToTaskListAndBegin);
+            var picker = new ItemPicker<TaskItem>(IO, PickRoutineToStartPrompt, true, true, Data.Routines, false, CopyRoutineToTaskListAndBegin);
             IO.Run(picker.Edit);
         }
 

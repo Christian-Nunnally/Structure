@@ -1,4 +1,5 @@
 ﻿using Structure.IO;
+using Structure.IO.Persistence;
 using System;
 using System.Diagnostics.Contracts;
 
@@ -16,7 +17,7 @@ namespace Structure.TaskItems
             return true;
         }
 
-        public override TaskItem Copy()
+        public override Node Copy()
         {
             var copy = new RecordStringTaskItem();
             CopyTo(copy);

@@ -14,14 +14,14 @@ namespace Structure.Editors
         public ItemPicker(
             StructureIO io,
             string prompt,
-            bool allowLeafs,
             bool allowParents,
             bool exitAfterPick,
             NodeTreeCollection<T> tree,
+            bool allowInserting,
             Action<T> pickedAction = null)
         {
-            TreeEditor = new TreeEditor<T>(io, prompt, tree);
-            if (allowLeafs) TreeEditor.EnterPressedOnLeafAction = Pick;
+            TreeEditor = new TreeEditor<T>(io, prompt, tree, allowInserting);
+            TreeEditor.EnterPressedOnLeafAction = Pick;
             if (allowParents) TreeEditor.EnterPressedOnParentAction = Pick;
 
             _exitAfterPick = exitAfterPick;
@@ -40,10 +40,5 @@ namespace Structure.Editors
         }
 
         public void Edit() => TreeEditor.Edit();
-
-        public void AddCustomAction(UserAction action)
-        {
-            TreeEditor.CustomActions.Add(action);
-        }
     }
 }

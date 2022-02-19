@@ -5,14 +5,25 @@ using Structure.Structure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Structure.Editors
 {
     public class TreeEditor<T> where T : Node
     {
+        const int NUMBER_OF_VISIBLE_ITEMS = 20;
+        private readonly ItemConverter<T> _itemConverter = new ItemConverter<T>();
+        private readonly NodeTreeCollection<T> _tree;
+        private readonly bool _allowInserting;
+        private readonly string _prompt;
+        private readonly StructureIO _io;
+        private string _currentParentCached;
+        private bool _goBackIfNoChild;
+        private bool _refreshDisplay;
         private int _scrollIndex = 0;
-
-        public List<UserAction> CustomActions { get; } = new List<UserAction>();
+        private bool _showChildren;
+        private bool _return;
+        private int _cursor;
 
         public Action<T> EnterPressedOnParentAction { get; set; }
 
@@ -20,73 +31,80 @@ namespace Structure.Editors
 
         public Action NoChildrenAction { get; set; }
 
-        protected Dictionary<Type, Dictionary<Type, Func<T, T>>> ItemConversionMap { get; } = new Dictionary<Type, Dictionary<Type, Func<T, T>>>();
-
-        protected string CurrentParentCached { get; set; }
-
-        protected NodeTreeCollection<T> Tree { get; set; }
-
-        public bool ShowChildren { get; set; }
-
         public bool ShouldExit { get; set; }
 
-        protected int Cursor
+        private int Cursor
         {
             get => _cursor;
             set
             {
                 var maxValue = NumberOfVisibleTasks;
                 _cursor = NumberOfVisibleTasks == 1 ? 0 : Math.Max(0, Math.Min(value, maxValue));
+
+                if (Cursor - _scrollIndex > NUMBER_OF_VISIBLE_ITEMS - 1)
+                {
+                    _scrollIndex++;
+                    _refreshDisplay = true;
+                }
+                if (Cursor < _scrollIndex)
+                {
+                    _scrollIndex = Cursor;
+                    _refreshDisplay = true;
+                }
             }
         }
 
-        private readonly string _prompt;
-        private bool _refreshDisplay;
-        private bool _goBackIfNoChild;
-        private bool _return;
-        private int _cursor;
-        private readonly StructureIO _io;
-
         public void AddToItemConversionMap(Type from, Type to, Func<T, T> conversionFunction)
         {
-            if (!ItemConversionMap.ContainsKey(from)) ItemConversionMap.Add(from, new Dictionary<Type, Func<T, T>>());
-            var dictionary = ItemConversionMap[from];
-            if (!dictionary.ContainsKey(to)) dictionary.Add(to, conversionFunction);
+            _itemConverter.RegisterConversion(from, to, conversionFunction);
         }
 
-        public TreeEditor(StructureIO io, string prompt, NodeTreeCollection<T> tree)
+        public TreeEditor(StructureIO io, string prompt, NodeTreeCollection<T> tree, bool allowInserting)
         {
             EnterPressedOnParentAction = SetParent;
             EnterPressedOnLeafAction = SetParent;
             NoChildrenAction = ViewParent;
-            CustomActions.Add(new UserAction("Change item type", ChangeItemType, ConsoleKey.T));
             _prompt = prompt;
-            Tree = tree;
+            _tree = tree;
             _io = io;
+            _allowInserting = allowInserting;
+            if (allowInserting)
+            {
+                NoChildrenAction = PromptToInsertNode("Insert item", DefaultNodeFactory);
+            }
         }
 
-        public T CurrentParent => CurrentParentCached == null ? null : Tree.Get(CurrentParentCached);
+        private void CopyCurrentNode()
+        {
+            if (TryGetSelectedNode(out var selectedNode))
+            {
+                CopyNode(selectedNode, selectedNode.ParentID);
+            }
+        }
 
-        public int NumberOfVisibleTasks => GetChildren(CurrentParentCached).Count;
+        private void CopyNode(T node, string parentID)
+        {
+            var newNode = node.Copy();
+            newNode.ParentID = parentID;
+            _tree.Set(newNode.ID, (T)newNode);
+            var children = GetChildren(node.ID);
+            children.All(x => CopyNode(x, newNode.ID));
+        }
+
+        public int NumberOfVisibleTasks => GetChildren(_currentParentCached).Count;
 
         public void Edit()
         {
             while (true)
             {
-                var children = GetChildren(CurrentParentCached);
+                var children = GetChildren(_currentParentCached);
                 ConsolidateRank(children);
                 WriteHeader();
                 Cursor = _cursor;
-                if (Cursor - _scrollIndex > 19)
-                {
-                    _scrollIndex++;
-                }
-                if (Cursor < _scrollIndex)
-                {
-                    _scrollIndex = Cursor;
-                }
                 int linesToPrint = 20;
-                WriteTasks(Cursor, children, "", ref linesToPrint);
+                var tasksString = new StringBuilder();
+                WriteTasks(Cursor, children, "", ref linesToPrint, tasksString);
+                _io.Write(tasksString.ToString());
                 if (ShouldExit) return;
                 if (children.Count == 0) { NoChildrenAction(); _io.Clear(clearConsole: true); }
                 else if (!DoTasksInteraction()) break;
@@ -100,38 +118,38 @@ namespace Structure.Editors
                 _io.Run(NoChildrenAction);
                 return;
             }
-            CurrentParentCached = item.ID;
+            _currentParentCached = item.ID;
             _goBackIfNoChild = false;
         }
 
         public void ViewParent()
         {
-            if (CurrentParentCached == null)
+            if (_currentParentCached == null)
             {
                 ShouldExit = true;
             }
-            var currentParent = Tree.Get(CurrentParentCached);
-            CurrentParentCached = currentParent?.ParentID;
-            Cursor = GetChildren(CurrentParentCached).IndexOf(currentParent);
+            var currentParent = _tree.Get(_currentParentCached);
+            _currentParentCached = currentParent?.ParentID;
+            Cursor = GetChildren(_currentParentCached).IndexOf(currentParent);
         }
 
         public List<T> GetChildren(string parent)
         {
-            var childrenOfCurrentParent = Tree.Where(x => x.Value.ParentID == parent)
+            var childrenOfCurrentParent = _tree.Where(x => x.Value.ParentID == parent)
                 .Select(x => x.Value)
                 .OrderBy(x => x.Rank);
             if (parent == null)
             {
-                var childrenWithMissingParents = Tree.Where(x => x.Value.ParentID != null && Tree[x.Value.ParentID] == null).Select(x => x.Value);
+                var childrenWithMissingParents = _tree.Where(x => x.Value.ParentID != null && _tree[x.Value.ParentID] == null).Select(x => x.Value);
                 return childrenOfCurrentParent.Concat(childrenWithMissingParents).ToList();
             }
             return childrenOfCurrentParent.ToList();
         }
 
-        public bool TryGetSelectedTask(out T selectedTask)
+        public bool TryGetSelectedNode(out T selectedTask)
         {
             selectedTask = null;
-            var children = GetChildren(CurrentParentCached);
+            var children = GetChildren(_currentParentCached);
             if (children.Count > 0 && children.Count > Cursor)
             {
                 selectedTask = children[Cursor];
@@ -139,13 +157,7 @@ namespace Structure.Editors
             return selectedTask is object;
         }
 
-        public void EnableDefaultInsertFunctionality(string insertPrompt, Func<string, string, int, Node> nodeFactory)
-        {
-            CustomActions.Add(new UserAction("Insert new item", () => _io.Run(PromptToInsertNode(insertPrompt, nodeFactory)), ConsoleKey.I));
-            NoChildrenAction = PromptToInsertNode(insertPrompt, nodeFactory);
-        }
-
-        public static Node DefaultNodeFactory(string task, string parentId, int rank) => new TaskItem
+        public Node DefaultNodeFactory(string task, string parentId, int rank) => new TaskItem
         {
             Name = task,
             ParentID = parentId,
@@ -155,7 +167,7 @@ namespace Structure.Editors
         protected bool TryGetSelectedItem(out T selectedTask)
         {
             selectedTask = null;
-            var children = GetChildren(CurrentParentCached);
+            var children = GetChildren(_currentParentCached);
             if (children.Count > 0 && children.Count > Cursor)
             {
                 selectedTask = children[Cursor];
@@ -169,28 +181,12 @@ namespace Structure.Editors
         {
             if (TryGetSelectedItem(out var selectedTask))
             {
-                if (ItemConversionMap.ContainsKey(selectedTask.GetType()))
+                if (_itemConverter.CanConvert(selectedTask.GetType()))
                 {
-                    var possibleConversionsMap = ItemConversionMap[selectedTask.GetType()];
-                    var actions = new List<UserAction>();
-                    foreach (var keyValuePair in possibleConversionsMap)
-                    {
-                        var newItem = keyValuePair.Value(selectedTask);
-                        void action() => ReplaceItem(selectedTask, newItem);
-                        var description = $"Convert to {keyValuePair.Key.Name}";
-                        var userAction = new UserAction(description, action);
-                        actions.Add(userAction);
-                    }
-                    _io.ReadOptions($"Change the type of '{selectedTask.ToString()}'", false, "", actions.ToArray());
+                    var posibleConversions = _itemConverter.GetPossibleConversions(_tree, selectedTask);
+                    _io.ReadOptions($"Change the type of '{selectedTask.ToString()}'", false, "", posibleConversions);
                 }
             }
-        }
-
-        private void ReplaceItem(T itemToReplace, T newItem)
-        {
-            newItem.ID = itemToReplace.ID;
-            Tree.Remove(itemToReplace);
-            Tree.Set(newItem);
         }
 
         private void WriteHeader()
@@ -201,11 +197,11 @@ namespace Structure.Editors
                 _io.Write();
             }
 
-            var atParentKey = CurrentParentCached;
+            var atParentKey = _currentParentCached;
             var parents = new List<string>();
-            while (!string.IsNullOrWhiteSpace(atParentKey) && Tree.Get(atParentKey) != null)
+            while (!string.IsNullOrWhiteSpace(atParentKey) && _tree.Get(atParentKey) != null)
             {
-                var atParent = Tree.Get(atParentKey);
+                var atParent = _tree.Get(atParentKey);
                 parents.Add(atParent.ToString());
                 atParentKey = atParent.ParentID;
             }
@@ -217,25 +213,25 @@ namespace Structure.Editors
             _io.Write();
         }
 
-        private void WriteTasks(int cursorIndex, List<T> tasks, string spaces, ref int linesToPrint)
+        private void WriteTasks(int cursorIndex, List<T> tasks, string spaces, ref int linesToPrint, StringBuilder stringBuilder)
         {
+            var canScrollUp = _scrollIndex > 0;
+            var canScrollDown = tasks.Count > _scrollIndex + NUMBER_OF_VISIBLE_ITEMS;
+            stringBuilder.Append(canScrollUp ? $"...\n" : "\n");
             for (int i = 0; i < tasks.Count; i++)
             {
                 var prefix = spaces.Length == 0 ? $"- {(i == cursorIndex ? "> " : "  ")}" : "    " + spaces;
-
                 if (_scrollIndex > i) continue;
                 if (linesToPrint-- > 0)
                 {
-                    _io.Write($"{prefix}{tasks[i]}");
-                    if (ShowChildren) WriteTasks(-1, GetChildren(tasks[i].ID), spaces + "    ", ref linesToPrint);
-                }
-                else
-                {
-                    if (cursorIndex == i) _scrollIndex++;
+                    stringBuilder.Append($"{prefix}{tasks[i]}\n");
+                    if (_showChildren) WriteTasks(-1, GetChildren(tasks[i].ID), spaces + "    ", ref linesToPrint, stringBuilder);
                 }
             }
-            var lastLine = spaces.Length == 0 ? $"- {(tasks.Count == cursorIndex ? "> " : "  ")}" : "    " + spaces;
-            _io.Write(lastLine);
+            var carrot = tasks.Count == cursorIndex ? "> " : "  ";
+            var lastLine = spaces.Length == 0 ? $"- {carrot}" : "    " + spaces + "\n";
+            var scrollDownLastLine = canScrollDown ? $"...\n" : "\n";
+            stringBuilder.Append(canScrollDown ? scrollDownLastLine : lastLine);
         }
 
         private bool DoTasksInteraction()
@@ -255,9 +251,15 @@ namespace Structure.Editors
                 new UserAction("Parent under sibling", EditorInteractionWrapper(ParentUnderSibling), ConsoleKey.D),
                 new UserAction("Select first task", EditorInteractionWrapper(CursorHome), ConsoleKey.Home),
                 new UserAction("Select last task", EditorInteractionWrapper(CursorEnd), ConsoleKey.End),
+                new UserAction("Change item type", ChangeItemType, ConsoleKey.T),
+                new UserAction("Toggle show children", ToggleShowChildren, ConsoleKey.V),
                 new UserAction("Exit", EditorInteractionWrapper(ExitEditor), ConsoleKey.Escape),
             };
-            CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action), x.Hotkey.Key)));
+            if (_allowInserting)
+            {
+                options.Add(new UserAction("Copy current task", CopyCurrentNode, ConsoleKey.C));
+                options.Add(new UserAction("Insert new item", () => _io.Run(PromptToInsertNode("Insert new item", DefaultNodeFactory)), ConsoleKey.I));
+            }
 
             var helpString = "←↑↓→ - Move selection\n";
             helpString += "i - Insert item\n";
@@ -269,22 +271,20 @@ namespace Structure.Editors
 
             _io.ReadOptions("", false, helpString, options.ToArray());
             if (_return) return false;
-            if (GetChildren(CurrentParentCached).Count == 0 && _goBackIfNoChild)
-            {
-                ViewParent();
-            }
+            if (GetChildren(_currentParentCached).Count == 0 && _goBackIfNoChild) ViewParent();
             _goBackIfNoChild = true;
             _io.Clear(_refreshDisplay);
-
             return true;
         }
+
+        private void ToggleShowChildren() => _showChildren = !_showChildren;
 
         private Action EditorInteractionWrapper(Action<T> interaction)
         {
             return () =>
             {
                 Cursor = _cursor;
-                var tasks = GetChildren(CurrentParentCached);
+                var tasks = GetChildren(_currentParentCached);
                 if (Cursor < 0 || Cursor > tasks.Count)
                 {
                     _return = true;
@@ -298,26 +298,22 @@ namespace Structure.Editors
 
         private Action EditorInteractionWrapper(Action interaction) => EditorInteractionWrapper(x => interaction());
 
-        private void ReparentToGrandparent(T task) => task.ParentID = Tree[task.ParentID]?.ParentID;
+        private void ReparentToGrandparent(T task) => task.ParentID = _tree[task.ParentID]?.ParentID;
 
         private void ParentUnderSibling(T task)
         {
-            var siblings = GetChildren(CurrentParentCached);
+            var siblings = GetChildren(_currentParentCached);
             if (siblings.Contains(task)) siblings.Remove(task);
             if (!siblings.Any()) return;
-            int i = 0;
             var tempTree = new NodeTreeCollection<T>();
             siblings.All(x => tempTree.Set(x.ID, x));
-            var taskPicker = new ItemPicker<T>(_io, "Pick new parent", true, true, true, tempTree, x => task.ParentID = x.ID);
+            var taskPicker = new ItemPicker<T>(_io, "Pick new parent", true, true, tempTree, false, x => task.ParentID = x.ID);
             _io.Run(taskPicker.Edit);
         }
 
         private void EnterPressed(T item)
         { 
-            if (item != null) 
-            { 
-                (IsParent(item) ? EnterPressedOnParentAction : EnterPressedOnLeafAction)(item); 
-            }
+            if (item != null) (IsParent(item) ? EnterPressedOnParentAction : EnterPressedOnLeafAction)(item); 
         }
 
         private bool IsParent(T item) => GetChildren(item.ID).Any();
@@ -353,31 +349,31 @@ namespace Structure.Editors
         private void DeleteItem(T item)
         {
             if (item == null) return;
-            Tree.Remove(item.ID);
+            _tree.Remove(item.ID);
         }
 
         private void CursorDown()
         {
-            Cursor++;
             _refreshDisplay = false;
+            Cursor++;
         }
 
         private void CursorUp()
         {
-            Cursor--;
             _refreshDisplay = false;
+            Cursor--;
         }
 
         private void CursorHome()
         {
-            Cursor = 0;
             _refreshDisplay = false;
+            Cursor = 0;
         }
 
         private void CursorEnd()
         {
-            Cursor = NumberOfVisibleTasks;
             _refreshDisplay = false;
+            Cursor = NumberOfVisibleTasks;
         }
 
         private void ExitEditor() => _return = true;
@@ -388,23 +384,17 @@ namespace Structure.Editors
             _io.WriteNoLine($"\n{insertPrompt}: ");
 
             var submitKeys = new ConsoleKey[] { ConsoleKey.Enter, ConsoleKey.LeftArrow };
-            _io.Read(s => AddNode(nodeFactory, s, CurrentParentCached, index * 2 + 1), KeyGroups.AlphanumericKeysPlus, submitKeys);
+            _io.Read(s => AddNode(nodeFactory, s, _currentParentCached, index * 2 + 1), KeyGroups.AlphanumericKeysPlus, submitKeys);
             if (NumberOfVisibleTasks == 0) ViewParent();
             Cursor++;
         };
 
         private void AddNode(Func<string, string, int, Node> nodeFactory, string description, string parentID, int rank)
         {
-            if (string.IsNullOrEmpty(description))
-            {
-                return;
-            }
+            if (string.IsNullOrEmpty(description)) return;
             var node = nodeFactory(description, parentID, rank);
-            if (node is null)
-            {
-                return;
-            }
-            Tree.Set(node as T);
+            if (node is null) return;
+            _tree.Set(node as T);
         }
     }
 }

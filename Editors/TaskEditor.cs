@@ -19,16 +19,13 @@ namespace Structure.Editors
         {
             Contract.Requires(io != null);
             Contract.Requires(data != null);
-            TaskExecutor = new TaskExecutor(io, TitlePrompt, data?.ActiveTaskTree);
-            TaskExecutor.ItemPicker.TreeEditor.EnableDefaultInsertFunctionality(InsertTaskPrompt, TreeEditor<TaskItem>.DefaultNodeFactory);
-            TaskExecutor.AddCustomAction(new UserAction("Toggle show children", () => TaskExecutor.ItemPicker.TreeEditor.ShowChildren = !TaskExecutor.ItemPicker.TreeEditor.ShowChildren, ConsoleKey.V));
-            TaskExecutor.AddCustomAction(new UserAction("Copy current task", CopyCurrentTask, ConsoleKey.C));
+            TaskExecutor = new TaskExecutor(io, TitlePrompt, data?.ActiveTaskTree, true);
             _tree = data?.ActiveTaskTree;
         }
 
         private void CopyCurrentTask()
         {
-            if (TaskExecutor.ItemPicker.TreeEditor.TryGetSelectedTask(out var selectedTask))
+            if (TaskExecutor.ItemPicker.TreeEditor.TryGetSelectedNode(out var selectedTask))
             {
                 CopyTask(selectedTask, selectedTask.ParentID);
             }

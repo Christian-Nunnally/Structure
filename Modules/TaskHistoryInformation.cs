@@ -249,7 +249,7 @@ namespace Structure.Modules
 
         private void AddCopiedTasks()
         {
-            var taskPicker = new ItemPicker<TaskItem>(IO, "Pick task to include copies of", true, true, true, _dataRoutines, AddTasksCopiedFrom);
+            var taskPicker = new ItemPicker<TaskItem>(IO, "Pick task to include copies of", true, true, _dataRoutines, false, AddTasksCopiedFrom);
             IO.Run(taskPicker.Edit);
         }
 

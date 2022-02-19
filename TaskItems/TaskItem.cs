@@ -16,7 +16,7 @@ namespace Structure.TaskItems
 
         public override string ToString() => Name;
 
-        public virtual TaskItem Copy()
+        public override Node Copy()
         {
             var copy = new TaskItem();
             CopyTo(copy);
@@ -30,7 +30,6 @@ namespace Structure.TaskItems
             item.CompletedDate = CompletedDate;
             item.ParentID = ParentID;
             item.Rank = Rank;
-            // todo fix.
             item.CopiedFromID = ID;
         }
 
@@ -39,8 +38,8 @@ namespace Structure.TaskItems
             Contract.Requires(io != null);
             var can = false;
             io.ReadOptions(
-                $"Complete task {Name}?",
-                true,
+                $"Complete '{Name}'?",
+                false,
                 new UserAction("No", () => can = false, ConsoleKey.N),
                 new UserAction("Yes", () => can = true, ConsoleKey.Enter));
             return can;
