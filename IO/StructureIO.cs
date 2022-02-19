@@ -142,7 +142,6 @@ namespace Structure.IO
         private void ReadKeyAndSelectOption(Dictionary<ConsoleKeyInfo, UserAction> keyedOptions, ConsoleKey[] possibleKeys)
         {
             var key = ReadKey(possibleKeys);
-            if (char.IsUpper(key.KeyChar)) return;
             var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
             var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
             if (exactMatchExists)
