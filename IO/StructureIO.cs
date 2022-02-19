@@ -106,7 +106,7 @@ namespace Structure.IO
             var keyedOptions = CreateOptionKeysDictionary(options);
             var possibleKeys = keyedOptions.Select(x => x.Key.Key).ToArray();
             if (useDefault) possibleKeys = KeyGroups.NoKeys;
-            ReadOptionsCore(prompt, useDefault, helpString, options, possibleKeys, keyedOptions);
+            ReadOptionsCore(prompt, helpString, possibleKeys, keyedOptions);
         }
 
         public ConsoleKeyInfo ReadKey(ConsoleKey[] allowedKeys)
@@ -152,10 +152,10 @@ namespace Structure.IO
             return keys.ToDictionary(x => x.Key, x => x.Action);
         }
 
-        private void ReadOptionsCore(string prompt, bool useDefault, string helpString, UserAction[] options, ConsoleKey[] possibleKeys, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
+        private void ReadOptionsCore(string prompt, string helpString, ConsoleKey[] possibleKeys, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
         {
             PrintOptions(prompt, helpString, keyedOptions);
-            ReadKeyAndSelectOption(useDefault, options.Last(), keyedOptions, possibleKeys);
+            ReadKeyAndSelectOption(keyedOptions, possibleKeys);
         }
 
         private void PrintOptions(string prompt, string helpString, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
@@ -168,16 +168,13 @@ namespace Structure.IO
             else Write(helpString);
         }
 
-        private void ReadKeyAndSelectOption(bool useDefault, UserAction defaultAction, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions, ConsoleKey[] possibleKeys)
+        private void ReadKeyAndSelectOption(Dictionary<ConsoleKeyInfo, UserAction> keyedOptions, ConsoleKey[] possibleKeys)
         {
             var key = ReadKey(possibleKeys);
-            if (char.IsUpper(key.KeyChar) && useDefault) defaultAction.Action();
             if (char.IsUpper(key.KeyChar)) return;
             var exactMatchExists = keyedOptions.Any(x => x.Key.Key == key.Key);
             var match = keyedOptions.FirstOrDefault(x => x.Key.Key == key.Key);
-            if (useDefault && !exactMatchExists)
-                defaultAction.Action();
-            else if (exactMatchExists)
+            if (exactMatchExists)
                 match.Value.Action();
             else if (int.TryParse($"{key.KeyChar}", out var _) && keyedOptions.Any(x => x.Key.KeyChar == key.KeyChar))
                 keyedOptions.First(x => x.Key.KeyChar == key.KeyChar).Value.Action();
@@ -252,7 +249,7 @@ namespace Structure.IO
         public void ReadOptionsObsolete(string prompt, bool useDefault, string helpString, params UserAction[] options)
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
-            ReadOptionsCore(prompt, useDefault, helpString, options, KeyGroups.NoKeys, keyedOptions);
+            ReadOptionsCore(prompt, helpString, KeyGroups.NoKeys, keyedOptions);
         }
     }
 }

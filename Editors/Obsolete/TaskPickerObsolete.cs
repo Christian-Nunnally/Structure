@@ -38,11 +38,23 @@ namespace Structure.Editors.Obsolete
         }
 
         private void ConfirmPick(TaskItem task) => _io.ReadOptions($"{_pickPrompt} {task}?", true, "",
-            new UserAction("no", () => { }),
-            new UserAction("yes (Enter)", () =>
-            {
-                _pickedAction(task);
-                if (_exitAfterPick) ShouldExit = true;
-            }));
+            new UserAction("no", () => { }, ConsoleKey.N),
+            new UserAction("yes (Enter)", () => Pick(task), ConsoleKey.Enter),
+            new UserAction("yes (Y)", () => Pick(task), ConsoleKey.Y),
+            new UserAction("yes (Y)", () => Pick(task), ConsoleKey.W),
+            new UserAction("yes (Y)", () => Pick(task), ConsoleKey.DownArrow),
+            new UserAction("yes (Y)", () => Pick(task), ConsoleKey.D5),
+            new UserAction("yes (Y)", () => Pick(task), ConsoleKey.D2),
+            new UserAction("yes (Y)", () => Pick(task), ConsoleKey.D1),
+            new UserAction("yes (Y)", () => Pick(task), ConsoleKey.D0),
+            new UserAction("yes (Y)", () => Pick(task), ConsoleKey.Oem7),
+            new UserAction("yes (Y)", () => Pick(task), ConsoleKey.RightArrow),
+            new UserAction("yes (Y)", () => Pick(task), ConsoleKey.LeftArrow));
+
+        private void Pick(TaskItem task)
+        {
+            _pickedAction(task);
+            if (_exitAfterPick) ShouldExit = true;
+        }
     }
 }
