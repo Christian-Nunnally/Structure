@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Structure.Modules.Obsolete
 {
-    public class ModuleManager : StructureModule, IObsoleteModule
+    public class ModuleManagerObsolete : StructureModule, IObsoleteModule
     {
         public const string ManageModulesPromptText = "Enable/disable modules:";
         private const string UpgradeModuleHintText = "Type 'upgrade 1' to upgrade module 1";
@@ -17,7 +17,7 @@ namespace Structure.Modules.Obsolete
 
         public IModule UpgradeModule()
         {
-            var newModule = new ModuleManagerV2();
+            var newModule = new ModuleManager();
             var thisIndex = _listedModules.IndexOf(this);
             var moduleListCopy = _listedModules.ToArray();
             if (thisIndex >= 0)
@@ -66,7 +66,7 @@ namespace Structure.Modules.Obsolete
         {
             if (module == "asdf")
             {
-                ToggleModule(_listedModules.IndexOf(_listedModules.OfType<ModuleManager>().First()), true, _listedModules.OfType<ModuleManager>().First());
+                ToggleModule(_listedModules.IndexOf(_listedModules.OfType<ModuleManagerObsolete>().First()), true, _listedModules.OfType<ModuleManagerObsolete>().First());
                 return;
             }
             if (string.IsNullOrWhiteSpace(module)) return;
@@ -76,7 +76,7 @@ namespace Structure.Modules.Obsolete
             if (int.TryParse(module, out var index) && index >= 0 && (index < _listedModules.Count || _indexMap.ContainsKey(index))) ToggleModule(index, upgrade);
         }
 
-        private readonly Dictionary<int, Type> _indexMap = new Dictionary<int, Type> { {0,typeof(TreeTask)},{ 3, typeof(Routiner) },{ 7, typeof(ModuleManager) } };
+        private readonly Dictionary<int, Type> _indexMap = new Dictionary<int, Type> { {0,typeof(TreeTask)},{ 3, typeof(Routiner) },{ 7, typeof(ModuleManagerObsolete) } };
 
         private void ToggleModule(int index, bool upgrade)
         {

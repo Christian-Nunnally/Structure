@@ -24,6 +24,7 @@ namespace Structure.Editors
         private readonly bool _allowInserting;
         private readonly string _prompt;
         private readonly StructureIO _io;
+        private UserAction[] _options;
         private string _currentParentCached;
         private bool _goBackIfNoChild;
         private int _scrollIndex = 0;
@@ -62,7 +63,34 @@ namespace Structure.Editors
             _tree = tree;
             _io = io;
             _allowInserting = allowInserting;
-            if (allowInserting) NoChildrenAction = PromptToInsertNode("Insert item", DefaultNodeFactory);
+
+            _options = new UserAction[]
+            {
+                new UserAction("Move selection up", RunWithCurrentTask(CursorUp), ConsoleKey.UpArrow),
+                new UserAction("Move selection down", RunWithCurrentTask(CursorDown), ConsoleKey.DownArrow),
+                new UserAction("View parent", RunWithCurrentTask(ViewParent), ConsoleKey.LeftArrow),
+                new UserAction("View child", RunWithCurrentTask(SetParent), ConsoleKey.RightArrow),
+                new UserAction("Delete task", RunWithCurrentTask(DeleteItem), ConsoleKey.Delete),
+                new UserAction("Complete task", RunWithCurrentTask(EnterPressed), ConsoleKey.Enter),
+                new UserAction("Lower task priority", RunWithCurrentTask(LowerItemRank), ConsoleKey.W),
+                new UserAction("Raise task priority", RunWithCurrentTask(RaiseItemRank), ConsoleKey.S),
+                new UserAction("Reparent to grandparent", RunWithCurrentTask(ReparentToGrandparent), ConsoleKey.A),
+                new UserAction("Parent under sibling", RunWithCurrentTask(ParentUnderSibling), ConsoleKey.D),
+                new UserAction("Select first task", RunWithCurrentTask(CursorHome), ConsoleKey.Home),
+                new UserAction("Select last task", RunWithCurrentTask(CursorEnd), ConsoleKey.End),
+                new UserAction("Change item type", RunWithCurrentTask(ChangeItemType), ConsoleKey.T),
+                new UserAction("Toggle show children", ToggleShowChildren, ConsoleKey.V),
+                new UserAction("Exit", RunWithCurrentTask(ExitEditor), ConsoleKey.Escape),
+            };
+            if (allowInserting)
+            {
+                NoChildrenAction = PromptToInsertNode("Insert item", DefaultNodeFactory);
+                _options = _options.Concat(new UserAction[]
+                {
+                    new UserAction("Copy current task", RunWithCurrentTask(CopyCurrentNode), ConsoleKey.C),
+                    new UserAction("Insert new item", () => _io.Run(PromptToInsertNode("Insert new item", DefaultNodeFactory)), ConsoleKey.I),
+                }).ToArray();
+            }
         }
 
         public void Edit()
@@ -84,6 +112,7 @@ namespace Structure.Editors
             var tasksString = new StringBuilder();
             WriteHeader(tasksString);
             WriteTasks(Cursor, children, "", ref linesToPrint, tasksString);
+            _io.Clear(true);
             _io.Write(tasksString.ToString());
         }
 
@@ -122,7 +151,7 @@ namespace Structure.Editors
         {
             var canScrollUp = _scrollIndex > 0;
             var canScrollDown = tasks.Count > _scrollIndex + NUMBER_OF_VISIBLE_ITEMS;
-            stringBuilder.Append(canScrollUp ? $"...\n" : "\n");
+            if (cursorIndex != -1) stringBuilder.Append(canScrollUp ? $"...\n" : "\n");
             for (int i = 0; i < tasks.Count; i++)
             {
                 var prefix = spaces.Length == 0 ? $"- {(i == cursorIndex ? "> " : "  ")}" : "    " + spaces;
@@ -136,41 +165,16 @@ namespace Structure.Editors
             var carrot = tasks.Count == cursorIndex ? "> " : "  ";
             var lastLine = spaces.Length == 0 ? $"- {carrot}" : "    " + spaces + "\n";
             var scrollDownLastLine = canScrollDown ? $"...\n" : "\n";
-            stringBuilder.Append(canScrollDown ? scrollDownLastLine : lastLine);
+            if (cursorIndex != -1) stringBuilder.Append(canScrollDown ? scrollDownLastLine : lastLine);
         }
 
         private bool DoTasksInteraction()
         {
-            var options = new List<UserAction>
-            {
-                new UserAction("Move selection up", EditorInteractionWrapper(CursorUp), ConsoleKey.UpArrow),
-                new UserAction("Move selection down", EditorInteractionWrapper(CursorDown), ConsoleKey.DownArrow),
-                new UserAction("View parent", EditorInteractionWrapper(ViewParent), ConsoleKey.LeftArrow),
-                new UserAction("View child", EditorInteractionWrapper(SetParent), ConsoleKey.RightArrow),
-                new UserAction("Delete task", EditorInteractionWrapper(DeleteItem), ConsoleKey.Delete),
-                new UserAction("Complete task", EditorInteractionWrapper(EnterPressed), ConsoleKey.Enter),
-                new UserAction("Lower task priority", EditorInteractionWrapper(LowerItemRank), ConsoleKey.W),
-                new UserAction("Raise task priority", EditorInteractionWrapper(RaiseItemRank), ConsoleKey.S),
-                new UserAction("Reparent to grandparent", EditorInteractionWrapper(ReparentToGrandparent), ConsoleKey.A),
-                new UserAction("Parent under sibling", EditorInteractionWrapper(ParentUnderSibling), ConsoleKey.D),
-                new UserAction("Select first task", EditorInteractionWrapper(CursorHome), ConsoleKey.Home),
-                new UserAction("Select last task", EditorInteractionWrapper(CursorEnd), ConsoleKey.End),
-                new UserAction("Change item type", EditorInteractionWrapper(ChangeItemType), ConsoleKey.T),
-                new UserAction("Toggle show children", ToggleShowChildren, ConsoleKey.V),
-                new UserAction("Exit", EditorInteractionWrapper(ExitEditor), ConsoleKey.Escape),
-            };
-            if (_allowInserting)
-            {
-                options.Add(new UserAction("Copy current task", EditorInteractionWrapper(CopyCurrentNode), ConsoleKey.C));
-                options.Add(new UserAction("Insert new item", () => _io.Run(PromptToInsertNode("Insert new item", DefaultNodeFactory)), ConsoleKey.I));
-            }
-
             _return = false;
-            _io.ReadOptions("", false, HELP_STRING, options.ToArray());
+            _io.ReadOptions("", false, HELP_STRING, _options);
             if (_return) return false;
             if (GetChildren(_currentParentCached).Count == 0 && _goBackIfNoChild) ViewParent();
             _goBackIfNoChild = true;
-            _io.Clear(true);
             return true;
         }
 
@@ -183,6 +187,8 @@ namespace Structure.Editors
             }
             _currentParentCached = item.ID;
             _goBackIfNoChild = false;
+            _scrollIndex = 0;
+            Cursor = 0;
         }
 
         public void ViewParent()
@@ -265,6 +271,7 @@ namespace Structure.Editors
 
         private void ChangeItemType(T item)
         {
+            if (item == null) return;
             if (!ItemConverter.CanConvert(item.GetType())) return;
             var posibleConversions = ItemConverter.GetPossibleConversions(_tree, item);
             _io.ReadOptions($"Change the type of '{item}'", false, "", posibleConversions);
@@ -296,19 +303,14 @@ namespace Structure.Editors
             children.All(x => CopyNode(x, newNode.ID));
         }
 
-        private Action EditorInteractionWrapper(Action<T> interaction) => () =>
+        private Action RunWithCurrentTask(Action<T> interaction) => () =>
         {
             Cursor = _cursor;
             var tasks = GetChildren(_currentParentCached);
-            if (Cursor < 0 || Cursor > tasks.Count)
-            {
-                _return = true;
-                return;
-            }
-            var task = Cursor != tasks.Count ? tasks[Cursor] : null;
+            var task = Cursor >= 0 && Cursor < tasks.Count ? tasks[Cursor] : null;
             interaction(task);
         };
 
-        private Action EditorInteractionWrapper(Action interaction) => EditorInteractionWrapper(x => interaction());
+        private Action RunWithCurrentTask(Action interaction) => RunWithCurrentTask(x => interaction());
     }
 }

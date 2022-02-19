@@ -28,6 +28,7 @@ namespace Structure.Editors.Obsolete
         private bool _goBackIfNoChild;
         private bool _return;
         private readonly StructureIO _io;
+        private readonly List<UserAction> _options;
 
         public TreeEditorObsolete(StructureIO io, string prompt, NodeTreeCollection<T> tree)
         {
@@ -38,6 +39,17 @@ namespace Structure.Editors.Obsolete
             _prompt = prompt;
             Tree = tree;
             _io = io;
+            _options = new List<UserAction>
+            {
+                new UserAction("Move selection up", EditorInteractionWrapper(CursorUp), ConsoleKey.UpArrow),
+                new UserAction("Move selection down", EditorInteractionWrapper(CursorDown), ConsoleKey.DownArrow),
+                new UserAction("View parent", EditorInteractionWrapper(ViewParent), ConsoleKey.LeftArrow),
+                new UserAction("View child", EditorInteractionWrapper(SetParent), ConsoleKey.RightArrow),
+                new UserAction("Delete task", EditorInteractionWrapper(DeleteTask), ConsoleKey.Delete),
+                new UserAction("Complete task", EditorInteractionWrapper(EnterPressed), ConsoleKey.Enter),
+                new UserAction("Lower task priority", EditorInteractionWrapper(LowerTaskRank), ConsoleKey.W),
+                new UserAction("Raise task priority", EditorInteractionWrapper(RaiseItemRank), ConsoleKey.S),
+            };
         }
 
         public T CurrentParent => CurrentParentCached == null ? null : Tree.Get(CurrentParentCached);
@@ -185,17 +197,7 @@ namespace Structure.Editors.Obsolete
         private bool DoTasksInteraction()
         {
             _return = false;
-            var options = new List<UserAction>
-            {
-                new UserAction("Move selection up", EditorInteractionWrapper(CursorUp), ConsoleKey.UpArrow),
-                new UserAction("Move selection down", EditorInteractionWrapper(CursorDown), ConsoleKey.DownArrow),
-                new UserAction("View parent", EditorInteractionWrapper(ViewParent), ConsoleKey.LeftArrow),
-                new UserAction("View child", EditorInteractionWrapper(SetParent), ConsoleKey.RightArrow),
-                new UserAction("Delete task", EditorInteractionWrapper(DeleteTask), ConsoleKey.Delete),
-                new UserAction("Complete task", EditorInteractionWrapper(EnterPressed), ConsoleKey.Enter),
-                new UserAction("Lower task priority", EditorInteractionWrapper(LowerTaskRank), ConsoleKey.W),
-                new UserAction("Raise task priority", EditorInteractionWrapper(RaiseItemRank), ConsoleKey.S),
-            };
+            var options = _options.ToList();
             if (EnableReparenting)
             {
                 options.Add(new UserAction("Reparent to grandparent", EditorInteractionWrapper(ReparentToGrandparent), ConsoleKey.A));
@@ -206,7 +208,6 @@ namespace Structure.Editors.Obsolete
                 var b = i;
                 options.Add(new UserAction($"{i}", EditorInteractionWrapper(() => SetCursor(b))));
             }
-            //CustomActions.All(x => options.Add(new UserAction(x.Description, EditorInteractionWrapper(x.Action))));
             CustomActions.All(x => options.Add(!x.HotkeyOverridden ? new UserAction(x.Description, EditorInteractionWrapper(x.Action)) : new UserAction(x.Description, EditorInteractionWrapper(x.Action), x.Hotkey.Key)));
 
             options.Add(new UserAction("exit", EditorInteractionWrapper(() => { _return = true; }), ConsoleKey.Escape));

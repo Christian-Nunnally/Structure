@@ -161,7 +161,10 @@ namespace Structure.IO
         private void PrintOptions(string prompt, string helpString, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
         {
             Write($"{prompt}\n");
-            if (string.IsNullOrEmpty(helpString)) keyedOptions.All(x => Write($" {Utility.KeyToKeyString(x.Key)} - {x.Value.Description}"));
+            if (string.IsNullOrEmpty(helpString)) keyedOptions.All(x =>
+            {
+                if (!string.IsNullOrEmpty(x.Value.Description)) Write($" {Utility.KeyToKeyString(x.Key)} - {x.Value.Description}");
+            });
             else Write(helpString);
         }
 

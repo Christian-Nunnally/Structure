@@ -40,6 +40,7 @@ namespace Structure.IO.Persistence
 
         public void Remove(string key)
         {
+            if (key == null) return;
             if (Dictionary.ContainsKey(key))
             {
                 var removedItem = Dictionary[key];

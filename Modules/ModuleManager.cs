@@ -1,13 +1,14 @@
 ﻿using Structure.IO;
 using Structure.Modules.Interface;
+using Structure.Structure;
 using System;
 using System.Collections.Generic;
 
 namespace Structure.Modules
 {
-    public class ModuleManagerV2 : StructureModule
+    public class ModuleManager : StructureModule
     {
-        public const string ManageModulesPrompt = "Manage modules:";
+        public const string ManageModulesPrompt = "Select action";
         private readonly List<IModule> _managedModules = new List<IModule>();
         private UserAction _action;
 
@@ -26,26 +27,32 @@ namespace Structure.Modules
 
         private void ManageModules()
         {
+            IO.Write("MODULES\n\n\nSTATE\t\tNAME");
+            _managedModules.All(m => IO.Write(ModuleString(m)));
+            IO.Write("\n");
+
             var options = new List<UserAction>();
             foreach (var module in _managedModules)
             {
-                var moduleString = ModuleString(module);
-                var upgradeOption = new UserAction($"Upgrade {moduleString}", () => UpgradeModule(module));
+                var upgradeOption = new UserAction($"Upgrade {module.Name}", () => UpgradeModule(module));
                 if (module is IObsoleteModule) options.Add(upgradeOption);
                 var enableDisableOption = module.Enabled
-                    ? new UserAction($"Disable {moduleString}", () => DisableModule(module))
-                    : new UserAction($"Enable {moduleString}", () => EnableModule(module));
+                    ? new UserAction($"Disable {module.Name}", () => DisableModule(module))
+                    : new UserAction($"Enable {module.Name}", () => EnableModule(module));
                 options.Add(enableDisableOption);
             }
-
+            options.Add(new UserAction("", () => { }, ConsoleKey.Escape));
+            options.Add(new UserAction("Exit", () => { }, ConsoleKey.Enter));
+            options.Add(new UserAction("", () => { }, ConsoleKey.LeftArrow));
             IO.ReadOptions(ManageModulesPrompt, false, "", options.ToArray());
         }
 
         private static string ModuleString(IModule module)
         {
+            var upgradeable = module is IObsoleteModule;
             var state = module.Enabled ? "enabled" : "disabled";
-            state += module is IObsoleteModule ? "/upgradable" : "";
-            return $"{module.Name} ({state})";
+            if (upgradeable) state += "+";
+            return $"[{state}]\t{module.Name}";
         }
 
         private void EnableModule(IModule module)

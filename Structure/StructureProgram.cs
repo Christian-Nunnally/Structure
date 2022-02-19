@@ -32,7 +32,7 @@ namespace Structure.Structure
 
         public void Run()
         {
-            var manager = _modules.OfType<ModuleManager>().First();
+            var manager = _modules.OfType<ModuleManagerObsolete>().First();
             manager.RegisterModules(_modules);
             manager.Enable(_ioc, _io);
             while (!Exit) _io.Run(Loop);

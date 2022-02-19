@@ -1,7 +1,6 @@
 ﻿using Structure.IO;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 
@@ -77,6 +76,7 @@ namespace Structure.Graphing
         private char[,] InitializeXNameCharacterMap(List<(string Label, double Value)> values)
         {
             var xNamesCharacters = CreateXNameCharacterMap();
+            if (!values.Any()) return xNamesCharacters;
             int currentXNameIndex = -1;
             for (int x = 0; x < _totalColumns; x++)
             {
@@ -183,7 +183,7 @@ namespace Structure.Graphing
         {
             for (double y = _totalRows - 1; y >= 0; y--)
             {
-                PrintYLabelString(io, yLabels[(int)y]);
+                if (yLabels.Any()) PrintYLabelString(io, yLabels[(int)y]);
                 io.WriteNoLine($" ┤");
                 PrintRow(io, chart, y);
                 io.Write();
