@@ -3,13 +3,12 @@ using Structure.Structure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 
 namespace Structure.IO
 {
     public class NewsPrinter : INewsPrinter
     {
-        private const int PRINT_SPEED = 2;
+        private const int PRINT_SPEED = 1;
         private const int SCROLLING_TEXT_X_START_POSITION = 40;
         private const int SCROLLING_TEXT_X_END_POSITION = -80;
         private const int SCROLLING_TEXT_X_STOP_POSITION = 0;
@@ -33,9 +32,9 @@ namespace Structure.IO
         private void LoadOrPrintNews(IProgramOutput programOutput, bool shouldLoadNextNews)
         {
             if (!shouldLoadNextNews) LoadNextPieceOfNews();
+            if (IsTextScrollingOffSide()) ShortenCurrentNewsText();
             using (new SaveAndRestoreCursorPosition(programOutput))
             MoveCursorAndPrintCurrentNews(programOutput);
-            if (IsTextScrollingOffSide()) ShortenCurrentNewsText();
         }
 
         private void LoadNextPieceOfNews()
@@ -85,10 +84,7 @@ namespace Structure.IO
             if (_enabled) _newsQueue.Enqueue(news);
         }
 
-        public bool DoProcess(StructureIO io)
-        {
-            return PrintNews(io?.ProgramOutput);
-        }
+        public bool DoProcess(StructureIO io)=> PrintNews(io?.ProgramOutput);
 
         public void Enable() => _enabled = true;
 
