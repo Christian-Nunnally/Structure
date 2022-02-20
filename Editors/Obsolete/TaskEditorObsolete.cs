@@ -13,7 +13,7 @@ namespace Structure.Editors.Obsolete
         private readonly StructureData _data;
         private readonly StructureIO _io;
 
-        public TaskEditorObsolete(StructureIO io, StructureData data) : base(io, TitlePrompt, data?.ActiveTaskTree)
+        public TaskEditorObsolete(StructureIO io, StructureData data) : base(io, TitlePrompt, data?.Tasks)
         {
             Contract.Requires(io != null);
             Contract.Requires(data != null);

@@ -15,7 +15,7 @@ namespace Structure.Modules.SubModules
 
         protected override void OnEnable()
         {
-            Data.ActiveTaskTree.CountChanged += ActiveTaskTreeCountChanged;
+            Data.Tasks.CountChanged += ActiveTaskTreeCountChanged;
         }
 
         private void ActiveTaskTreeCountChanged()
@@ -23,7 +23,7 @@ namespace Structure.Modules.SubModules
             var dataPoint = new RecordIntegerTaskItem
             {
                 CompletedDate = IO.CurrentTime.GetCurrentTime(),
-                RecordedInteger = Data.ActiveTaskTree.Count(),
+                RecordedInteger = Data.Tasks.Count(),
             };
             TaskCountOverTime.Add(dataPoint);
         }

@@ -22,7 +22,7 @@ namespace Structure.Modules
         
         private void Start()
         {
-            var editor = new TaskExecutor(IO, "Task tree", Data.ActiveTaskTree, true);
+            var editor = new TaskExecutor(IO, "Task tree", Data.Tasks, true);
             IO.Run(editor.Edit);
         }
     }

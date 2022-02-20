@@ -34,7 +34,7 @@ namespace Structure.Modules
         {
             var copy = (TaskItem)task.Copy();
             copy.ParentID = parentId;
-            Data.ActiveTaskTree.Set(copy);
+            Data.Tasks.Set(copy);
             var children = Data.Routines.Where(x => x.Value.ParentID == task.ID);
             foreach (var child in children.OrderBy(x => x.Value.Rank))
             {
@@ -45,7 +45,7 @@ namespace Structure.Modules
 
         private void DoRoutine(TaskItem routine)
         {
-            var editor = new TaskExecutor(IO, "Task tree", Data.ActiveTaskTree, true);
+            var editor = new TaskExecutor(IO, "Task tree", Data.Tasks, true);
             editor.ItemPicker.TreeEditor.SetParent(routine);
             IO.Run(editor.Edit);
         }

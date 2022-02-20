@@ -28,7 +28,7 @@ namespace Structure.Modules.Obsolete
         private void CopyRoutineToTaskList(TaskItem task)
         {
             var copy = (TaskItem)task.Copy();
-            Data.ActiveTaskTree.Set(copy);
+            Data.Tasks.Set(copy);
             var children = Data.Routines.Where(x => x.Value.ParentID == task.ID);
             foreach (var child in children.OrderBy(x => x.Value.Rank))
             {

@@ -14,7 +14,7 @@ namespace Structure.Modules.SubModules
 
         protected override void OnEnable()
         {
-            Data.ActiveTaskTree.NodeRemoved += NodeRemoved;
+            Data.Tasks.NodeRemoved += NodeRemoved;
         }
 
         private void NodeRemoved(TaskItem removedNode)

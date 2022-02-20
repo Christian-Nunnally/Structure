@@ -32,7 +32,7 @@ namespace Structure.Modules.Obsolete
         private TaskItem CopyRoutineToTaskList(TaskItem task, string parentId = null)
         {
             var copy = new TaskItem { Name = task.Name, Rank = task.Rank, ParentID = parentId };
-            Data.ActiveTaskTree.Set(copy);
+            Data.Tasks.Set(copy);
             var children = Data.Routines.Where(x => x.Value.ParentID == task.ID);
             foreach (var child in children.OrderBy(x => x.Value.Rank))
             {
