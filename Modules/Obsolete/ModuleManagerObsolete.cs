@@ -1,6 +1,6 @@
 ﻿using Structure.IO;
 using Structure.Modules.Interface;
-using Structure.Structure;
+using Structure.Structure.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;

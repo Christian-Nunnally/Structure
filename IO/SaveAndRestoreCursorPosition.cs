@@ -1,5 +1,5 @@
 ﻿using Structure.IO.Output;
-using Structure.Structure;
+using Structure.Structure.Utility;
 
 namespace Structure.IO
 {

@@ -1,4 +1,4 @@
-﻿using Structure.Structure;
+﻿using Structure.Structure.Utility;
 using System;
 
 namespace Structure.IO

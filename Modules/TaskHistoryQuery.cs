@@ -1,4 +1,4 @@
-﻿using Structure.Structure;
+﻿using Structure.Structure.Utility;
 using Structure.TaskItems;
 using System;
 using System.Collections.Generic;

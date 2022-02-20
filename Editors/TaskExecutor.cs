@@ -25,6 +25,7 @@ namespace Structure.Editors
             if (task != null && task.CanDoTask(_io))
             {
                 task.DoTask(_io.CurrentTime.GetCurrentTime(), _tree);
+                ItemPicker.TreeEditor.Cursor--;
             }
         }
 

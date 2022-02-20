@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
-using Structure.Structure;
+using Structure.Structure.Utility;
 
 namespace Structure.IO
 {

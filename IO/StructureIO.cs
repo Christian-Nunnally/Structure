@@ -1,6 +1,7 @@
 ﻿using Structure.IO.Input;
 using Structure.IO.Output;
 using Structure.Structure;
+using Structure.Structure.Utility;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

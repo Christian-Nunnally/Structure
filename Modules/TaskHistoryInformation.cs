@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Structure.IO.Persistence;
+using Structure.Structure.Utility;
 
 namespace Structure.Modules
 {

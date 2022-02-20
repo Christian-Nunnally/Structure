@@ -1,7 +1,7 @@
 ﻿using Structure.IO;
 using Structure.IO.Persistence;
 using Structure.TaskItems;
-using Structure.Structure;
+using Structure.Structure.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +43,7 @@ namespace Structure.Editors
 
         public int NumberOfVisibleTasks => GetChildren(_currentParentCached).Count;
 
-        private int Cursor
+        public int Cursor
         {
             get => _cursor;
             set
