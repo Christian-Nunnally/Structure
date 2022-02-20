@@ -8,11 +8,11 @@ using System.Linq;
 
 namespace Structure.Modules.Obsolete
 {
-    internal class Routiner : StructureModule, IObsoleteModule
+    internal class RoutinerObsolete : StructureModule, IObsoleteModule
     {
         private UserAction _action;
 
-        public IModule UpgradeModule() => new RoutinerV2();
+        public IModule UpgradeModule() => new RoutinerObsoleteV2();
 
         protected override void OnDisable()
         {

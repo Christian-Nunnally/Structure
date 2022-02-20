@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Structure.Structure
+namespace Structure.Structure.Utility
 {
     public class DisposableAction : IDisposable
     {

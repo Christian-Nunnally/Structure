@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace Structure.Structure
+namespace Structure.Structure.Utility
 {
     public static class AggregationFunctions
     {

@@ -5,7 +5,7 @@ using System;
 
 namespace Structure.Modules
 {
-    internal class TreeTaskV2 : StructureModule
+    internal class TreeTask : StructureModule
     {
         private UserAction _doTasks;
 

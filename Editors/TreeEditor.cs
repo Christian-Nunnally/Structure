@@ -110,8 +110,9 @@ namespace Structure.Editors
             var tasksString = new StringBuilder();
             WriteHeader(tasksString);
             WriteTasks(Cursor, children, "", ref linesToPrint, tasksString);
-            _io.Clear(true);
+            _io.Clear(false);
             _io.Write(tasksString.ToString());
+            _io.ClearWithoutFlicker();
         }
 
         private void ScrollToCursor()
@@ -234,7 +235,7 @@ namespace Structure.Editors
             _io.WriteNoLine($"\n{insertPrompt}: ");
             _io.ReadCore(s => AddNode(nodeFactory, s, _currentParentCached, rank), KeyGroups.AlphanumericKeysPlus, KeyGroups.SubmitKeys, KeyGroups.AlphanumericPlusSubmitKeys);
             if (NumberOfVisibleTasks == 0) ViewParent();
-            Cursor++;
+            else Cursor++;
         };
 
         private void AddNode(Func<string, string, int, Node> nodeFactory, string description, string parentID, int rank)

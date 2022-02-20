@@ -1,19 +1,20 @@
 ﻿using Structure.Editors;
-using Structure.Editors.Obsolete;
 using Structure.IO;
 using Structure.Modules.Interface;
 using Structure.TaskItems;
 using System;
 using System.Linq;
 
-namespace Structure.Modules.Obsolete
+namespace Structure.Modules
 {
-    public class RoutinerV2 : StructureModule, IObsoleteModule
+    public class Routiner : StructureModule
     {
+        private const string PickRoutineToStartPrompt = "Pick routine to start";
+        private const string EditRoutinesPrompt = "Edit routines";
+        private const string DoRoutineActionDescription = "Do routine";
+        private const string EditRoutineActionDescription = "Edit routines";
         private UserAction _pickAction;
         private UserAction _editAction;
-
-        public IModule UpgradeModule() => new RoutinerV3();
 
         protected override void OnDisable()
         {
@@ -23,15 +24,16 @@ namespace Structure.Modules.Obsolete
 
         protected override void OnEnable()
         {
-            _pickAction = new UserAction("Do routine", PickRoutine);
-            _editAction = new UserAction("Edit routines", EditRoutines);
+            _pickAction = new UserAction(DoRoutineActionDescription, PickRoutine);
+            _editAction = new UserAction(EditRoutineActionDescription, EditRoutines);
             Hotkey.Add(ConsoleKey.R, _pickAction);
             Hotkey.Add(ConsoleKey.E, _editAction);
         }
 
         private TaskItem CopyRoutineToTaskList(TaskItem task, string parentId = null)
         {
-            var copy = new TaskItem { Name = task.Name, Rank = task.Rank, ParentID = parentId };
+            var copy = (TaskItem)task.Copy();
+            copy.ParentID = parentId;
             Data.Tasks.Set(copy);
             var children = Data.Routines.Where(x => x.Value.ParentID == task.ID);
             foreach (var child in children.OrderBy(x => x.Value.Rank))
@@ -43,25 +45,25 @@ namespace Structure.Modules.Obsolete
 
         private void DoRoutine(TaskItem routine)
         {
-            IO.Run(() =>
-            {
-                var editor = new TaskEditorObsolete(IO, Data);
-                editor.SetParent(routine);
-                editor.Edit();
-            });
+            var editor = new TaskExecutor(IO, "Task tree", Data.Tasks, true);
+            editor.ItemPicker.TreeEditor.SetParent(routine);
+            IO.Run(editor.Edit);
         }
 
         private void EditRoutines()
         {
-            IO.Run(() => new RoutineEditorObsolete(IO, Data.Routines).Edit());
+            var editor = new TreeEditor<TaskItem>(IO, EditRoutinesPrompt, Data.Routines, true);
+            TaskItemConversions.AddTaskConversionStrategies(editor);
+            IO.Run(editor.Edit);
         }
 
         private void PickRoutine()
         {
-            IO.Run(() => new TaskPickerObsolete(IO, "Pick routine to start", "Start", false, true, true, Data.Routines, StartRoutine).Edit());
+            var picker = new ItemPicker<TaskItem>(IO, PickRoutineToStartPrompt, true, true, Data.Routines, false, CopyRoutineToTaskListAndBegin);
+            IO.Run(picker.Edit);
         }
 
-        private void StartRoutine(TaskItem routine)
+        private void CopyRoutineToTaskListAndBegin(TaskItem routine)
         {
             var task = CopyRoutineToTaskList(routine);
             DoRoutine(task);

@@ -4,41 +4,20 @@ namespace Structure.IO.Output
 {
     public class ConsoleOutput : IProgramOutput
     {
-        public ConsoleOutput()
-        {
-            Console.OutputEncoding = System.Text.Encoding.Unicode;
-        }
+        public ConsoleOutput() => Console.OutputEncoding = System.Text.Encoding.Unicode;
 
-        public int CursorLeft
-        {
-            get => Console.CursorLeft;
-            set => Console.CursorLeft = value;
-        }
+        public int CursorLeft { get => Console.CursorLeft; set => Console.CursorLeft = value; }
 
-        public int CursorTop
-        {
-            get => Console.CursorTop;
-            set => Console.CursorTop = value;
-        }
+        public int CursorTop { get => Console.CursorTop; set => Console.CursorTop = value; }
 
-        public void Clear()
-        {
-            Console.Clear();
-        }
+        public bool CursorVisible { get => Console.CursorVisible; set => Console.CursorVisible = value; }
 
-        public void SetCursorPosition(int left, int top)
-        {
-            Console.SetCursorPosition(left, top);
-        }
+        public void Clear() => Console.Clear();
 
-        public void Write(string text)
-        {
-            Console.Write(text);
-        }
+        public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
 
-        public void WriteLine(string text)
-        {
-            Console.WriteLine(text);
-        }
+        public void Write(string text) => Console.Write(text);
+
+        public void WriteLine(string text) => Console.WriteLine(text);
     }
 }

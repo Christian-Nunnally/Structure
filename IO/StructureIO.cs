@@ -43,6 +43,36 @@ namespace Structure.IO
             WriteNoLine(buffer);
         }
 
+        public void ClearWithoutFlicker()
+        {
+            ProgramOutput.CursorVisible = false;
+            using (new SaveAndRestoreCursorPosition(ProgramOutput))
+            {
+                var buffer = _currentBuffer.ToString();
+                var x = 0;
+                var y = 1;
+                foreach (var character in buffer)
+                {
+                    ProgramOutput.SetCursorPosition(x++, y);
+                    if (!char.IsWhiteSpace(character)) continue;
+                    if (character == '\n')
+                    {
+                        while (x++ < 70) ProgramOutput.Write(" ");
+                        y++;
+                        x = 0;
+                    }
+                    ProgramOutput.Write(" ");
+                    if (x >= 80)
+                    {
+                        y++;
+                        x = 0;
+                    }
+                }
+                for (int i = 0; i < 20; i++) ProgramOutput.Write("                                                                                                  ");
+            }
+            ProgramOutput.CursorVisible = true;
+        }
+
         public void Clear(bool clearConsole)
         {
             _currentBuffer.Clear();

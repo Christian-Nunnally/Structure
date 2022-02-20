@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Structure.Structure
+namespace Structure.Structure.Utility
 {
     public static class TypeLoaderExtensions
     {

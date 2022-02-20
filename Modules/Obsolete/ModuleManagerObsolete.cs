@@ -76,7 +76,7 @@ namespace Structure.Modules.Obsolete
             if (int.TryParse(module, out var index) && index >= 0 && (index < _listedModules.Count || _indexMap.ContainsKey(index))) ToggleModule(index, upgrade);
         }
 
-        private readonly Dictionary<int, Type> _indexMap = new Dictionary<int, Type> { {0,typeof(TreeTaskObsolete)},{ 3, typeof(Routiner) },{ 7, typeof(ModuleManagerObsolete) } };
+        private readonly Dictionary<int, Type> _indexMap = new Dictionary<int, Type> { {0,typeof(TreeTaskObsolete)},{ 3, typeof(RoutinerObsolete) },{ 7, typeof(ModuleManagerObsolete) } };
 
         private void ToggleModule(int index, bool upgrade)
         {

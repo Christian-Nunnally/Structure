@@ -1,12 +1,12 @@
-﻿using System;
-
-namespace Structure.IO.Output
+﻿namespace Structure.IO.Output
 {
     public class NoOpOutput : IProgramOutput
     {
         public int CursorLeft { get; set; }
 
         public int CursorTop { get; set; }
+
+        public bool CursorVisible { get; set; }
 
         public void Clear() { }
 

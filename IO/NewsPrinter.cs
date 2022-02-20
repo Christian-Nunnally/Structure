@@ -1,12 +1,11 @@
 ﻿using Structure.IO.Output;
-using Structure.Structure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Structure.IO
 {
-    public class NewsPrinter : INewsPrinter
+    public partial class NewsPrinter : INewsPrinter
     {
         private const int PRINT_SPEED = 1;
         private const int SCROLLING_TEXT_X_START_POSITION = 40;
@@ -89,26 +88,5 @@ namespace Structure.IO
         public void Enable() => _enabled = true;
 
         public void Disable() => _enabled = false;
-
-        private class SaveAndRestoreCursorPosition : DisposableAction
-        {
-            private (int CursorLeft, int CursorTop) _position;
-            private readonly IProgramOutput _programOutput;
-
-            public SaveAndRestoreCursorPosition(IProgramOutput programOutput)
-            {
-                _programOutput = programOutput;
-                SaveCursorPosition();
-                DisposeAction = RestoreCursorPosition;
-            }
-
-            private void SaveCursorPosition() => _position = (_programOutput.CursorLeft, _programOutput.CursorTop);
-
-            private void RestoreCursorPosition()
-            {
-                _programOutput.CursorLeft = _position.CursorLeft;
-                _programOutput.CursorTop = _position.CursorTop;
-            }
-        }
     }
 }

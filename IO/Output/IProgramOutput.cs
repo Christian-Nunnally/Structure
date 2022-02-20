@@ -6,6 +6,8 @@
 
         public int CursorTop { get; set; }
 
+        public bool CursorVisible { get; set; }
+
         void Write(string text);
 
         void WriteLine(string text);

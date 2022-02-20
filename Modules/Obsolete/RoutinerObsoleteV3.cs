@@ -8,12 +8,12 @@ using System.Linq;
 
 namespace Structure.Modules.Obsolete
 {
-    public class RoutinerV3 : StructureModule, IObsoleteModule
+    public class RoutinerObsoleteV3 : StructureModule, IObsoleteModule
     {
         private UserAction _pickAction;
         private UserAction _editAction;
 
-        public IModule UpgradeModule() => new RoutinerV4();
+        public IModule UpgradeModule() => new Routiner();
 
         protected override void OnDisable()
         {

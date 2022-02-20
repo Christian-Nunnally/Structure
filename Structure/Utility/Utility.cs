@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 
-namespace Structure.Structure
+namespace Structure.Structure.Utility
 {
     public static class Utility
     {
