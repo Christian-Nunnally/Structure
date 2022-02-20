@@ -112,7 +112,7 @@ namespace Structure.Editors
             WriteTasks(Cursor, children, "", ref linesToPrint, tasksString);
             _io.Clear(false);
             _io.Write(tasksString.ToString());
-            _io.ClearWithoutFlicker();
+            _io.ClearStaleOutput();
         }
 
         private void ScrollToCursor()

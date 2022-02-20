@@ -8,6 +8,8 @@
 
         public bool CursorVisible { get; set; }
 
+        public int Width => default;
+
         public void Clear() { }
 
         public void SetCursorPosition(int left, int top) { }

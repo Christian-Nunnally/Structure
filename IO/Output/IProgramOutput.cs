@@ -8,6 +8,8 @@
 
         public bool CursorVisible { get; set; }
 
+        int Width { get; }
+
         void Write(string text);
 
         void WriteLine(string text);

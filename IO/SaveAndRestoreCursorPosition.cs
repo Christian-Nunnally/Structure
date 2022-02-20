@@ -15,12 +15,17 @@ namespace Structure.IO
             DisposeAction = RestoreCursorPosition;
         }
 
-        private void SaveCursorPosition() => _position = (_programOutput.CursorLeft, _programOutput.CursorTop);
+        private void SaveCursorPosition()
+        {
+            _position = (_programOutput.CursorLeft, _programOutput.CursorTop);
+            _programOutput.CursorVisible = false;
+        }
 
         private void RestoreCursorPosition()
         {
             _programOutput.CursorLeft = _position.CursorLeft;
             _programOutput.CursorTop = _position.CursorTop;
+            _programOutput.CursorVisible = true;
         }
     }
 }

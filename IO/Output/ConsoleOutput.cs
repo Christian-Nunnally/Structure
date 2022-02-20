@@ -12,6 +12,8 @@ namespace Structure.IO.Output
 
         public bool CursorVisible { get => Console.CursorVisible; set => Console.CursorVisible = value; }
 
+        public int Width => Console.WindowWidth;
+
         public void Clear() => Console.Clear();
 
         public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);

@@ -13,6 +13,8 @@ namespace Structure.IO
 {
     public class StructureIO
     {
+        private const int X_START_POSITION = 0;
+        private const int Y_START_POSITION = 1;
         private readonly Stack<string> _buffers = new Stack<string>();
         private readonly StringBuilder _currentBuffer = new StringBuilder();
 
@@ -25,8 +27,6 @@ namespace Structure.IO
         public Action<ConsoleKeyInfo, StructureIO> ModifierKeyAction { get; set; }
 
         public CurrentTime CurrentTime { get; }
-
-        public bool ThrowExceptions { get; set; }
 
         public bool SkipUnescesscaryOperations { get; set; }
 
@@ -44,34 +44,26 @@ namespace Structure.IO
             WriteNoLine(buffer);
         }
 
-        public void ClearWithoutFlicker()
+        public void ClearStaleOutput()
         {
-            ProgramOutput.CursorVisible = false;
-            using (new SaveAndRestoreCursorPosition(ProgramOutput))
+            using var savePosition = new SaveAndRestoreCursorPosition(ProgramOutput);
+            var buffer = _currentBuffer.ToString();
+            var x = X_START_POSITION;
+            var y = Y_START_POSITION;
+            foreach (var character in buffer)
             {
-                var buffer = _currentBuffer.ToString();
-                var x = 0;
-                var y = 1;
-                foreach (var character in buffer)
+                ProgramOutput.SetCursorPosition(x++, y);
+                if (!char.IsWhiteSpace(character)) continue;
+                
+                if (character == '\n' || x >= 80)
                 {
-                    ProgramOutput.SetCursorPosition(x++, y);
-                    if (!char.IsWhiteSpace(character)) continue;
-                    if (character == '\n')
-                    {
-                        while (x++ < 70) ProgramOutput.Write(" ");
-                        y++;
-                        x = 0;
-                    }
-                    ProgramOutput.Write(" ");
-                    if (x >= 80)
-                    {
-                        y++;
-                        x = 0;
-                    }
+                    while (x++ < ProgramOutput.Width) ProgramOutput.Write(" ");
+                    y++;
+                    x = 0;
                 }
-                for (int i = 0; i < 20; i++) ProgramOutput.Write("                                                                                                  ");
+                else ProgramOutput.Write(" ");
             }
-            ProgramOutput.CursorVisible = true;
+            for (int i = 0; i < 20; i++) ProgramOutput.Write("                                                                                                  ");
         }
 
         public void Clear(bool clearConsole)
@@ -85,7 +77,7 @@ namespace Structure.IO
         {
             _buffers.Push($"{_currentBuffer}");
             Clear(true);
-            SafelyExecute(action);
+            Executor.SafelyExecute(action);
             Clear(true);
             WriteNoLine(_buffers.Pop());
         }
@@ -227,18 +219,6 @@ namespace Structure.IO
         {
             if (echo) WriteNoLine(text);
             line.Append(text);
-        }
-
-        private void SafelyExecute(Action action)
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception e)
-            {
-                if (ThrowExceptions) throw new Exception("Exception" + e.Message, e);
-            }
         }
 
         public void ReadOptionsObsolete(string prompt, string helpString, params UserAction[] options)
