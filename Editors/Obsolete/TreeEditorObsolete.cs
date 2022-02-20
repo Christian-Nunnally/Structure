@@ -24,7 +24,6 @@ namespace Structure.Editors.Obsolete
         protected int Cursor { get; set; }
 
         private readonly string _prompt;
-        private bool _refreshDisplay;
         private bool _goBackIfNoChild;
         private bool _return;
         private readonly StructureIO _io;
@@ -65,8 +64,9 @@ namespace Structure.Editors.Obsolete
                 WriteHeader();
                 SetCursor(Cursor);
                 WriteTasks(Cursor, children, "");
+                _io.ClearStaleOutput();
                 if (ShouldExit) return;
-                if (children.Count == 0) { NoChildrenAction(); _io.Clear(clearConsole: true); }
+                if (children.Count == 0) _io.Run(NoChildrenAction);
                 else if (!DoTasksInteraction()) break;
             }
         }
@@ -219,7 +219,7 @@ namespace Structure.Editors.Obsolete
                 ViewParent();
             }
             _goBackIfNoChild = true;
-            _io.Clear(_refreshDisplay);
+            _io.ClearBuffer();
 
             return true;
         }
@@ -236,7 +236,6 @@ namespace Structure.Editors.Obsolete
                     return;
                 }
                 var task = tasks[Cursor];
-                _refreshDisplay = true;
                 interaction(task);
             };
         }
@@ -295,13 +294,11 @@ namespace Structure.Editors.Obsolete
         private void CursorDown()
         {
             SetCursor(Cursor + 1);
-            _refreshDisplay = false;
         }
 
         private void CursorUp()
         {
             SetCursor(Cursor - 1);
-            _refreshDisplay = false;
         }
 
         private Action PromptToInsertNode(string insertPrompt, Func<string, string, int, Node> nodeFactory) => () =>

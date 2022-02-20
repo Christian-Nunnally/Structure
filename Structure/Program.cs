@@ -26,7 +26,9 @@ namespace Structure.Structure
             ioc.Register<CurrentTime>();
             ioc.Register<StructureData>();
             var newsPrinter = new NewsPrinter();
+            var delayer = new BackgroundDelay();
             ioc.Register<INewsPrinter>(() => newsPrinter);
+            ioc.Register<IBackgroundProcess>(() => delayer);
             ioc.Register<IBackgroundProcess>(() => newsPrinter);
             return ioc;
         }

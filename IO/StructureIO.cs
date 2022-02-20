@@ -4,10 +4,8 @@ using Structure.Structure;
 using Structure.Structure.Utility;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 namespace Structure.IO
 {
@@ -16,13 +14,13 @@ namespace Structure.IO
         private const int X_START_POSITION = 0;
         private const int Y_START_POSITION = 1;
         private readonly Stack<string> _buffers = new Stack<string>();
-        private readonly StringBuilder _currentBuffer = new StringBuilder();
-
-        public List<IBackgroundProcess> BackgroundProcesses { get; }
+        private readonly List<IBackgroundProcess> _backgroundProcesses;
 
         public IProgramInput ProgramInput { get; set; }
 
         public IProgramOutput ProgramOutput { get; set; }
+
+        public StringBuilder CurrentBuffer { get; } = new StringBuilder();
 
         public Action<ConsoleKeyInfo, StructureIO> ModifierKeyAction { get; set; }
 
@@ -33,60 +31,58 @@ namespace Structure.IO
         public StructureIO(StructureIoC ioc)
         {
             ModifierKeyAction = ioc.Get<Hotkey>().Execute;
-            BackgroundProcesses = ioc?.GetAll<IBackgroundProcess>().ToList();
+            _backgroundProcesses = ioc?.GetAll<IBackgroundProcess>().ToList();
             CurrentTime = ioc.Get<CurrentTime>();
-        }
-
-        public void Refresh()
-        {
-            var buffer = _currentBuffer.ToString();
-            Clear(true);
-            WriteNoLine(buffer);
         }
 
         public void ClearStaleOutput()
         {
             using var savePosition = new SaveAndRestoreCursorPosition(ProgramOutput);
-            var buffer = _currentBuffer.ToString();
+            var buffer = CurrentBuffer.ToString();
             var x = X_START_POSITION;
             var y = Y_START_POSITION;
             foreach (var character in buffer)
             {
-                ProgramOutput.SetCursorPosition(x++, y);
+                ProgramOutput.SetCursorPosition(Math.Min(x++, ProgramOutput.Width - 1), y);
                 if (!char.IsWhiteSpace(character)) continue;
                 
-                if (character == '\n' || x >= 80)
+                if (character == '\n' || x >= ProgramOutput.Width)
                 {
                     while (x++ < ProgramOutput.Width) ProgramOutput.Write(" ");
                     y++;
-                    x = 0;
+                    x = X_START_POSITION;
                 }
                 else ProgramOutput.Write(" ");
             }
-            for (int i = 0; i < 20; i++) ProgramOutput.Write("                                                                                                  ");
+            var spaces = string.Empty;
+            for (int i = 0; i < ProgramOutput.Width; i++) spaces += " ";
+            var ending = string.Empty;
+            for (; y < ProgramOutput.Height - 1; y++) ending += spaces;
+            ProgramOutput.Write(ending);
         }
 
-        public void Clear(bool clearConsole)
+        public void ClearBuffer()
         {
-            _currentBuffer.Clear();
-            if (clearConsole) ProgramOutput.Clear();
-            ProgramOutput.SetCursorPosition(0, 1);
+            CurrentBuffer.Clear();
+            ProgramOutput.SetCursorPosition(X_START_POSITION, Y_START_POSITION);
         }
 
         public void Run(Action action)
         {
-            _buffers.Push($"{_currentBuffer}");
-            Clear(true);
+            _buffers.Push($"{CurrentBuffer}");
+            ProgramOutput.Clear();
+            ClearBuffer();
             Executor.SafelyExecute(action);
-            Clear(true);
+            ClearBuffer();
             WriteNoLine(_buffers.Pop());
+            ClearStaleOutput();
         }
 
         public void Write(string text = "") => WriteNoLine($"{text}\n");
 
         public void WriteNoLine(string text)
         {
-            _currentBuffer.Append(text);
+            CurrentBuffer.Append(text);
             ProgramOutput.Write(text);
         }
 
@@ -104,21 +100,6 @@ namespace Structure.IO
             }
             Write();
             continuation?.Invoke(line.ToString());
-        }
-
-        public void ReadInteger(string prompt, Action<int> continuation)
-        {
-            void continueWhenInteger(string x)
-            {
-                if (int.TryParse(x, out var integer)) continuation(integer);
-                else
-                {
-                    Write($"'{x}' is not a valid integer.");
-                    Run(() => ReadInteger(prompt, continuation));
-                }
-            }
-            Write(prompt);
-            Read(continueWhenInteger, KeyGroups.NoKeys, new[] { ConsoleKey.Enter });
         }
 
         public void ReadOptions(string prompt, params UserAction[] options) => ReadOptions(prompt, null, options);
@@ -183,8 +164,7 @@ namespace Structure.IO
 
         private void ProcessInBackgroundWhileWaitingForInput()
         {
-            bool isNoInputAndBackgroundprocessesWorking() => !ProgramInput.IsKeyAvailable() && BackgroundProcesses.Any(x => x.DoProcess(this));
-            while (isNoInputAndBackgroundprocessesWorking()) Thread.Sleep(10);
+            while (!ProgramInput.IsKeyAvailable() && _backgroundProcesses.Any(x => x.DoProcess(this)));
         }
 
         private void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo, ConsoleKey[] allowedKeys)
@@ -211,7 +191,7 @@ namespace Structure.IO
         {
             if (line.Length == 0) return;
             if (echo) ProgramOutput.Write("\b \b");
-            _currentBuffer.Remove(_currentBuffer.Length - 1, 1);
+            CurrentBuffer.Remove(CurrentBuffer.Length - 1, 1);
             line.Remove(line.Length - 1, 1);
         }
 
@@ -233,14 +213,17 @@ namespace Structure.IO
             options.Where(x => x.HotkeyOverridden).All(x => keys.Add((x.Hotkey, x)));
             foreach (var option in options.Where(x => !x.HotkeyOverridden))
             {
-                var possibleKeys = $"{option.Description.ToLower(CultureInfo.CurrentCulture)}abcdefghijklmnopqrstuvwxyz1234567890";
+                var possibleKeys = $"{option.Description.ToLowerInvariant()}abcdefghijklmnopqrstuvwxyz1234567890";
                 for (int i = 0; i < possibleKeys.Length; i++)
                 {
                     if (char.IsWhiteSpace(possibleKeys[i])) continue;
                     if (!keys.Any(x => x.Key.KeyChar == ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]).KeyChar))
                     {
                         var consoleKeyInfo = ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]);
-                        if (consoleKeyInfo.Key == ConsoleKey.NumPad0) keys.Add((new ConsoleKeyInfo('0', ConsoleKey.D0, false, false, false), option));
+                        if (consoleKeyInfo.Key >= ConsoleKey.NumPad0 && consoleKeyInfo.Key <= ConsoleKey.NumPad9)
+                        {
+                            keys.Add((new ConsoleKeyInfo($"{(int)consoleKeyInfo.Key - ConsoleKey.NumPad0}"[0], ConsoleKey.D0 + (consoleKeyInfo.Key - ConsoleKey.NumPad0), false, false, false), option));
+                        }
                         keys.Add((consoleKeyInfo, option));
                         option.Hotkey = consoleKeyInfo;
                         break;

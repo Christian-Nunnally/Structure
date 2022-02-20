@@ -48,8 +48,9 @@ namespace Structure.IO.Input
 
         protected void SetToLoadMode(StructureIO io, INewsPrinter newsPrinter)
         {
-            io.Clear(true);
+            io.ClearBuffer();
             io.Write("Loading...");
+            io.ClearStaleOutput();
             io.ProgramOutput = new NoOpOutput();
             io.SkipUnescesscaryOperations = true;
             newsPrinter.Disable();
@@ -62,7 +63,10 @@ namespace Structure.IO.Input
             newsPrinter.Enable();
             io.ProgramOutput = new ConsoleOutput();
             io.CurrentTime.SetToRealTime();
-            io.Refresh();
+            var buffer = io.CurrentBuffer.ToString();
+            io.ClearBuffer();
+            io.WriteNoLine(buffer);
+            io.ClearStaleOutput();
             io.SkipUnescesscaryOperations = false;
             _stopwatch.Stop();
             newsPrinter.EnqueueNews($"Load took {_stopwatch.ElapsedMilliseconds}ms");

@@ -10,6 +10,8 @@
 
         int Width { get; }
 
+        int Height { get; }
+
         void Write(string text);
 
         void WriteLine(string text);

@@ -14,6 +14,8 @@ namespace Structure.IO.Output
 
         public int Width => Console.WindowWidth;
 
+        public int Height => Console.WindowHeight;
+
         public void Clear() => Console.Clear();
 
         public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);

@@ -110,7 +110,7 @@ namespace Structure.Editors
             var tasksString = new StringBuilder();
             WriteHeader(tasksString);
             WriteTasks(Cursor, children, "", ref linesToPrint, tasksString);
-            _io.Clear(false);
+            _io.ClearBuffer();
             _io.Write(tasksString.ToString());
             _io.ClearStaleOutput();
         }

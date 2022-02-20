@@ -47,7 +47,6 @@ namespace Structure.Modules
             
             _startAction = new UserAction(ModuleHotkeyDescription, Start);
             Hotkey.Add(ConsoleKey.H, _startAction);
-            AddQuery();
         }
 
         private void PopulateDataSets()
@@ -62,6 +61,7 @@ namespace Structure.Modules
             }
             _dataSets.Add((ActiveTaskCountDataSetDescription, activeTaskCountCollector.TaskCountOverTime));
             _dataSets.Add((CompletedTasksDataSetDescription, completedTaskCollector.CompletedTasks));
+            AddQuery();
         }
 
         private void RunStructureWithModules(params IModule[] modules)
