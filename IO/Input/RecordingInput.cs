@@ -5,10 +5,10 @@ namespace Structure.IO.Input
     public class RecordingInput : IProgramInput
     {
         private readonly IProgramInput _inputSource;
-        private readonly PersistedListCollection<ProgramInputData> _recordedInputs;
+        private readonly PersistedList<ProgramInputData> _recordedInputs;
         private ProgramInputData _lastInput;
 
-        public RecordingInput(IProgramInput inputSource, PersistedListCollection<ProgramInputData> logDestiation)
+        public RecordingInput(IProgramInput inputSource, PersistedList<ProgramInputData> logDestiation)
         {
             _inputSource = inputSource;
             _recordedInputs = logDestiation;

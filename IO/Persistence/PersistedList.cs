@@ -4,12 +4,12 @@ using System.Collections.Generic;
 
 namespace Structure.IO.Persistence
 {
-    public class PersistedListCollection<T> : IEnumerable<T>
+    public class PersistedList<T> : IEnumerable<T>
     {
         private readonly string _name;
         private List<T> _list;
 
-        public PersistedListCollection(string name)
+        public PersistedList(string name)
         {
             _name = name;
             HasBeenSaved = StructureFileIO.DoesFileExist(_name);
@@ -17,14 +17,9 @@ namespace Structure.IO.Persistence
 
         public bool HasBeenSaved { get; private set; }
 
-        public int Count => List.Count;
-
         private List<T> List => _list ?? (_list = LoadList() ?? new List<T>());
 
-        private List<T> LoadList()
-        {
-            return JsonConvert.DeserializeObject<List<T>>(StructureFileIO.ReadFromFile(_name));
-        }
+        private List<T> LoadList() => JsonConvert.DeserializeObject<List<T>>(StructureFileIO.ReadFromFile(_name));
 
         public void Add(T value)
         {
@@ -35,11 +30,7 @@ namespace Structure.IO.Persistence
         public void Remove(T value)
         {
             List.Remove(value);
-        }
-
-        public void Clear()
-        {
-            List.Clear();
+            Save();
         }
 
         public IEnumerator<T> GetEnumerator() => List.GetEnumerator();

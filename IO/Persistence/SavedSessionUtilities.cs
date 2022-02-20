@@ -5,11 +5,11 @@ namespace Structure.IO.Persistence
 {
     public static class SavedSessionUtilities
     {
-        private static (PersistedListCollection<ProgramInputData>[] SavedDataSessions, PersistedListCollection<ProgramInputData> NextDataSession) LoadDataSessions()
+        private static (PersistedList<ProgramInputData>[] SavedDataSessions, PersistedList<ProgramInputData> NextDataSession) LoadDataSessions()
         {
-            var sessions = new List<PersistedListCollection<ProgramInputData>>();
+            var sessions = new List<PersistedList<ProgramInputData>>();
             var currentSession = 0;
-            PersistedListCollection<ProgramInputData> session = LoadSession(currentSession++);
+            PersistedList<ProgramInputData> session = LoadSession(currentSession++);
             while (session.HasBeenSaved)
             {
                 sessions.Add(session);
@@ -18,10 +18,10 @@ namespace Structure.IO.Persistence
             return (sessions.ToArray(), session);
         }
 
-        public static PersistedListCollection<ProgramInputData> LoadNextEmptyDataSession() => LoadDataSessions().NextDataSession;
+        public static PersistedList<ProgramInputData> LoadNextEmptyDataSession() => LoadDataSessions().NextDataSession;
 
-        public static PersistedListCollection<ProgramInputData>[] LoadSavedDataSessions() => LoadDataSessions().SavedDataSessions;
+        public static PersistedList<ProgramInputData>[] LoadSavedDataSessions() => LoadDataSessions().SavedDataSessions;
 
-        private static PersistedListCollection<ProgramInputData> LoadSession(int setNumber) => new PersistedListCollection<ProgramInputData>($"session-{setNumber}");
+        private static PersistedList<ProgramInputData> LoadSession(int setNumber) => new PersistedList<ProgramInputData>($"session-{setNumber}");
     }
 }
