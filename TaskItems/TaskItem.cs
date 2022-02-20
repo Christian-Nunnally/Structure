@@ -44,7 +44,7 @@ namespace Structure.TaskItems
             return can;
         }
 
-        public virtual void DoTask(DateTime completedTime, NodeTreeCollection<TaskItem> tree)
+        public virtual void DoTask(DateTime completedTime, NodeTree<TaskItem> tree)
         {
             CompletedDate = completedTime;
             tree?.Remove(ID);

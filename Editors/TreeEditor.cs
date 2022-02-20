@@ -20,7 +20,7 @@ namespace Structure.Editors
             "< Delete> - Delete item",
             "< Escape> - Back");
         const int NUMBER_OF_VISIBLE_ITEMS = 20;
-        private readonly NodeTreeCollection<T> _tree;
+        private readonly NodeTree<T> _tree;
         private readonly string _prompt;
         private readonly StructureIO _io;
         private readonly UserAction[] _options;
@@ -53,7 +53,7 @@ namespace Structure.Editors
             }
         }
 
-        public TreeEditor(StructureIO io, string prompt, NodeTreeCollection<T> tree, bool allowInserting)
+        public TreeEditor(StructureIO io, string prompt, NodeTree<T> tree, bool allowInserting)
         {
             EnterPressedOnParentAction = SetParent;
             EnterPressedOnLeafAction = SetParent;
@@ -280,7 +280,7 @@ namespace Structure.Editors
             var siblings = GetChildren(_currentParentCached);
             if (siblings.Contains(task)) siblings.Remove(task);
             if (!siblings.Any()) return;
-            var tempTree = new NodeTreeCollection<T>();
+            var tempTree = new NodeTree<T>();
             siblings.All(x => tempTree.Set(x.ID, x));
             var taskPicker = new ItemPicker<T>(_io, "Pick new parent", true, true, tempTree, false, x => task.ParentID = x.ID);
             _io.Run(taskPicker.Edit);

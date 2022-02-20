@@ -5,8 +5,8 @@ namespace Structure.Structure
 {
     public class StructureData
     {
-        public NodeTreeCollection<TaskItem> Tasks { get; } = new NodeTreeCollection<TaskItem>();
+        public NodeTree<TaskItem> Tasks { get; } = new NodeTree<TaskItem>();
 
-        public NodeTreeCollection<TaskItem> Routines { get; } = new NodeTreeCollection<TaskItem>();
+        public NodeTree<TaskItem> Routines { get; } = new NodeTree<TaskItem>();
     }
 }

@@ -27,7 +27,7 @@ namespace Structure.Modules
         private bool _exit;
         private TaskHistoryQuery _selectedQuery;
         private bool _selectAllQueries = true;
-        private NodeTreeCollection<TaskItem> _dataRoutines;
+        private NodeTree<TaskItem> _dataRoutines;
         private readonly List<TaskHistoryQuery> _queries = new List<TaskHistoryQuery>();
         private bool _dataSetsInitialized;
         private readonly List<(string Name, IList<TaskItem> Data)> _dataSets = new List<(string Name, IList<TaskItem> Data)>();

@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 namespace Structure.IO.Persistence
 {
-    public class NodeTreeCollection<TValue> : IEnumerable<KeyValuePair<string, TValue>> where TValue : Node
+    public class NodeTree<TValue> : IEnumerable<KeyValuePair<string, TValue>> where TValue : Node
     {
-        public NodeTreeCollection()
+        public NodeTree()
         {
             NodeRemoved += x => CountChanged?.Invoke();
         }

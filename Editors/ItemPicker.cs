@@ -16,7 +16,7 @@ namespace Structure.Editors
             string prompt,
             bool allowParents,
             bool exitAfterPick,
-            NodeTreeCollection<T> tree,
+            NodeTree<T> tree,
             bool allowInserting,
             Action<T> pickedAction = null)
         {

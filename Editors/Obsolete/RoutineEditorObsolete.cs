@@ -9,7 +9,7 @@ namespace Structure.Editors
 {
     public class RoutineEditorObsolete : TreeEditorObsolete<TaskItem>
     {
-        public RoutineEditorObsolete(StructureIO io, NodeTreeCollection<TaskItem> routineTree) : base(io, "Edit routines", routineTree)
+        public RoutineEditorObsolete(StructureIO io, NodeTree<TaskItem> routineTree) : base(io, "Edit routines", routineTree)
         {
             EnableDefaultInsertFunctionality("Insert routine item", DefaultNodeFactory);
             AddTaskConversionStrategies();

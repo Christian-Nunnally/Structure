@@ -19,7 +19,7 @@ namespace Structure.Editors.Obsolete
             bool allowLeafs,
             bool allowParents,
             bool exitAfterPick,
-            NodeTreeCollection<TaskItem> tree,
+            NodeTree<TaskItem> tree,
             Action<TaskItem> pickedAction = null)
             : base(io, prompt, tree)
         {

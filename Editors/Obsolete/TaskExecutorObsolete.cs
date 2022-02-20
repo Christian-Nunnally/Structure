@@ -11,7 +11,7 @@ namespace Structure.Editors.Obsolete
         public TaskExecutorObsolete(
             StructureIO io,
             string prompt,
-            NodeTreeCollection<TaskItem> tree)
+            NodeTree<TaskItem> tree)
             : base(io, prompt, "Complete", true, false, false, tree)
         {
             SetPickAction(CompleteTask);

@@ -18,7 +18,7 @@ namespace Structure.Editors.Obsolete
         protected Dictionary<Type, Dictionary<Type, Func<T, T>>> ItemConversionMap { get; } = new Dictionary<Type, Dictionary<Type, Func<T, T>>>();
         protected string CurrentParentCached { get; set; }
         protected bool EnableReparenting { get; set; } = true;
-        protected NodeTreeCollection<T> Tree { get; set; }
+        protected NodeTree<T> Tree { get; set; }
         protected bool ShowChildren { get; set; }
         public bool ShouldExit { get; set; }
         protected int Cursor { get; set; }
@@ -30,7 +30,7 @@ namespace Structure.Editors.Obsolete
         private readonly StructureIO _io;
         private readonly List<UserAction> _options;
 
-        public TreeEditorObsolete(StructureIO io, string prompt, NodeTreeCollection<T> tree)
+        public TreeEditorObsolete(StructureIO io, string prompt, NodeTree<T> tree)
         {
             EnterPressedOnParentAction = SetParent;
             EnterPressedOnLeafAction = SetParent;

@@ -20,7 +20,7 @@ namespace Structure.TaskItems
             if (!inner.ContainsKey(to)) inner.Add(to, conversionFunction);
         }
 
-        internal UserAction[] GetPossibleConversions(NodeTreeCollection<T> tree, T from)
+        internal UserAction[] GetPossibleConversions(NodeTree<T> tree, T from)
         {
             AddMapIfDoesntExist(from.GetType());
             var possibleActions = new List<UserAction>();
@@ -40,7 +40,7 @@ namespace Structure.TaskItems
             if (!_conversionMap.ContainsKey(from)) _conversionMap.Add(from, new Dictionary<Type, Func<T, T>>());
         }
 
-        public void ReplaceItem(NodeTreeCollection<T> tree, T itemToReplace, T newItem)
+        public void ReplaceItem(NodeTree<T> tree, T itemToReplace, T newItem)
         {
             newItem.ID = itemToReplace.ID;
             tree.Remove(itemToReplace);

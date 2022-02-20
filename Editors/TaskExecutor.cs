@@ -7,10 +7,10 @@ namespace Structure.Editors
     public class TaskExecutor
     {
         private readonly StructureIO _io;
-        private readonly NodeTreeCollection<TaskItem> _tree;
+        private readonly NodeTree<TaskItem> _tree;
         public ItemPicker<TaskItem> ItemPicker { get; }
 
-        public TaskExecutor(StructureIO io, string prompt, NodeTreeCollection<TaskItem> tree, bool allowInserting)
+        public TaskExecutor(StructureIO io, string prompt, NodeTree<TaskItem> tree, bool allowInserting)
         {
             ItemPicker = new ItemPicker<TaskItem>(io, prompt, false, false, tree, allowInserting);
             ItemPicker.SetPickAction(RunCompleteTask);
