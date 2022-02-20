@@ -21,7 +21,6 @@ namespace Structure.Editors.Obsolete
             CustomActions.Add(new UserAction("o", () => { }, ConsoleKey.O));
             CustomActions.Add(new UserAction("v", () => ShowChildren = !ShowChildren, ConsoleKey.V));
             CustomActions.Add(new UserAction("c", CopyCurrentTask, ConsoleKey.C));
-            CustomActions.Add(new UserAction("n", GoToNextActiveTask, ConsoleKey.N));
             _data = data;
             _io = io;
         }
@@ -37,21 +36,6 @@ namespace Structure.Editors.Obsolete
                     ParentID = selectedTask.ParentID,
                 };
                 Tree.Set(newTask);
-            }
-        }
-
-        private void GoToNextActiveTask()
-        {
-            if (_data.OpenEditors.Count > 1)
-            {
-                var thisEditorsIndex = _data.OpenEditors.IndexOf(this);
-                if (thisEditorsIndex >= 0)
-                {
-                    var nextEditorIndex = (thisEditorsIndex + 1) % _data.OpenEditors.Count;
-                    var nextEditor = _data.OpenEditors[nextEditorIndex];
-                    nextEditor.ShouldExit = false;
-                    _io.Run(nextEditor.Edit);
-                }
             }
         }
     }

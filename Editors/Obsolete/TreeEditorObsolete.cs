@@ -20,7 +20,7 @@ namespace Structure.Editors.Obsolete
         protected bool EnableReparenting { get; set; } = true;
         protected NodeTreeCollection<T> Tree { get; set; }
         protected bool ShowChildren { get; set; }
-        protected bool ShouldExit { get; set; }
+        public bool ShouldExit { get; set; }
         protected int Cursor { get; set; }
 
         private readonly string _prompt;
@@ -253,7 +253,8 @@ namespace Structure.Editors.Obsolete
             if (siblings.Contains(task)) siblings.Remove(task);
             if (!siblings.Any()) return;
             int i = 0;
-            _io.ReadOptionsObsolete($"Select the new parent for {task}", "", siblings.Select(s => new UserAction($"{i++} {s}", () => task.ParentID = s.ID)).ToArray());
+            var options = siblings.Select(s => new UserAction($"{i++} {s}", () => task.ParentID = s.ID)).ToList();
+            _io.ReadOptionsObsolete($"Select the new parent for {task}", "", options.ToArray());
         }
 
         private void EnterPressed(T item) => (IsParent(item) ? EnterPressedOnParentAction : EnterPressedOnLeafAction)(item);
@@ -308,22 +309,15 @@ namespace Structure.Editors.Obsolete
             var index = NumberOfVisibleTasks;
             _io.WriteNoLine($"\n{insertPrompt}: ");
 
-            var submitKeys = new ConsoleKey[] { ConsoleKey.Enter, ConsoleKey.LeftArrow };
-            _io.ReadObsolete(s => AddNode(nodeFactory, s, CurrentParentCached, index), KeyGroups.AlphanumericInputKeys, submitKeys);
+            _io.ReadCore(s => AddNode(nodeFactory, s, CurrentParentCached, index), KeyGroups.AlphanumericInputKeys, KeyGroups.SubmitKeys, KeyGroups.AlphanumericPlusSubmitKeys);
             if (NumberOfVisibleTasks == 0) ViewParent();
         };
 
         private void AddNode(Func<string, string, int, Node> nodeFactory, string description, string parentID, int rank)
         {
-            if (string.IsNullOrEmpty(description))
-            {
-                return;
-            }
+            if (string.IsNullOrEmpty(description)) return;
             var node = nodeFactory(description, parentID, rank);
-            if (node is null)
-            {
-                return;
-            }
+            if (node is null) return;
             Tree.Set(node as T);
         }
     }

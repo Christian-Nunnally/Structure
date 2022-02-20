@@ -21,7 +21,7 @@ namespace Structure.IO
 
         public IProgramOutput ProgramOutput { get; set; }
 
-        public Action<ConsoleKeyInfo, StructureIO> ModifierKeyAction { get; set; } 
+        public Action<ConsoleKeyInfo, StructureIO> ModifierKeyAction { get; set; }
 
         public CurrentTime CurrentTime { get; }
 
@@ -67,7 +67,7 @@ namespace Structure.IO
             ProgramOutput.Write(text);
         }
 
-        public void Read(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys) 
+        public void Read(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys)
             => ReadCore(continuation, allowedKeys, submitKeys, allowedKeys);
 
         public void ReadCore(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, ConsoleKey[] allowedReadKey)
@@ -87,13 +87,12 @@ namespace Structure.IO
         {
             void continueWhenInteger(string x)
             {
-                if (!int.TryParse(x, out var integer))
+                if (int.TryParse(x, out var integer)) continuation(integer);
+                else
                 {
                     Write($"'{x}' is not a valid integer.");
                     Run(() => ReadInteger(prompt, continuation));
-                    return;
                 }
-                continuation(integer);
             }
             Write(prompt);
             Read(continueWhenInteger, KeyGroups.NoKeys, new[] { ConsoleKey.Enter });
@@ -132,12 +131,13 @@ namespace Structure.IO
         private void PrintOptions(string prompt, string helpString, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
         {
             Write($"{prompt}\n");
-            if (string.IsNullOrEmpty(helpString)) keyedOptions.All(x =>
-            {
-                if (!string.IsNullOrEmpty(x.Value.Description)) Write($" {Utility.KeyToKeyString(x.Key)} - {x.Value.Description}");
-            });
+            if (string.IsNullOrEmpty(helpString)) keyedOptions.All(PrintOption);
             else Write(helpString);
         }
+
+        private void PrintOption(KeyValuePair<ConsoleKeyInfo, UserAction> x) => WriteNoLine(OptionString(x.Key, x.Value));
+
+        private static string OptionString(ConsoleKeyInfo key, UserAction option) => !string.IsNullOrEmpty(option.Description) ? $" {Utility.KeyToKeyString(key)} - {option.Description}\n" : string.Empty;
 
         private void ReadKeyAndSelectOption(Dictionary<ConsoleKeyInfo, UserAction> keyedOptions, ConsoleKey[] possibleKeys)
         {
@@ -210,27 +210,16 @@ namespace Structure.IO
             }
         }
 
-        public void ReadObsolete(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys)
-        {
-            var allowedReadKey = KeyGroups.NoKeys;
-            ReadCore(continuation, allowedKeys, submitKeys, allowedReadKey);
-        }
-
         public void ReadOptionsObsolete(string prompt, string helpString, params UserAction[] options)
         {
             var keyedOptions = CreateOptionKeysDictionary(options);
             ReadOptionsCore(prompt, helpString, KeyGroups.NoKeys, keyedOptions);
         }
 
-        // TODO: probs remove.
         private static Dictionary<ConsoleKeyInfo, UserAction> CreateOptionKeysDictionary(UserAction[] options)
         {
-            if (options == null) return null;
             var keys = new List<(ConsoleKeyInfo Key, UserAction Action)>();
-            foreach (var option in options.Where(x => x.HotkeyOverridden))
-            {
-                keys.Add((option.Hotkey, option));
-            }
+            options.Where(x => x.HotkeyOverridden).All(x => keys.Add((x.Hotkey, x)));
             foreach (var option in options.Where(x => !x.HotkeyOverridden))
             {
                 var possibleKeys = $"{option.Description.ToLower(CultureInfo.CurrentCulture)}abcdefghijklmnopqrstuvwxyz1234567890";
