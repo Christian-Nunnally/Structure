@@ -14,7 +14,7 @@ namespace Structure.Structure
             var startingModules = StartingModules.Create();
             var program = new StructureProgram(ioc, io, startingModules);
             io.ProgramInput = new StructureInput(io, ioc.Get<INewsPrinter>());
-            io.ProgramInput = new DevelopmentStructureInput(io, ioc.Get<INewsPrinter>(), true);
+            //io.ProgramInput = new DevelopmentStructureInput(io, ioc.Get<INewsPrinter>(), true);
             io.ProgramOutput = new ConsoleOutput();
             program.Run();
         }
