@@ -6,7 +6,6 @@ namespace Structure.IO
     class StaleOutputClearer : IBackgroundProcess
     {
         private int _currentIndex = 0;
-        private string _currentValidOutput = string.Empty;
         private bool _needsClearing = false;
         private bool _isCurrentClearValid = false;
         private int _x = 0;
@@ -58,7 +57,6 @@ namespace Structure.IO
 
         public void ClearStaleOutput(StructureIO io)
         {
-            _currentValidOutput = io.CurrentBuffer.ToString();
             _currentIndex = 0;
             _needsClearing = true;
             _isCurrentClearValid = false;

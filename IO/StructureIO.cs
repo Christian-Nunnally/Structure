@@ -4,6 +4,7 @@ using Structure.Structure;
 using Structure.Structure.Utility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -38,28 +39,6 @@ namespace Structure.IO
         public void ClearStaleOutput()
         {
             _backgroundProcesses.OfType<StaleOutputClearer>().FirstOrDefault()?.ClearStaleOutput(this);
-            //using var savePosition = new SaveAndRestoreCursorPosition(ProgramOutput);
-            //var buffer = CurrentBuffer.ToString();
-            //var x = X_START_POSITION;
-            //var y = Y_START_POSITION;
-            //foreach (var character in buffer)
-            //{
-            //    ProgramOutput.SetCursorPosition(Math.Min(x++, ProgramOutput.Width - 1), y);
-            //    if (!char.IsWhiteSpace(character)) continue;
-                
-            //    if (character == '\n' || x >= ProgramOutput.Width)
-            //    {
-            //        while (x++ < ProgramOutput.Width) ProgramOutput.Write(" ");
-            //        y++;
-            //        x = X_START_POSITION;
-            //    }
-            //    else ProgramOutput.Write(" ");
-            //}
-            //var spaces = string.Empty;
-            //for (int i = 0; i < ProgramOutput.Width; i++) spaces += " ";
-            //var ending = string.Empty;
-            //for (; y < ProgramOutput.Height - 1; y++) ending += spaces;
-            //ProgramOutput.Write(ending);
         }
 
         public void ClearBuffer()
@@ -103,13 +82,11 @@ namespace Structure.IO
             continuation?.Invoke(line.ToString());
         }
 
-        public void ReadOptions(string prompt, params UserAction[] options) => ReadOptions(prompt, null, options);
-
-        public void ReadOptions(string prompt, string helpString, params UserAction[] options)
+        public void ReadOptions(string prompt, string customHelpString, params UserAction[] options)
         {
-            var keyedOptions = CreateOptionKeysDictionary(options);
+            var keyedOptions = ConsoleKeyHelpers.CreateUserActionToConsoleKeyMap(options);
             var possibleKeys = keyedOptions.Select(x => x.Key.Key).ToArray();
-            ReadOptionsCore(prompt, helpString, possibleKeys, keyedOptions);
+            ReadOptionsCore(prompt, customHelpString, possibleKeys, keyedOptions);
         }
 
         public ConsoleKeyInfo ReadKey(ConsoleKey[] allowedKeys)
@@ -172,23 +149,23 @@ namespace Structure.IO
         {
             if (ConsoleKeyHelpers.IsAlphanumeric(key))
             {
-                ReadStringIntoLine($"{key.KeyChar}", line, echo);
+                AppendStringToLine($"{key.KeyChar}", line, echo);
             }
             else if (allowedKeys.Contains(key.Key))
             {
-                if (key.Key == ConsoleKey.Backspace) BackspaceFromLine(line, echo);
+                if (key.Key == ConsoleKey.Backspace) BackspaceKeyFromLine(line, echo);
                 else if (key.Key == ConsoleKey.Enter && echo) Write();
-                else ReadStringIntoLine($"{{{key.Key}}}", line, echo);
+                else AppendStringToLine($"{{{key.Key}}}", line, echo);
             }
             else
             {
-                if (key.Key == ConsoleKey.Backspace) BackspaceFromLine(line, echo);
+                if (key.Key == ConsoleKey.Backspace) BackspaceKeyFromLine(line, echo);
                 else if (key.Key == ConsoleKey.Enter && echo) Write();
                 else if (key.Key == ConsoleKey.Escape) Write();
             }
         }
 
-        private void BackspaceFromLine(StringBuilder line, bool echo)
+        private void BackspaceKeyFromLine(StringBuilder line, bool echo)
         {
             if (line.Length == 0) return;
             if (echo) ProgramOutput.Write("\b \b");
@@ -196,7 +173,7 @@ namespace Structure.IO
             line.Remove(line.Length - 1, 1);
         }
 
-        private void ReadStringIntoLine(string text, StringBuilder line, bool echo)
+        private void AppendStringToLine(string text, StringBuilder line, bool echo)
         {
             if (echo) WriteNoLine(text);
             line.Append(text);
@@ -204,34 +181,8 @@ namespace Structure.IO
 
         public void ReadOptionsObsolete(string prompt, string helpString, params UserAction[] options)
         {
-            var keyedOptions = CreateOptionKeysDictionary(options);
+            var keyedOptions = ConsoleKeyHelpers.CreateUserActionToConsoleKeyMap(options);
             ReadOptionsCore(prompt, helpString, KeyGroups.NoKeys, keyedOptions);
-        }
-
-        private static Dictionary<ConsoleKeyInfo, UserAction> CreateOptionKeysDictionary(UserAction[] options)
-        {
-            var keys = new List<(ConsoleKeyInfo Key, UserAction Action)>();
-            options.Where(x => x.HotkeyOverridden).All(x => keys.Add((x.Hotkey, x)));
-            foreach (var option in options.Where(x => !x.HotkeyOverridden))
-            {
-                var possibleKeys = $"{option.Description.ToLowerInvariant()}abcdefghijklmnopqrstuvwxyz1234567890";
-                for (int i = 0; i < possibleKeys.Length; i++)
-                {
-                    if (char.IsWhiteSpace(possibleKeys[i])) continue;
-                    if (!keys.Any(x => x.Key.KeyChar == ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]).KeyChar))
-                    {
-                        var consoleKeyInfo = ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]);
-                        if (consoleKeyInfo.Key >= ConsoleKey.NumPad0 && consoleKeyInfo.Key <= ConsoleKey.NumPad9)
-                        {
-                            keys.Add((new ConsoleKeyInfo($"{(int)consoleKeyInfo.Key - ConsoleKey.NumPad0}"[0], ConsoleKey.D0 + (consoleKeyInfo.Key - ConsoleKey.NumPad0), false, false, false), option));
-                        }
-                        keys.Add((consoleKeyInfo, option));
-                        option.Hotkey = consoleKeyInfo;
-                        break;
-                    }
-                }
-            }
-            return keys.ToDictionary(x => x.Key, x => x.Action);
         }
     }
 }

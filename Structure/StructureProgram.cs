@@ -42,6 +42,7 @@ namespace Structure.Structure
         {
             _io.Write(TitleString);
             _hotkey.Print(_io);
+            // TODO: Do not save keys from this input.
             _io.Read(x => { }, KeyGroups.NoKeys, KeyGroups.NoKeys);
         }
     }

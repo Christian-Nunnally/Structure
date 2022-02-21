@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Structure.Structure.Utility;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace Structure.IO
 {
@@ -37,6 +39,32 @@ namespace Structure.IO
         {
             return key.Modifiers.HasFlag(ConsoleModifiers.Control)
                 || key.Modifiers.HasFlag(ConsoleModifiers.Alt);
+        }
+
+        public static Dictionary<ConsoleKeyInfo, UserAction> CreateUserActionToConsoleKeyMap(UserAction[] options)
+        {
+            var keys = new List<(ConsoleKeyInfo Key, UserAction Action)>();
+            options.Where(x => x.HotkeyOverridden).All(x => keys.Add((x.Hotkey, x)));
+            foreach (var option in options.Where(x => !x.HotkeyOverridden))
+            {
+                var possibleKeys = $"{option.Description.ToLowerInvariant()}abcdefghijklmnopqrstuvwxyz1234567890";
+                for (int i = 0; i < possibleKeys.Length; i++)
+                {
+                    if (char.IsWhiteSpace(possibleKeys[i])) continue;
+                    if (!keys.Any(x => x.Key.KeyChar == ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]).KeyChar))
+                    {
+                        var consoleKeyInfo = ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]);
+                        if (consoleKeyInfo.Key >= ConsoleKey.NumPad0 && consoleKeyInfo.Key <= ConsoleKey.NumPad9)
+                        {
+                            keys.Add((new ConsoleKeyInfo($"{(int)consoleKeyInfo.Key - ConsoleKey.NumPad0}"[0], ConsoleKey.D0 + (consoleKeyInfo.Key - ConsoleKey.NumPad0), false, false, false), option));
+                        }
+                        keys.Add((consoleKeyInfo, option));
+                        option.Hotkey = consoleKeyInfo;
+                        break;
+                    }
+                }
+            }
+            return keys.ToDictionary(x => x.Key, x => x.Action);
         }
     }
 }
