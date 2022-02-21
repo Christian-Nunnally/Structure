@@ -1,4 +1,5 @@
-﻿using Structure.Modules.Interface;
+﻿using Structure.IO.Persistence;
+using Structure.Modules.Interface;
 using Structure.Structure.Utility;
 using System;
 using System.Collections.Generic;
@@ -23,20 +24,28 @@ namespace Structure.Modules
         {
             var obsolete = moduleTypes.Where(typeof(IObsoleteModule).IsAssignableFrom).ToList();
             var nonObsolete = moduleTypes.Except(obsolete).ToList();
-            bool keepLooping = true;
-            while (keepLooping)
+            if (ShouldUseObsoleteModules())
             {
-                keepLooping = false;
-                for (int i = obsolete.Count - 1; i >= 0; i--)
+                bool keepLooping = true;
+                while (keepLooping)
                 {
-                    var obsoleteType = obsolete[i];
-                    var typeOfUpgrade = GetTypeOfUpgrade(obsoleteType);
-                    if (nonObsolete.Contains(typeOfUpgrade)) nonObsolete[nonObsolete.IndexOf(typeOfUpgrade)] = obsoleteType;
-                    else if (obsolete.Contains(typeOfUpgrade)) keepLooping = true;
-                    else obsolete.Remove(obsoleteType);
+                    keepLooping = false;
+                    for (int i = obsolete.Count - 1; i >= 0; i--)
+                    {
+                        var obsoleteType = obsolete[i];
+                        var typeOfUpgrade = GetTypeOfUpgrade(obsoleteType);
+                        if (nonObsolete.Contains(typeOfUpgrade)) nonObsolete[nonObsolete.IndexOf(typeOfUpgrade)] = obsoleteType;
+                        else if (obsolete.Contains(typeOfUpgrade)) keepLooping = true;
+                        else obsolete.Remove(obsoleteType);
+                    }
                 }
             }
             return nonObsolete;
+        }
+
+        private static bool ShouldUseObsoleteModules()
+        {
+            return new PersistedList<bool>("use-obsolete-modules").FirstOrDefault();
         }
 
         private static Type GetTypeOfUpgrade(Type obsoleteModuleType)

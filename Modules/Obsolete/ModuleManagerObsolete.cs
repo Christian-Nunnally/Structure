@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Structure.Modules.Obsolete
 {
-    public class ModuleManagerObsolete : StructureModule, IObsoleteModule
+    public class ModuleManagerObsolete : StructureModule, IObsoleteModule, IModuleManager
     {
         public const string ManageModulesPromptText = "Enable/disable modules:";
         private const string UpgradeModuleHintText = "Type 'upgrade 1' to upgrade module 1";
@@ -29,7 +29,7 @@ namespace Structure.Modules.Obsolete
             return newModule;
         }
 
-        internal void RegisterModules(IModule[] modules)
+        public void RegisterModules(IModule[] modules)
         {
             _listedModules.AddRange(modules);
         }

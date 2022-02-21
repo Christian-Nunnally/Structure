@@ -1,6 +1,5 @@
 ﻿using Structure.IO;
 using Structure.Modules.Interface;
-using Structure.Modules.Obsolete;
 using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -32,7 +31,7 @@ namespace Structure.Structure
 
         public void Run()
         {
-            var manager = _modules.OfType<ModuleManagerObsolete>().First();
+            var manager = _modules.OfType<IModuleManager>().First();
             manager.RegisterModules(_modules);
             manager.Enable(_ioc, _io);
             while (!Exit) _io.Run(Loop);

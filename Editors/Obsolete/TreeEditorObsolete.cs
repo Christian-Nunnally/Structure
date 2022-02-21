@@ -15,7 +15,7 @@ namespace Structure.Editors.Obsolete
         public Action<T> EnterPressedOnParentAction { get; set; }
         public Action<T> EnterPressedOnLeafAction { get; set; }
         public Action NoChildrenAction { get; set; }
-        protected Dictionary<Type, Dictionary<Type, Func<T, T>>> ItemConversionMap { get; } = new Dictionary<Type, Dictionary<Type, Func<T, T>>>();
+        protected ItemConverter<T> ItemConverter { get; set;  } = new ItemConverter<T>();
         protected string CurrentParentCached { get; set; }
         protected bool EnableReparenting { get; set; } = true;
         protected NodeTree<T> Tree { get; set; }
@@ -134,30 +134,13 @@ namespace Structure.Editors.Obsolete
 
         private void ChangeItemType()
         {
-            if (TryGetSelectedItem(out var selectedTask))
+            if (TryGetSelectedItem(out var item))
             {
-                if (ItemConversionMap.ContainsKey(selectedTask.GetType()))
-                {
-                    var possibleConversionsMap = ItemConversionMap[selectedTask.GetType()];
-                    var actions = new List<UserAction>();
-                    foreach (var keyValuePair in possibleConversionsMap)
-                    {
-                        var newItem = keyValuePair.Value(selectedTask);
-                        void action() => ReplaceItem(selectedTask, newItem);
-                        var description = $"Convert to {keyValuePair.Key.Name}";
-                        var userAction = new UserAction(description, action);
-                        actions.Add(userAction);
-                    }
-                    _io.ReadOptionsObsolete($"Change the type of '{selectedTask.ToString()}'", "", actions.ToArray());
-                }
+                if (item == null) return;
+                if (!ItemConverter.CanConvert(item.GetType())) return;
+                var posibleConversions = ItemConverter.GetPossibleConversions(Tree, item);
+                _io.ReadOptions($"Change the type of '{item}'", "", posibleConversions);
             }
-        }
-
-        private void ReplaceItem(T itemToReplace, T newItem)
-        {
-            newItem.ID = itemToReplace.ID;
-            Tree.Remove(itemToReplace);
-            Tree.Set(newItem);
         }
 
         private void WriteHeader()

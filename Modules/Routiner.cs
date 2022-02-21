@@ -53,7 +53,7 @@ namespace Structure.Modules
         private void EditRoutines()
         {
             var editor = new TreeEditor<TaskItem>(IO, EditRoutinesPrompt, Data.Routines, true);
-            TaskItemConversions.AddTaskConversionStrategies(editor);
+            editor.ItemConverter = TaskItemConversions.CreateTaskItemConverter();
             IO.Run(editor.Edit);
         }
 

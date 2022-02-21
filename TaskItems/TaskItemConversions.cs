@@ -1,18 +1,14 @@
-﻿using Structure.Editors;
-using System.Diagnostics.Contracts;
-
-namespace Structure.TaskItems
+﻿namespace Structure.TaskItems
 {
     public static class TaskItemConversions
     {
-        public static void AddTaskConversionStrategies(TreeEditor<TaskItem> tree)
+        public static ItemConverter<TaskItem> CreateTaskItemConverter()
         {
-            Contract.Requires(tree != null);
             var task = typeof(TaskItem);
             var floatTask = typeof(RecordFloatTaskItem);
             var integerTask = typeof(RecordIntegerTaskItem);
             var stringTask = typeof(RecordStringTaskItem);
-            var itemConverter = tree.ItemConverter;
+            var itemConverter = new ItemConverter<TaskItem>();
 
             itemConverter.RegisterConversion(task, floatTask, ConvertToFloatTaskItem);
             itemConverter.RegisterConversion(task, integerTask, ConvertToIntegerTaskItem);
@@ -29,6 +25,7 @@ namespace Structure.TaskItems
             itemConverter.RegisterConversion(stringTask, floatTask, ConvertToFloatTaskItem);
             itemConverter.RegisterConversion(stringTask, integerTask, ConvertToIntegerTaskItem);
             itemConverter.RegisterConversion(stringTask, task, ConvertToTaskItem);
+            return itemConverter;
         }
 
         public static TaskItem ConvertToTaskItem(TaskItem item)

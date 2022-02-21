@@ -31,7 +31,7 @@ namespace Structure.Editors
         private bool _return;
         private int _cursor;
 
-        public ItemConverter<T> ItemConverter { get; } = new ItemConverter<T>();
+        public ItemConverter<T> ItemConverter { get; set; } = new ItemConverter<T>();
 
         public Action<T> EnterPressedOnParentAction { get; set; }
 

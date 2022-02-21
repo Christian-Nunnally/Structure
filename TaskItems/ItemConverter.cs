@@ -11,8 +11,6 @@ namespace Structure.TaskItems
 
         internal bool CanConvert(Type from) => _conversionMap.ContainsKey(from);
 
-        internal bool CanConvert(Type from, Type to) => _conversionMap.TryGetValue(from, out var inner) && inner.ContainsKey(to);
-
         internal void RegisterConversion(Type from, Type to, Func<T, T> conversionFunction)
         {
             AddMapIfDoesntExist(from);

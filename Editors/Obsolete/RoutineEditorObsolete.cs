@@ -12,43 +12,45 @@ namespace Structure.Editors
         public RoutineEditorObsolete(StructureIO io, NodeTree<TaskItem> routineTree) : base(io, "Edit routines", routineTree)
         {
             EnableDefaultInsertFunctionality("Insert routine item", DefaultNodeFactory);
-            AddTaskConversionStrategies();
+            var converter = TaskItemConversions.CreateTaskItemConverter();
+            ItemConverter = converter;
+            //AddTaskConversionStrategies();
         }
 
-        private void AddTaskConversionStrategies()
-        {
-            var conversionMap = new Dictionary<Type, Func<TaskItem, TaskItem>>
-            {
-                { typeof(RecordFloatTaskItem), ConvertToFloatTaskItem },
-                { typeof(RecordIntegerTaskItem), ConvertToIntegerTaskItem },
-                { typeof(RecordStringTaskItem), ConvertToStringTaskItem }
-            };
-            ItemConversionMap.Add(typeof(TaskItem), conversionMap);
+        //private void AddTaskConversionStrategies()
+        //{
+        //    var conversionMap = new Dictionary<Type, Func<TaskItem, TaskItem>>
+        //    {
+        //        { typeof(RecordFloatTaskItem), ConvertToFloatTaskItem },
+        //        { typeof(RecordIntegerTaskItem), ConvertToIntegerTaskItem },
+        //        { typeof(RecordStringTaskItem), ConvertToStringTaskItem }
+        //    };
+        //    ItemConverter.Add(typeof(TaskItem), conversionMap);
 
-            conversionMap = new Dictionary<Type, Func<TaskItem, TaskItem>>
-            {
-                { typeof(RecordFloatTaskItem), ConvertToFloatTaskItem },
-                { typeof(TaskItem), ConvertToTaskItem },
-                { typeof(RecordStringTaskItem), ConvertToStringTaskItem }
-            };
-            ItemConversionMap.Add(typeof(RecordIntegerTaskItem), conversionMap);
+        //    conversionMap = new Dictionary<Type, Func<TaskItem, TaskItem>>
+        //    {
+        //        { typeof(RecordFloatTaskItem), ConvertToFloatTaskItem },
+        //        { typeof(TaskItem), ConvertToTaskItem },
+        //        { typeof(RecordStringTaskItem), ConvertToStringTaskItem }
+        //    };
+        //    ItemConverter.Add(typeof(RecordIntegerTaskItem), conversionMap);
 
-            conversionMap = new Dictionary<Type, Func<TaskItem, TaskItem>>
-            {
-                { typeof(TaskItem), ConvertToTaskItem },
-                { typeof(RecordIntegerTaskItem), ConvertToIntegerTaskItem },
-                { typeof(RecordStringTaskItem), ConvertToStringTaskItem }
-            };
-            ItemConversionMap.Add(typeof(RecordFloatTaskItem), conversionMap);
+        //    conversionMap = new Dictionary<Type, Func<TaskItem, TaskItem>>
+        //    {
+        //        { typeof(TaskItem), ConvertToTaskItem },
+        //        { typeof(RecordIntegerTaskItem), ConvertToIntegerTaskItem },
+        //        { typeof(RecordStringTaskItem), ConvertToStringTaskItem }
+        //    };
+        //    ItemConverter.Add(typeof(RecordFloatTaskItem), conversionMap);
 
-            conversionMap = new Dictionary<Type, Func<TaskItem, TaskItem>>
-            {
-                { typeof(RecordFloatTaskItem), ConvertToFloatTaskItem },
-                { typeof(RecordIntegerTaskItem), ConvertToIntegerTaskItem },
-                { typeof(TaskItem), ConvertToTaskItem }
-            };
-            ItemConversionMap.Add(typeof(RecordStringTaskItem), conversionMap);
-        }
+        //    conversionMap = new Dictionary<Type, Func<TaskItem, TaskItem>>
+        //    {
+        //        { typeof(RecordFloatTaskItem), ConvertToFloatTaskItem },
+        //        { typeof(RecordIntegerTaskItem), ConvertToIntegerTaskItem },
+        //        { typeof(TaskItem), ConvertToTaskItem }
+        //    };
+        //    ItemConverter.Add(typeof(RecordStringTaskItem), conversionMap);
+        //}
 
         private TaskItem ConvertToTaskItem(TaskItem item)
         {
