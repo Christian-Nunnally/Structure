@@ -37,28 +37,29 @@ namespace Structure.IO
 
         public void ClearStaleOutput()
         {
-            using var savePosition = new SaveAndRestoreCursorPosition(ProgramOutput);
-            var buffer = CurrentBuffer.ToString();
-            var x = X_START_POSITION;
-            var y = Y_START_POSITION;
-            foreach (var character in buffer)
-            {
-                ProgramOutput.SetCursorPosition(Math.Min(x++, ProgramOutput.Width - 1), y);
-                if (!char.IsWhiteSpace(character)) continue;
+            _backgroundProcesses.OfType<StaleOutputClearer>().FirstOrDefault()?.ClearStaleOutput(this);
+            //using var savePosition = new SaveAndRestoreCursorPosition(ProgramOutput);
+            //var buffer = CurrentBuffer.ToString();
+            //var x = X_START_POSITION;
+            //var y = Y_START_POSITION;
+            //foreach (var character in buffer)
+            //{
+            //    ProgramOutput.SetCursorPosition(Math.Min(x++, ProgramOutput.Width - 1), y);
+            //    if (!char.IsWhiteSpace(character)) continue;
                 
-                if (character == '\n' || x >= ProgramOutput.Width)
-                {
-                    while (x++ < ProgramOutput.Width) ProgramOutput.Write(" ");
-                    y++;
-                    x = X_START_POSITION;
-                }
-                else ProgramOutput.Write(" ");
-            }
-            var spaces = string.Empty;
-            for (int i = 0; i < ProgramOutput.Width; i++) spaces += " ";
-            var ending = string.Empty;
-            for (; y < ProgramOutput.Height - 1; y++) ending += spaces;
-            ProgramOutput.Write(ending);
+            //    if (character == '\n' || x >= ProgramOutput.Width)
+            //    {
+            //        while (x++ < ProgramOutput.Width) ProgramOutput.Write(" ");
+            //        y++;
+            //        x = X_START_POSITION;
+            //    }
+            //    else ProgramOutput.Write(" ");
+            //}
+            //var spaces = string.Empty;
+            //for (int i = 0; i < ProgramOutput.Width; i++) spaces += " ";
+            //var ending = string.Empty;
+            //for (; y < ProgramOutput.Height - 1; y++) ending += spaces;
+            //ProgramOutput.Write(ending);
         }
 
         public void ClearBuffer()
