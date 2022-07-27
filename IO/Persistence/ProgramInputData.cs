@@ -14,13 +14,16 @@ namespace Structure.IO.Input
             Time = time;
         }
 
+        [JsonProperty(PropertyName = "K")]
         public int Key { get; set; }
 
-        [JsonProperty(PropertyName="Char")]
+        [JsonProperty(PropertyName="C")]
         public char Character { get; set; }
 
+        [JsonProperty(PropertyName = "M")]
         public int Modifiers { get; set; }
 
+        [JsonProperty(PropertyName = "T")]
         public DateTime Time { get; set; }
 
         public ConsoleKeyInfo GetKeyInfo()

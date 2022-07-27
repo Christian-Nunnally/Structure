@@ -27,6 +27,8 @@ namespace Structure.IO
                 return new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, false);
             if (character == '.')
                 return new ConsoleKeyInfo('.', ConsoleKey.OemPeriod, false, false, false);
+            if (character == '/')
+                return new ConsoleKeyInfo('/', ConsoleKey.Divide, false, false, false);
             throw new InvalidOperationException($"Unable to convert '{character}' to ConsoleKey");
         }
 
@@ -48,10 +50,11 @@ namespace Structure.IO
             foreach (var option in options.Where(x => !x.HotkeyOverridden))
             {
                 var possibleKeys = $"{option.Description.ToLowerInvariant()}abcdefghijklmnopqrstuvwxyz1234567890";
+                var possibleKeyCharacters = possibleKeys.Select(ConvertCharToConsoleKey).Select(x => x.KeyChar).ToList();
                 for (int i = 0; i < possibleKeys.Length; i++)
                 {
                     if (char.IsWhiteSpace(possibleKeys[i])) continue;
-                    if (!keys.Any(x => x.Key.KeyChar == ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]).KeyChar))
+                    if (!keys.Any(x => x.Key.KeyChar == possibleKeyCharacters[i]))
                     {
                         var consoleKeyInfo = ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]);
                         if (consoleKeyInfo.Key >= ConsoleKey.NumPad0 && consoleKeyInfo.Key <= ConsoleKey.NumPad9)

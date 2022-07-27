@@ -4,7 +4,6 @@ using Structure.Structure;
 using Structure.Structure.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -12,10 +11,14 @@ namespace Structure.IO
 {
     public class StructureIO
     {
-        private const int X_START_POSITION = 0;
-        private const int Y_START_POSITION = 1;
         private readonly Stack<string> _buffers = new Stack<string>();
         private readonly List<IBackgroundProcess> _backgroundProcesses;
+
+        public int XStartPosition { get; set; }
+
+        public int YStartPosition { get; set; } = 1;
+
+        public bool IsBusy { get; set; }
 
         public IProgramInput ProgramInput { get; set; }
 
@@ -38,13 +41,13 @@ namespace Structure.IO
 
         public void ClearStaleOutput()
         {
-            _backgroundProcesses.OfType<StaleOutputClearer>().FirstOrDefault()?.ClearStaleOutput(this);
+            _backgroundProcesses.OfType<StaleOutputClearer>().FirstOrDefault()?.ClearStaleOutput();
         }
 
         public void ClearBuffer()
         {
             CurrentBuffer.Clear();
-            ProgramOutput.SetCursorPosition(X_START_POSITION, Y_START_POSITION);
+            ProgramOutput.SetCursorPosition(XStartPosition, YStartPosition);
         }
 
         public void Run(Action action)
@@ -93,7 +96,7 @@ namespace Structure.IO
         {
             while (true)
             {
-                ProcessInBackgroundWhileWaitingForInput();
+                if (!SkipUnescesscaryOperations) ProcessInBackgroundWhileWaitingForInput();
                 var keyInfo = ReadKeyAndSetTime();
                 var isHotkeyPressed = ConsoleKeyHelpers.IsModifierPressed(keyInfo);
                 var isAllowedKey = allowedKeys.Contains(keyInfo.Key) || allowedKeys == KeyGroups.NoKeys;
@@ -134,13 +137,15 @@ namespace Structure.IO
 
         private ConsoleKeyInfo ReadKeyAndSetTime()
         {
+            IsBusy = false;
             var key = ProgramInput.ReadKey();
+            IsBusy = true;
             if (key == null) throw new InvalidProgramException();
             CurrentTime.SetArtificialTime(key.Time);
             return key.GetKeyInfo();
         }
 
-        private void ProcessInBackgroundWhileWaitingForInput()
+        public void ProcessInBackgroundWhileWaitingForInput()
         {
             while (!ProgramInput.IsKeyAvailable() && _backgroundProcesses.Any(x => x.DoProcess(this)));
         }

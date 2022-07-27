@@ -5,14 +5,16 @@ namespace Structure.IO
 {
     class StaleOutputClearer : IBackgroundProcess
     {
-        private int _currentIndex = 0;
-        private bool _needsClearing = false;
-        private bool _isCurrentClearValid = false;
-        private int _x = 0;
+        private int _currentIndex;
+        private bool _needsClearing;
+        private bool _isCurrentClearValid;
+        private int _x;
         private int _y = 1;
+        private int _yStart = 1;
 
         public bool DoProcess(StructureIO io)
         {
+            _yStart = io.YStartPosition;
             if (_needsClearing) ClearStaleOutput(io.CurrentBuffer.ToString(), io.ProgramOutput);
             return _needsClearing;
         }
@@ -21,13 +23,12 @@ namespace Structure.IO
         {
             using var savePosition = new SaveAndRestoreCursorPosition(output);
 
-
             if (!_isCurrentClearValid)
             {
                 _currentIndex = 0;
                 _isCurrentClearValid = true;
                 _x = 0;
-                _y = 1;
+                _y = _yStart;
             }
 
             for (int i = _currentIndex; i < buffer.Length; i++)
@@ -55,7 +56,7 @@ namespace Structure.IO
             _needsClearing = false;
         }
 
-        public void ClearStaleOutput(StructureIO io)
+        public void ClearStaleOutput()
         {
             _currentIndex = 0;
             _needsClearing = true;

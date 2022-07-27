@@ -1,5 +1,6 @@
 ﻿using Structure.IO;
 using Structure.Modules.Interface;
+using Structure.Server;
 using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -39,8 +40,11 @@ namespace Structure.Structure
 
         private void Loop()
         {
-            _io.Write(TitleString);
-            _hotkey.Print(_io);
+            if (!_io.SkipUnescesscaryOperations)
+            { 
+                _io.Write(TitleString);
+                _hotkey.Print(_io);
+            }
             // TODO: Do not save keys from this input.
             _io.Read(x => { }, KeyGroups.NoKeys, KeyGroups.NoKeys);
         }

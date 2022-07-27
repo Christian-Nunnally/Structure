@@ -13,10 +13,10 @@ namespace Structure.IO.Input
 
         protected ChainedInput InputSource { get; set; }
 
-        public StructureInput(StructureIO io, INewsPrinter newsPrinter)
+        public StructureInput(StructureIO io, IProgramInput sourceInput, INewsPrinter newsPrinter)
         {
             InitializeNewInputFromSavedSessions(io, newsPrinter);
-            AddRecordingInputForEmptySaveSession();
+            AddRecordingInputForEmptySaveSession(sourceInput);
         }
 
         protected void InitializeNewInputFromSavedSessions(StructureIO io, INewsPrinter newsPrinter)
@@ -35,10 +35,10 @@ namespace Structure.IO.Input
             return sessionsInputs;
         }
 
-        private void AddRecordingInputForEmptySaveSession()
+        private void AddRecordingInputForEmptySaveSession(IProgramInput sourceInput)
         {
             var nextDataSession = SavedSessionUtilities.LoadNextEmptyDataSession();
-            var recordedUserInputSource = (IProgramInput)new RecordingInput(new ConsoleInput(), nextDataSession);
+            var recordedUserInputSource = (IProgramInput)new RecordingInput(sourceInput, nextDataSession);
             InputSource.AddInput(recordedUserInputSource);
         }
 

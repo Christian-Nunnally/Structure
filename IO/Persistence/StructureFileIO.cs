@@ -28,6 +28,12 @@ namespace Structure.IO.Persistence
         private static string GetSavedDirectoryPath(string fileKey)
         {
             var settingsPath = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\{AppDataSettingsFolderName}\\{fileKey}{SaveFileExtension}";
+
+            if (File.Exists("settings.structure"))
+            {
+                settingsPath = File.ReadAllText("settings.structure") + $"\\{fileKey}{SaveFileExtension}";
+            }
+
             if (!File.Exists(settingsPath)) SaveToFile(settingsPath, GetPathFromUser(fileKey));
             return File.ReadAllText(settingsPath);
         }

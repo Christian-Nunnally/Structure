@@ -4,7 +4,7 @@ namespace Structure.IO.Input
 {
     public class DevelopmentStructureInput : StructureInput
     {
-        public DevelopmentStructureInput(StructureIO io, INewsPrinter newsPrinter, bool loadSave) : base(io, newsPrinter)
+        public DevelopmentStructureInput(StructureIO io, IProgramInput sourceInput, INewsPrinter newsPrinter, bool loadSave) : base(io, sourceInput, newsPrinter)
         {
             if (loadSave)
             {
@@ -14,7 +14,7 @@ namespace Structure.IO.Input
             {
                 InputSource = new ChainedInput();
             }
-            InputSource.AddInput(new ConsoleInput());
+            InputSource.AddInput(sourceInput);
         }
     }
 }

@@ -16,9 +16,9 @@ using Structure.Structure.Utility;
 
 namespace Structure.Modules
 {
-    public class TaskHistoryInformation : StructureModule
+    public class DataGrapher : StructureModule
     {
-        private const string ModuleHotkeyDescription = "Task history";
+        private const string ModuleHotkeyDescription = "Data Grapher";
         private const string SetYAxisModeActionDescription = "Set y axis mode";
         private const string CompletedTasksDataSetDescription = "Completed Tasks";
         private const string ActiveTaskCountDataSetDescription = "Active Task Count";
@@ -31,11 +31,8 @@ namespace Structure.Modules
         private NodeTree<TaskItem> _dataRoutines;
         private readonly List<TaskHistoryQuery> _queries = new List<TaskHistoryQuery>();
         private bool _dataSetsInitialized;
+        private bool _isUsingRealData;
         private readonly List<(string Name, IList<TaskItem> Data)> _dataSets = new List<(string Name, IList<TaskItem> Data)>();
-
-        public TaskHistoryInformation()
-        {
-        }
 
         protected override void OnDisable()
         {
@@ -57,11 +54,14 @@ namespace Structure.Modules
             if (!IO.SkipUnescesscaryOperations)
             {
                 RunStructureWithModules(activeTaskCountCollector, completedTaskCollector);
-                _dataSetsInitialized = true;
+                _isUsingRealData = true;
             }
+            _dataSetsInitialized = true;
             _dataSets.Add((ActiveTaskCountDataSetDescription, activeTaskCountCollector.TaskCountOverTime));
             _dataSets.Add((CompletedTasksDataSetDescription, completedTaskCollector.CompletedTasks));
-            AddQuery();
+
+            _queries.All(x => x.DataSet = _dataSets.First(d => d.Name == x.DataSet.Name));
+            if (_selectedQuery == null) AddQuery();
         }
 
         private void RunStructureWithModules(params IModule[] modules)
@@ -92,13 +92,10 @@ namespace Structure.Modules
 
         private void Start()
         {
-            if (!_dataSetsInitialized)
-            {
-                PopulateDataSets();
-            }
             while(!_exit)
             {
-                IO.Run(() => ShowHistoryAndListOptions(BasicFilter));
+                if ((!_isUsingRealData && !IO.SkipUnescesscaryOperations) || !_dataSetsInitialized) PopulateDataSets();
+                ShowHistoryAndListOptions(BasicFilter);
             }
             _exit = false;
         }
@@ -114,9 +111,11 @@ namespace Structure.Modules
 
         private void ShowHistoryAndListOptions(Predicate<TaskItem> filter)
         {
+            IO.ClearBuffer();
             PrintTitle();
             ShowData(filter);
             ListChartOptions();
+            IO.ClearStaleOutput();
         }
 
         private void PrintTitle()
@@ -124,8 +123,13 @@ namespace Structure.Modules
             IO.Write("Task History");
             IO.Write();
             int i = 0;
-            ModifySelectedQueries(x => IO.Write($"Query {i++} - AggregationMode: {x.AggregationMode.Method.Name} - Range: {x.AggregationRange} - Data: {x.DataSet.Name}"));
+            ModifySelectedQueries(x => IO.Write(QueryToPrettyString(x, i++)));
             IO.Write();
+        }
+
+        private static string QueryToPrettyString(TaskHistoryQuery x, int index)
+        {
+            return $"Query {index} - Data: {x.DataSet.Name} - Mode: {x.AggregationMode.Method.Name} - Range: {x.AggregationRange}\n          Grouping: {x.AggregationRange} - Interpolate: {x.InterpolateEmptyRanges} - Filter: {x.SearchTerm}";
         }
 
         private void ShowData(Predicate<TaskItem> filter)
@@ -164,21 +168,61 @@ namespace Structure.Modules
         {
             var options = new[]
             {
-                new UserAction("Change range", ChangeRange),
-                new UserAction("Change grouping", ChangeGrouping),
+                new UserAction("Modify how values are computed", ChangeHowValuesAreComputed),
+                new UserAction("Modify what is being graphed", ChangeWhatIsBeingGraphed),
+                new UserAction("Add/remove/select query", AddOrRemoveQueries),
                 new UserAction("Add tasks copied from another task", AddCopiedTasks),
-                new UserAction("Y axis", ChangeYAxisMode),
+                new UserAction("Change axis settings", ChangeAxisSettings),
                 new UserAction("List raw values", ToggleListValues),
-                new UserAction("Toggle interpolate zeros", ToggleInterpolateZeros),
-                new UserAction("Select data set", SelectDataSet),
-                new UserAction("Filter by word", SetSearchTerm),
-                new UserAction("Clear filters", ClearFilters),
+                new UserAction("Exit", Exit, ConsoleKey.Escape),
+            };
+            IO.ReadOptions("Task history options", null, options);
+        }
+
+        private void ChangeAxisSettings()
+        {
+            var options = new[]
+{
+                new UserAction("Change x axis range", ChangeRange),
+                new UserAction("Exit", Exit, ConsoleKey.Escape),
+            };
+            IO.ReadOptions("Task history options", null, options);
+        }
+
+        private void AddOrRemoveQueries()
+        {
+            var options = new[]
+{
                 new UserAction("Select query", SelectQuery),
                 new UserAction("Add query", AddQuery),
                 new UserAction("Exit", Exit, ConsoleKey.Escape),
             };
+            IO.ReadOptions("Change what is bing graphed", null, options);
+        }
 
-            IO.ReadOptions("Task history options", null, options);
+        private void ChangeWhatIsBeingGraphed()
+        {
+            var options = new[]
+            {
+                new UserAction("Add tasks copied from another task", AddCopiedTasks),
+                new UserAction("Select data set", SelectDataSet),
+                new UserAction("Filter by word", SetSearchTerm),
+                new UserAction("Clear filters", ClearFilters),
+                new UserAction("Exit", Exit, ConsoleKey.Escape),
+            };
+            IO.ReadOptions("Change what is bing graphed", null, options);
+        }
+
+        private void ChangeHowValuesAreComputed()
+        {
+            var options = new[]
+{
+                new UserAction("Change grouping", ChangeGrouping),
+                new UserAction("Y axis", ChangeYAxisMode),
+                new UserAction("Toggle interpolate zeros", ToggleInterpolateZeros),
+                new UserAction("Exit", Exit, ConsoleKey.Escape),
+            };
+            IO.ReadOptions("Change how values are computed", null, options);
         }
 
         private void AddQuery()
