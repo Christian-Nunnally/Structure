@@ -12,34 +12,53 @@ namespace Structure.Modules
     {
         private readonly Queue<TaskItem> _activeTasksQueue = new Queue<TaskItem>();
         private const string SwitchToNextActiveTaskPrompt = "Switch to next active task";
-        private const string ActivateTaskPrompt = "Activate a task";
+        private const string ActivateTaskPrompt = "Pick task to add to active task list";
+        private const string DeactivateTaskPrompt = "Remove task from the active task list";
         private UserAction _switchToActiveTask;
         private UserAction _activateTask;
+        private UserAction _deactivateTask;
 
         protected override void OnDisable()
         {
             Hotkey.Remove(ConsoleKey.S, _switchToActiveTask);
             Hotkey.Remove(ConsoleKey.N, _activateTask);
+            Hotkey.Remove(ConsoleKey.B, _deactivateTask);
         }
 
         protected override void OnEnable()
         {
             _switchToActiveTask = new UserAction(SwitchToNextActiveTaskPrompt, SwitchToNextActiveTask);
             _activateTask = new UserAction(ActivateTaskPrompt, ActivateTask);
+            _deactivateTask = new UserAction(DeactivateTaskPrompt, DeactivateTask);
             Hotkey.Add(ConsoleKey.S, _switchToActiveTask);
             Hotkey.Add(ConsoleKey.N, _activateTask);
-            //Hotkey.Add(ConsoleKey.M, _deactivateTask);
+            Hotkey.Add(ConsoleKey.B, _deactivateTask);
         }
 
         private void ActivateTask()
         {
-            var picker = new ItemPicker<TaskItem>(IO, "Pick task to activate", true, true, Data.Tasks, true, ActivateTask);
+            var picker = new ItemPicker<TaskItem>(IO, ActivateTaskPrompt, true, true, Data.Tasks, true, ActivateTask);
             IO.Run(picker.Edit);
         }
 
         private void ActivateTask(TaskItem task)
         {
             _activeTasksQueue.Enqueue(task);
+        }
+
+        private void DeactivateTask()
+        {
+            var picker = new ItemPicker<TaskItem>(IO, DeactivateTaskPrompt, true, true, Data.Tasks, true, DeactivateTask);
+            IO.Run(picker.Edit);
+        }
+
+        private void DeactivateTask(TaskItem taskToDeactivate)
+        {
+            for (int i = 0; i < _activeTasksQueue.Count; i++)
+            {
+                var task = _activeTasksQueue.Dequeue();
+                if (task.ID != taskToDeactivate.ID) _activeTasksQueue.Enqueue(task);
+            }
         }
 
         private void SwitchToNextActiveTask()
