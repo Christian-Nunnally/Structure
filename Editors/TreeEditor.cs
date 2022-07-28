@@ -1,7 +1,7 @@
 ﻿using Structure.IO;
 using Structure.IO.Persistence;
 using Structure.TaskItems;
-using Structure.Structure.Utility;
+using Structure.Program.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +26,7 @@ namespace Structure.Editors
         private readonly UserAction[] _options;
         private string _currentParentCached;
         private bool _goBackIfNoChild;
-        private int _scrollIndex = 0;
+        private int _scrollIndex;
         private bool _showChildren;
         private bool _return;
         private int _cursor;
@@ -104,7 +104,7 @@ namespace Structure.Editors
             }
         }
 
-        private void WriteTasks(List<T> children, int linesToPrint)
+        private void WriteTasks(IList<T> children, int linesToPrint)
         {
             Cursor = _cursor;
             var tasksString = new StringBuilder();
@@ -143,10 +143,10 @@ namespace Structure.Editors
             }
             parents.Reverse();
             parents.All(p => stringBuilder.Append($"{p} > "));
-            stringBuilder.Append("\n");
+            stringBuilder.Append('\n');
         }
 
-        private void WriteTasks(int cursorIndex, List<T> tasks, string spaces, ref int linesToPrint, StringBuilder stringBuilder)
+        private void WriteTasks(int cursorIndex, IList<T> tasks, string spaces, ref int linesToPrint, StringBuilder stringBuilder)
         {
             var canScrollUp = _scrollIndex > 0;
             var canScrollDown = tasks.Count > _scrollIndex + NUMBER_OF_VISIBLE_ITEMS;
@@ -198,7 +198,7 @@ namespace Structure.Editors
             Cursor = GetChildren(_currentParentCached).IndexOf(currentParent);
         }
 
-        public List<T> GetChildren(string parent)
+        public IList<T> GetChildren(string parent)
         {
             var childrenOfCurrentParent = _tree.Where(x => x.Value.ParentID == parent).Select(x => x.Value).OrderBy(x => x.Rank);
             return parent == null
@@ -230,6 +230,9 @@ namespace Structure.Editors
 
         private Action PromptToInsertNode(string insertPrompt, Func<string, string, int, Node> nodeFactory) => () =>
         {
+            var stringBuilder = new StringBuilder();
+            WriteHeader(stringBuilder);
+            _io.Write(stringBuilder.ToString());
             var index = Cursor - 1;
             var rank = index * 2 + 1;
             _io.WriteNoLine($"\n{insertPrompt}: ");
@@ -266,7 +269,7 @@ namespace Structure.Editors
 
         private void ReparentToGrandparent(T task) => task.ParentID = _tree[task.ParentID]?.ParentID;
 
-        private static void ConsolidateRank(List<T> tasks) => tasks.All(t => t.Rank = tasks.IndexOf(t) * 2);
+        private static void ConsolidateRank(IList<T> tasks) => tasks.All(t => t.Rank = tasks.IndexOf(t) * 2);
 
         private void ChangeItemType(T item)
         {

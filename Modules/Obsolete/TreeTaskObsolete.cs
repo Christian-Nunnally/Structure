@@ -9,7 +9,7 @@ namespace Structure.Modules.Obsolete
     public class TreeTaskObsolete : StructureModule, IObsoleteModule
     {
         private UserAction _doTasks;
-        public List<TaskEditorObsolete> OpenEditors { get; } = new List<TaskEditorObsolete>();
+        public IList<TaskEditorObsolete> OpenEditors { get; } = new List<TaskEditorObsolete>();
 
         public IModule UpgradeModule()
         {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Structure.Structure.Utility
+namespace Structure.Program.Utilities
 {
     public static class Executor
     {

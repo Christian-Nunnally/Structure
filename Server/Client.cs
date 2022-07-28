@@ -1,6 +1,5 @@
 ﻿using Structure.IO;
 using Structure.IO.Input;
-using Structure.IO.Output;
 using System;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -16,16 +15,12 @@ namespace Structure.Server
         private readonly string _hostName;
         private readonly Uri _apiUri;
         private readonly StructureIO _io;
-        private readonly IProgramInput _input;
-        private readonly IProgramOutput _output;
         private string _connectionStatus = "Ready";
         private string _currentStructureOutput;
 
         public Client(StructureIO io, string hostName)
         {
             _io = io;
-            _input = io.ProgramInput;
-            _output = io.ProgramOutput;
             _hostName = hostName;
             _apiUri = new Uri(hostName + $"/{Server.ApiName}/{Controller.ControllerName}");
             _io.YStartPosition = 0;
@@ -51,7 +46,7 @@ namespace Structure.Server
 
         private ProgramInputData ReadKeyAndSetStatusToWaiting()
         {
-            var key = _input.ReadKey();
+            var key = _io.ProgramInput.ReadKey();
             _connectionStatus = "Waiting";
             UpdateScreen();
             return key;

@@ -5,7 +5,7 @@ using Structure.Modules;
 using Structure.Server;
 using System.IO;
 
-namespace Structure.Structure
+namespace Structure.Program
 {
     public static class Program
     {
@@ -40,6 +40,7 @@ namespace Structure.Structure
 
         private static bool DoesFileExist(string name) => File.Exists($"{name}.structure");
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The webserver is meant to stay running for the lifespan of the application.")]
         private static IProgramInput EnableWebServer(StructureIO io, IProgramInput input, string uri)
         {
             var queuedInput = new QueuedInput();

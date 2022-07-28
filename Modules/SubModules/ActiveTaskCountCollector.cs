@@ -7,7 +7,7 @@ namespace Structure.Modules.SubModules
 {
     public class ActiveTaskCountCollector : StructureModule, ISubModule
     {
-        public List<TaskItem> TaskCountOverTime { get; } = new List<TaskItem>();
+        public IList<TaskItem> TaskCountOverTime { get; } = new List<TaskItem>();
 
         protected override void OnDisable()
         {

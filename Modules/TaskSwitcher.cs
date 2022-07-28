@@ -1,5 +1,6 @@
 ﻿using Structure.Editors;
 using Structure.IO;
+using Structure.IO.Persistence;
 using Structure.Modules.Interface;
 using Structure.TaskItems;
 using System;
@@ -10,6 +11,7 @@ namespace Structure.Modules
 {
     public class TaskSwitcher : StructureModule
     {
+        private NodeTree<TaskItem> ActiveTasks { get; } = new NodeTree<TaskItem>();
         private readonly Queue<TaskItem> _activeTasksQueue = new Queue<TaskItem>();
         private const string SwitchToNextActiveTaskPrompt = "Switch to next active task";
         private const string ActivateTaskPrompt = "Pick task to add to active task list";
@@ -44,11 +46,12 @@ namespace Structure.Modules
         private void ActivateTask(TaskItem task)
         {
             _activeTasksQueue.Enqueue(task);
+            ActiveTasks.Set(task);
         }
 
         private void DeactivateTask()
         {
-            var picker = new ItemPicker<TaskItem>(IO, DeactivateTaskPrompt, true, true, Data.Tasks, true, DeactivateTask);
+            var picker = new ItemPicker<TaskItem>(IO, DeactivateTaskPrompt, true, true, ActiveTasks, true, DeactivateTask);
             IO.Run(picker.Edit);
         }
 
@@ -59,6 +62,7 @@ namespace Structure.Modules
                 var task = _activeTasksQueue.Dequeue();
                 if (task.ID != taskToDeactivate.ID) _activeTasksQueue.Enqueue(task);
             }
+            ActiveTasks.Remove(taskToDeactivate);
         }
 
         private void SwitchToNextActiveTask()
@@ -68,6 +72,7 @@ namespace Structure.Modules
             var currentTask = _activeTasksQueue.Dequeue();
             if (Data.Tasks.Get(currentTask.ID) != currentTask)
             {
+                ActiveTasks.Remove(currentTask);
                 SwitchToNextActiveTask();
                 return;
             }

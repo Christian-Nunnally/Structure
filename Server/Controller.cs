@@ -46,7 +46,7 @@ namespace Structure.Server
                 }
                 throw new InvalidOperationException();
             }
-            catch
+            catch (Exception)
             {
                 return new InputResponse();
             }

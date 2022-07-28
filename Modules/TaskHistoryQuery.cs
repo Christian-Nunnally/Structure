@@ -1,7 +1,9 @@
-﻿using Structure.Structure.Utility;
+﻿using Structure.Program;
+using Structure.Program.Utilities;
 using Structure.TaskItems;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Structure.Modules
@@ -14,15 +16,15 @@ namespace Structure.Modules
 
         public bool InterpolateEmptyRanges { get; set; }
 
-        public Func<List<TaskItem>, double> AggregationMode { get; set; } = AggregationFunctions.CountAggregationFunction;
+        public Func<IList<TaskItem>, double> AggregationMode { get; set; } = AggregationFunctions.CountAggregationFunction;
 
         public (string Name, IList<TaskItem> Data) DataSet { get; set; }
 
         public string SearchTerm { get; set; }
 
-        public List<TaskItem> CopiedFromIds = new List<TaskItem>();
+        public IList<TaskItem> CopiedFromIds = new List<TaskItem>();
 
-        public List<(string Label, double Value)> ComputeValues(Predicate<TaskItem> filter)
+        public IList<(string Label, double Value)> ComputeValues(Predicate<TaskItem> filter)
         {
             var values = new List<(string Label, double Value)>();
             if (DataSet.Data is null) return values;

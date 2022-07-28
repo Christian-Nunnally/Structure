@@ -1,17 +1,18 @@
 ﻿using Structure.IO;
 using Structure.IO.Persistence;
 using Structure.TaskItems;
-using Structure.Structure.Utility;
+using Structure.Program.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace Structure.Editors.Obsolete
 {
     public class TreeEditorObsolete<T> where T : Node
     {
-        public List<UserAction> CustomActions { get; } = new List<UserAction>();
+        public IList<UserAction> CustomActions { get; } = new List<UserAction>();
         public Action<T> EnterPressedOnParentAction { get; set; }
         public Action<T> EnterPressedOnLeafAction { get; set; }
         public Action NoChildrenAction { get; set; }
@@ -89,7 +90,7 @@ namespace Structure.Editors.Obsolete
             SetCursor(GetChildren(CurrentParentCached).IndexOf(currentParent));
         }
 
-        public List<T> GetChildren(string parent) =>
+        public IList<T> GetChildren(string parent) =>
             Tree.Where(x => x.Value.ParentID == parent)
                 .Select(x => x.Value)
                 .OrderBy(x => x.Rank)
@@ -130,7 +131,7 @@ namespace Structure.Editors.Obsolete
             return selectedTask is object;
         }
 
-        private static void ConsolidateRank(List<T> tasks) => tasks.All(t => t.Rank = tasks.IndexOf(t));
+        private static void ConsolidateRank(IList<T> tasks) => tasks.All(t => t.Rank = tasks.IndexOf(t));
 
         private void ChangeItemType()
         {
@@ -167,7 +168,7 @@ namespace Structure.Editors.Obsolete
             _io.Write();
         }
 
-        private void WriteTasks(int cursorIndex, List<T> tasks, string spaces)
+        private void WriteTasks(int cursorIndex, IList<T> tasks, string spaces)
         {
             for (int i = 0; i < tasks.Count; i++)
             {

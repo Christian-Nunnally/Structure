@@ -1,6 +1,6 @@
 ﻿using Structure.IO.Output;
 using Structure.IO.Persistence;
-using Structure.Structure.Utility;
+using Structure.Program.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;

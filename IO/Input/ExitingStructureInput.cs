@@ -1,6 +1,6 @@
 ﻿using Structure.IO.Persistence;
-using Structure.Structure;
-using Structure.Structure.Utility;
+using Structure.Program;
+using Structure.Program.Utilities;
 using System;
 using System.Linq;
 

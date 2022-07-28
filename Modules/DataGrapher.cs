@@ -5,14 +5,14 @@ using Structure.IO.Input;
 using Structure.IO.Output;
 using Structure.Modules.Interface;
 using Structure.Modules.SubModules;
-using Structure.Structure;
 using Structure.TaskItems;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Structure.IO.Persistence;
-using Structure.Structure.Utility;
+using Structure.Program;
+using Structure.Program.Utilities;
 
 namespace Structure.Modules
 {
@@ -23,7 +23,7 @@ namespace Structure.Modules
         private const string CompletedTasksDataSetDescription = "Completed Tasks";
         private const string ActiveTaskCountDataSetDescription = "Active Task Count";
         private UserAction _startAction;
-        private string _searchTerm = null;
+        private string _searchTerm;
         private bool _listValues;
         private bool _exit;
         private TaskHistoryQuery _selectedQuery;
@@ -134,7 +134,7 @@ namespace Structure.Modules
 
         private void ShowData(Predicate<TaskItem> filter)
         {
-            var selectedQueriesValues = new List<List<(string, double)>>();
+            var selectedQueriesValues = new List<IList<(string, double)>>();
             ModifySelectedQueries(x => selectedQueriesValues.Add(x.ComputeValues(filter)));
 
             if (!selectedQueriesValues.Any()) return;
@@ -148,7 +148,7 @@ namespace Structure.Modules
             }
         }
 
-        private void PrintValuesAsList(List<List<(string Label, double Value)>> listOfValues)
+        private void PrintValuesAsList(IList<IList<(string Label, double Value)>> listOfValues)
         {
             var i = 1;
             foreach (var values in listOfValues)
@@ -158,7 +158,7 @@ namespace Structure.Modules
             }
         }
 
-        private void GraphValues(List<List<(string Label, double Value)>> listOfValues)
+        private void GraphValues(IList<IList<(string Label, double Value)>> listOfValues)
         {
             var consoleGraph = new ConsoleGraph(80, 20);
             consoleGraph.Print(IO, listOfValues);

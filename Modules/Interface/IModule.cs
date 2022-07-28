@@ -1,5 +1,5 @@
 ﻿using Structure.IO;
-using Structure.Structure;
+using Structure.Program;
 
 namespace Structure.Modules.Interface
 {

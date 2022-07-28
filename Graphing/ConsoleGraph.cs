@@ -19,7 +19,7 @@ namespace Structure.Graphing
             _totalRows = height;
         }
 
-        public void Print(StructureIO io, List<List<(string Label, double Value)>> listOfValues)
+        public void Print(StructureIO io, IList<IList<(string Label, double Value)>> listOfValues)
         {
             if (io is null || listOfValues is null || !listOfValues.Any()) return;
 
@@ -36,7 +36,7 @@ namespace Structure.Graphing
             Print(io, firstValues, chart);
         }
 
-        private void Print(StructureIO io, List<(string Label, double Value)> labelInfo, char[,] chart)
+        private void Print(StructureIO io, IList<(string Label, double Value)> labelInfo, char[,] chart)
         {
             var yLabels = GenerateYLabels(labelInfo);
             PrintChart(io, chart, yLabels);
@@ -46,7 +46,7 @@ namespace Structure.Graphing
             PrintXNameCharacters(io, xNamesCharacters);
         }
 
-        private double[] InterpolateValues(List<(string Label, double Value)> values)
+        private double[] InterpolateValues(IList<(string Label, double Value)> values)
         {
             var interpolatedValues = new double[_totalColumns];
             if (values.Count == 0) return interpolatedValues;
@@ -58,7 +58,7 @@ namespace Structure.Graphing
             return interpolatedValues;
         }
 
-        private double InterpolateValue(List<(string Label, double Value)> values, int indexOfInterpolatedNumber)
+        private double InterpolateValue(IList<(string Label, double Value)> values, int indexOfInterpolatedNumber)
         {
             var percent = indexOfInterpolatedNumber / (_totalColumns - 1.0);
             var doubleIndex = percent * (values.Count - 1.0);
@@ -73,7 +73,7 @@ namespace Structure.Graphing
             return contributionFromPreviousPoint + contributionFromNextPoint;
         }
 
-        private char[,] InitializeXNameCharacterMap(List<(string Label, double Value)> values)
+        private char[,] InitializeXNameCharacterMap(IList<(string Label, double Value)> values)
         {
             var xNamesCharacters = CreateXNameCharacterMap();
             if (!values.Any()) return xNamesCharacters;
@@ -107,7 +107,7 @@ namespace Structure.Graphing
             return xNamesCharacters;
         }
 
-        private List<int> GetXLabelIndexes(List<(string Label, double Value)> values)
+        private List<int> GetXLabelIndexes(IList<(string Label, double Value)> values)
         {
             var xLabelIndexes = new List<int>();
 
@@ -137,7 +137,7 @@ namespace Structure.Graphing
             return chart;
         }
 
-        private char[,] RenderChart(List<(string Label, double Value)> values, double yAxisMin, double yAxisMax)
+        private char[,] RenderChart(IList<(string Label, double Value)> values, double yAxisMin, double yAxisMax)
         {
             var interpolatedValues = InterpolateValues(values);
             if (yAxisMax < yAxisMin) yAxisMax = yAxisMin + 1;
@@ -179,7 +179,7 @@ namespace Structure.Graphing
             return chart;
         }
 
-        private void PrintChart(StructureIO io, char[,] chart, List<double> yLabels)
+        private void PrintChart(StructureIO io, char[,] chart, IList<double> yLabels)
         {
             for (double y = _totalRows - 1; y >= 0; y--)
             {
@@ -205,7 +205,7 @@ namespace Structure.Graphing
             }
         }
 
-        private List<double> GenerateYLabels(List<(string Label, double Value)> values)
+        private List<double> GenerateYLabels(IList<(string Label, double Value)> values)
         {
             var yLabels = new List<double>();
             if (!values.Any()) return yLabels;
@@ -222,7 +222,7 @@ namespace Structure.Graphing
             return yLabels;
         }
 
-        private void PrintXAxis(StructureIO io, List<int> xLabelIndexes)
+        private void PrintXAxis(StructureIO io, IList<int> xLabelIndexes)
         {
             io.WriteNoLine("           └");
             for (int x = 0; x < _totalColumns; x++)
@@ -299,6 +299,6 @@ namespace Structure.Graphing
             for (int betweenY = smallerY + 1; betweenY < biggerY; betweenY++) chart[x, betweenY] = '│';
         }
 
-        private double SafeDivision(double numerator, double denominator) => denominator != 0 ? numerator / denominator : 0;
+        private static double SafeDivision(double numerator, double denominator) => denominator != 0 ? numerator / denominator : 0;
     }
 }

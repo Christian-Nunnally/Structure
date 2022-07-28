@@ -6,7 +6,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 
-namespace Structure.Structure
+namespace Structure.Program
 {
     public class StructureProgram
     {

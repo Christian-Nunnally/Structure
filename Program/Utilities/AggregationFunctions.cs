@@ -3,34 +3,34 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace Structure.Structure.Utility
+namespace Structure.Program.Utilities
 {
     public static class AggregationFunctions
     {
-        public static double CountAggregationFunction(List<TaskItem> list) => list?.Count ?? 0;
+        public static double CountAggregationFunction(IList<TaskItem> list) => list?.Count ?? 0;
 
-        public static double MaxAggregationFunction(List<TaskItem> list)
+        public static double MaxAggregationFunction(IList<TaskItem> list)
         {
             Contract.Requires(list != null);
             if (list.Count == 0) return 0;
             return list.Max(x => GetNumericValueOfItem(x));
         }
 
-        public static double SumAggregationFunction(List<TaskItem> list)
+        public static double SumAggregationFunction(IList<TaskItem> list)
         {
             Contract.Requires(list != null);
             if (list.Count == 0) return 0;
             return list.Sum(item => GetNumericValueOfItem(item));
         }
 
-        public static double MinAggregationFunction(List<TaskItem> list)
+        public static double MinAggregationFunction(IList<TaskItem> list)
         {
             Contract.Requires(list != null);
             if (list.Count == 0) return 0;
             return list.Min(item => GetNumericValueOfItem(item));
         }
 
-        public static double MeanAggregationFunction(List<TaskItem> list)
+        public static double MeanAggregationFunction(IList<TaskItem> list)
         {
             Contract.Requires(list != null);
             if (list.Count == 0) return 0;

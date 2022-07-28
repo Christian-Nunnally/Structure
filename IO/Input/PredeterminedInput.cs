@@ -10,6 +10,7 @@ namespace Structure.IO.Input
         private int? _cachedNumberOfInputs;
         private int _currentInputIndex;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CA1508:Avoid dead conditional code", Justification = "This is bugged and wont cast to an int without the dead code.")]
         private int NumberOfInputs => _cachedNumberOfInputs ?? (_cachedNumberOfInputs = _inputData.Count()) ?? 0;
 
         private IEnumerator<ProgramInputData> Enumerator => _cachedEnumerator ?? (_cachedEnumerator = _inputData.GetEnumerator());
