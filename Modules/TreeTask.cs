@@ -1,9 +1,9 @@
-﻿using Structure.Editors;
-using Structure.IO;
-using Structure.Modules.Interface;
+﻿using Structur.Editors;
+using Structur.IO;
+using Structur.Modules.Interfaces;
 using System;
 
-namespace Structure.Modules
+namespace Structur.Modules
 {
     internal class TreeTask : StructureModule
     {

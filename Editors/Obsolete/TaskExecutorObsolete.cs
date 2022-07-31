@@ -1,8 +1,8 @@
-﻿using Structure.IO;
-using Structure.IO.Persistence;
-using Structure.TaskItems;
+﻿using Structur.IO;
+using Structur.IO.Persistence;
+using Structur.TaskItems;
 
-namespace Structure.Editors.Obsolete
+namespace Structur.Editors.Obsolete
 {
     public class TaskExecutorObsolete : TaskPickerObsolete
     {
@@ -24,11 +24,11 @@ namespace Structure.Editors.Obsolete
             {
                 if (task != null && task is RecordFloatTaskItem || task is RecordIntegerTaskItem || task is RecordStringTaskItem)
                 {
-                    if (task.CanDoTask(_io)) task.DoTask(_io.CurrentTime.GetCurrentTime(), Tree);
+                    if (task.CanDoTask(_io)) task.DoTask(_io.CurrentTime.Time, Tree);
                 }
                 else
                 {
-                    task.DoTask(_io.CurrentTime.GetCurrentTime(), Tree);
+                    task.DoTask(_io.CurrentTime.Time, Tree);
                 }
             });
         }

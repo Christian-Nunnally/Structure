@@ -1,15 +1,15 @@
-﻿using Structure.IO;
-using Structure.Modules.Interface;
+﻿using Structur.IO;
+using Structur.Modules.Interfaces;
 using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 
-namespace Structure.Program
+namespace Structur.Program
 {
     public class StructureProgram
     {
-        public readonly StructureIO IO;
+        private readonly StructureIO _io;
         private readonly StructureIoC _ioc;
         private readonly Hotkey _hotkey;
         private readonly IModule[] _modules;
@@ -24,7 +24,7 @@ namespace Structure.Program
         {
             Contract.Requires(io != null);
             _ioc = ioc;
-            IO = io;
+            _io = io;
             _hotkey = ioc?.Get<Hotkey>();
             _modules = modules;
         }
@@ -33,18 +33,18 @@ namespace Structure.Program
         {
             var manager = _modules.OfType<IModuleManager>().First();
             manager.RegisterModules(_modules);
-            manager.Enable(_ioc, IO);
-            while (!Exit) IO.Run(Loop);
+            manager.Enable(_ioc, _io);
+            while (!Exit) _io.Run(Loop);
         }
 
         private void Loop()
         {
-            if (!IO.SkipUnescesscaryOperations)
+            if (!_io.SkipUnescesscaryOperations)
             { 
-                IO.Write(TitleString);
-                _hotkey.Print(IO);
+                _io.Write(TitleString);
+                _hotkey.Print(_io);
             }
-            IO.Read(x => { }, KeyGroups.NoKeys, KeyGroups.NoKeys);
+            _io.Read(x => { }, KeyGroups.NoKeys, KeyGroups.NoKeys);
         }
     }
 }

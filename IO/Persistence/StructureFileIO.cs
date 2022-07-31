@@ -1,18 +1,18 @@
-﻿using Structure.Program;
+﻿using Structur.Program;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
 
-namespace Structure.IO.Persistence
+namespace Structur.IO.Persistence
 {
     public static class StructureFileIO
     {
         public const string SaveFileExtension = ".structure";
         public const string AppDataSettingsFolderName = "Structure";
-        private static readonly ConcurrentDictionary<string, string> _cache = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, string> _cache = new();
         private static string savePath;
 
-        public static string SavePath => savePath ?? (savePath = GetSavedPath());
+        public static string SavePath => savePath ??= GetSavedPath();
 
         public static string ReadFromFile(string key) => _cache.TryGetValue(key, out var value) ? value
             : (_cache[key] = File.Exists(GetFileName(key)) ? File.ReadAllText(GetFileName(key)) : string.Empty);

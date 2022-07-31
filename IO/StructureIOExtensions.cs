@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Structure.IO
+namespace Structur.IO
 {
     public static class StructureIOExtensions
     {

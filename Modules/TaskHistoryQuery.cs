@@ -1,12 +1,12 @@
-﻿using Structure.Program;
-using Structure.Program.Utilities;
-using Structure.TaskItems;
+﻿using Structur.Program;
+using Structur.Program.Utilities;
+using Structur.TaskItems;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace Structure.Modules
+namespace Structur.Modules
 {
     internal class TaskHistoryQuery
     {

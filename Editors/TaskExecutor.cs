@@ -1,8 +1,8 @@
-﻿using Structure.IO;
-using Structure.IO.Persistence;
-using Structure.TaskItems;
+﻿using Structur.IO;
+using Structur.IO.Persistence;
+using Structur.TaskItems;
 
-namespace Structure.Editors
+namespace Structur.Editors
 {
     public class TaskExecutor
     {
@@ -24,7 +24,7 @@ namespace Structure.Editors
         {
             if (task != null && task.CanDoTask(_io))
             {
-                task.DoTask(_io.CurrentTime.GetCurrentTime(), _tree);
+                task.DoTask(_io.CurrentTime.Time, _tree);
                 ItemPicker.TreeEditor.Cursor--;
             }
         }

@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text.Json;
 
-namespace Structure.Program
+namespace Structur.Program
 {
     internal class Settings
     {

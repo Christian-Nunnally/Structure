@@ -1,9 +1,9 @@
-﻿using Structure.IO;
-using Structure.IO.Persistence;
+﻿using Structur.IO;
+using Structur.IO.Persistence;
 using System;
 using System.Collections.Generic;
 
-namespace Structure.TaskItems
+namespace Structur.TaskItems
 {
     public class ItemConverter<T> where T : Node
     {

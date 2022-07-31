@@ -1,10 +1,10 @@
-﻿using Structure.IO.Persistence;
-using Structure.Program;
-using Structure.Program.Utilities;
+﻿using Structur.IO.Persistence;
+using Structur.Program;
+using Structur.Program.Utilities;
 using System;
 using System.Linq;
 
-namespace Structure.IO.Input
+namespace Structur.IO.Input
 {
     public class ExitingStructureInput : IProgramInput
     {

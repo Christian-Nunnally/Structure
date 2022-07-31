@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
-using Structure.Program;
-using Structure.Program.Utilities;
+using Structur.Program;
+using Structur.Program.Utilities;
 
-namespace Structure.IO
+namespace Structur.IO
 {
     public class Hotkey
     {

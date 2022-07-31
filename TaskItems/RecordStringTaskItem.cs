@@ -1,9 +1,9 @@
-﻿using Structure.IO;
-using Structure.IO.Persistence;
+﻿using Structur.IO;
+using Structur.IO.Persistence;
 using System;
 using System.Diagnostics.Contracts;
 
-namespace Structure.TaskItems
+namespace Structur.TaskItems
 {
     [Serializable]
     public class RecordStringTaskItem : TaskItem

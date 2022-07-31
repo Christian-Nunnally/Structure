@@ -1,4 +1,4 @@
-﻿namespace Structure.IO.Input
+﻿namespace Structur.IO.Input
 {
     public interface IProgramInput
     {

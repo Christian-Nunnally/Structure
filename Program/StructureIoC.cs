@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Structure.Program
+namespace Structur.Program
 {
     public class StructureIoC
     {

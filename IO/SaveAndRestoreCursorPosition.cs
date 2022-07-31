@@ -1,8 +1,8 @@
-﻿using Structure.IO.Output;
-using Structure.Program;
-using Structure.Program.Utilities;
+﻿using Structur.IO.Output;
+using Structur.Program;
+using Structur.Program.Utilities;
 
-namespace Structure.IO
+namespace Structur.IO
 {
     public class SaveAndRestoreCursorPosition : DisposableAction
     {

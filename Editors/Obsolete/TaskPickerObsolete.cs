@@ -1,9 +1,9 @@
-﻿using Structure.IO;
-using Structure.IO.Persistence;
-using Structure.TaskItems;
+﻿using Structur.IO;
+using Structur.IO.Persistence;
+using Structur.TaskItems;
 using System;
 
-namespace Structure.Editors.Obsolete
+namespace Structur.Editors.Obsolete
 {
     public class TaskPickerObsolete : TreeEditorObsolete<TaskItem>
     {

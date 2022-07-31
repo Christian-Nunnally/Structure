@@ -1,11 +1,11 @@
-﻿using Structure.Editors;
-using Structure.IO;
-using Structure.Modules.Interface;
-using Structure.TaskItems;
+﻿using Structur.Editors;
+using Structur.IO;
+using Structur.Modules.Interfaces;
+using Structur.TaskItems;
 using System;
 using System.Linq;
 
-namespace Structure.Modules
+namespace Structur.Modules
 {
     public class Routiner : StructureModule
     {

@@ -1,7 +1,7 @@
-﻿using Structure.IO.Output;
+﻿using Structur.IO.Output;
 using System;
 
-namespace Structure.IO
+namespace Structur.IO
 {
     class StaleOutputClearer : IBackgroundProcess
     {

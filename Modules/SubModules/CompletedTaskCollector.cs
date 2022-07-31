@@ -1,12 +1,12 @@
-﻿using Structure.Modules.Interface;
-using Structure.TaskItems;
+﻿using Structur.Modules.Interfaces;
+using Structur.TaskItems;
 using System.Collections.Generic;
 
-namespace Structure.Modules.SubModules
+namespace Structur.Modules.SubModules
 {
     public class CompletedTaskCollector : StructureModule, ISubModule
     {
-        public List<TaskItem> CompletedTasks { get; } = new List<TaskItem>();
+        public IList<TaskItem> CompletedTasks { get; } = new List<TaskItem>();
 
         protected override void OnDisable()
         {

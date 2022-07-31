@@ -1,7 +1,7 @@
-﻿using Structure.IO.Input;
+﻿using Structur.IO.Input;
 using System.Collections.Generic;
 
-namespace Structure.IO.Persistence
+namespace Structur.IO.Persistence
 {
     public static class SavedSessionUtilities
     {

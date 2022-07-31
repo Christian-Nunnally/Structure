@@ -1,7 +1,7 @@
-﻿using Structure.IO;
-using Structure.IO.Input;
-using Structure.IO.Output;
-using Structure.Program;
+﻿using Structur.IO;
+using Structur.IO.Input;
+using Structur.IO.Output;
+using Structur.Program;
 using System;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -10,7 +10,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Structure.Server
+namespace Structur.Server
 {
     public class Client
     {
@@ -49,9 +49,9 @@ namespace Structure.Server
                 await PostKeyAndSetStatusToReady(key);
                 _io.ProcessInBackgroundWhileWaitingForInput();
 
-                if (_clientSwapInput.IsReadyToSwapClients)
+                if (_clientSwapInput.ShouldSwapClients())
                 {
-                    _clientSwapInput.ShouldSwapClients = true;
+                    _clientSwapInput.SwapClients();
                     break;
                 }
             }

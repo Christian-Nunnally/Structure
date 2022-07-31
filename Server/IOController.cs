@@ -1,12 +1,12 @@
 ﻿using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
-using Structure.IO;
-using Structure.IO.Input;
-using Structure.Program;
+using Structur.IO;
+using Structur.IO.Input;
+using Structur.Program;
 using System;
 
-namespace Structure.Server
+namespace Structur.Server
 {
     internal class IOController : WebApiController
     {
@@ -33,24 +33,17 @@ namespace Structure.Server
         [Route(HttpVerbs.Post, "/" + ControllerName)]
         public InputResponse EnterKey()
         {
-            try
+            var programInputData = HttpContext.GetRequestDataAsync<ProgramInputData>()?.Result;
+            if (programInputData != null)
             {
-                var programInputData = HttpContext.GetRequestDataAsync<ProgramInputData>().Result;
-                if (programInputData != null)
-                {
-                    _io.IsBusy = true;
-                    ServerInputQueue?.EnqueueKey(programInputData);
-                    while (_io.IsBusy) { }
-                    var response = new InputResponse();
-                    response.ConsoleText = _io.CurrentBuffer.ToString();
-                    return response;
-                }
-                throw new InvalidOperationException();
+                _io.IsBusy = true;
+                ServerInputQueue?.EnqueueKey(programInputData);
+                while (_io.IsBusy) { }
+                var response = new InputResponse();
+                response.ConsoleText = _io.CurrentBuffer?.ToString();
+                return response;
             }
-            catch (Exception)
-            {
-                return new InputResponse();
-            }
+            return new InputResponse { ConsoleText = "Server Error: The server did not recognize the key request body as valid input..."};
         }
 
         [Route(HttpVerbs.Get, "/" + "version")]

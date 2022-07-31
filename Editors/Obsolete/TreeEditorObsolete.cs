@@ -1,14 +1,14 @@
-﻿using Structure.IO;
-using Structure.IO.Persistence;
-using Structure.TaskItems;
-using Structure.Program.Utilities;
+﻿using Structur.IO;
+using Structur.IO.Persistence;
+using Structur.TaskItems;
+using Structur.Program.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Collections.ObjectModel;
 
-namespace Structure.Editors.Obsolete
+namespace Structur.Editors.Obsolete
 {
     public class TreeEditorObsolete<T> where T : Node
     {

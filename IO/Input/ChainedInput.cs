@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Structure.IO.Input
+namespace Structur.IO.Input
 {
     public class ChainedInput : IProgramInput
     {

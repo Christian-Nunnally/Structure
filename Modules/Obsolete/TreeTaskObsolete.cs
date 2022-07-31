@@ -1,10 +1,10 @@
-﻿using Structure.Editors.Obsolete;
-using Structure.IO;
-using Structure.Modules.Interface;
+﻿using Structur.Editors.Obsolete;
+using Structur.IO;
+using Structur.Modules.Interfaces;
 using System;
 using System.Collections.Generic;
 
-namespace Structure.Modules.Obsolete
+namespace Structur.Modules.Obsolete
 {
     public class TreeTaskObsolete : StructureModule, IObsoleteModule
     {

@@ -1,21 +1,24 @@
-﻿using Structure.IO;
-using Structure.IO.Input;
-using Structure.IO.Output;
+﻿using Structur.IO;
+using Structur.IO.Input;
+using Structur.IO.Output;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace Structure.Server
+namespace Structur.Server
 {
     public class ClientSwapInput : IProgramInput
     {
-        public bool ShouldSwapClients;
-        public bool IsReadyToSwapClients;
+        private bool _isReadyToSwapClients;
+        private bool _swapClients;
 
         public StructureIO IO { get; set; }
         public IProgramOutput OutputToSwapTo { get; }
         public INewsPrinter NewsPrinter { get; }
+
+        public bool ShouldSwapClients() => _isReadyToSwapClients;
+        public void SwapClients() => _swapClients = true;
 
         public ClientSwapInput(StructureIO io, IProgramOutput outputToSwapTo, INewsPrinter newsPrinter)
         {
@@ -26,11 +29,8 @@ namespace Structure.Server
 
         public bool IsKeyAvailable()
         {
-            IsReadyToSwapClients = true;
-            while (!ShouldSwapClients)
-            {
-                Thread.Sleep(500);
-            }
+            _isReadyToSwapClients = true;
+            while (!_swapClients) Thread.Sleep(500);
             SwapClient();
             return false;
         }

@@ -1,17 +1,18 @@
-﻿using Structure.IO.Input;
-using Structure.IO.Output;
-using Structure.Program;
-using Structure.Program.Utilities;
+﻿using Structur.IO.Input;
+using Structur.IO.Output;
+using Structur.Program;
+using Structur.Program.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace Structure.IO
+namespace Structur.IO
 {
     public class StructureIO
     {
-        private readonly Stack<string> _buffers = new Stack<string>();
+        private readonly Stack<string> _buffers = new();
         private readonly List<IBackgroundProcess> _backgroundProcesses;
 
         public int XStartPosition { get; set; }
@@ -143,7 +144,7 @@ namespace Structure.IO
             IsBusy = false;
             var key = ProgramInput.ReadKey();
             KeyCount++;
-            KeyHash = (KeyHash + key).GetHashCode().ToString();
+            KeyHash = (KeyHash + key).GetHashCode(StringComparison.Ordinal).ToString(new NumberFormatInfo());
             IsBusy = true;
             if (key == null) throw new InvalidProgramException();
             CurrentTime.SetArtificialTime(key.Time);

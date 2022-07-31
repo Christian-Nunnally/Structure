@@ -1,9 +1,9 @@
-﻿using Structure.IO.Output;
+﻿using Structur.IO.Output;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Structure.IO
+namespace Structur.IO
 {
     public partial class NewsPrinter : INewsPrinter
     {

@@ -1,9 +1,9 @@
-﻿using Structure.Modules.Interface;
-using Structure.TaskItems;
+﻿using Structur.Modules.Interfaces;
+using Structur.TaskItems;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Structure.Modules.SubModules
+namespace Structur.Modules.SubModules
 {
     public class ActiveTaskCountCollector : StructureModule, ISubModule
     {
@@ -22,7 +22,7 @@ namespace Structure.Modules.SubModules
         {
             var dataPoint = new RecordIntegerTaskItem
             {
-                CompletedDate = IO.CurrentTime.GetCurrentTime(),
+                CompletedDate = IO.CurrentTime.Time,
                 RecordedInteger = Data.Tasks.Count(),
             };
             TaskCountOverTime.Add(dataPoint);

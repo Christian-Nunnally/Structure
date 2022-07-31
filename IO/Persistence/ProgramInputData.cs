@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace Structure.IO.Input
+namespace Structur.IO.Input
 {
     [Serializable]
     public class ProgramInputData

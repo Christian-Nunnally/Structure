@@ -1,12 +1,12 @@
-﻿using Structure.IO;
-using Structure.Modules.Interface;
-using Structure.Program;
-using Structure.Program.Utilities;
+﻿using Structur.IO;
+using Structur.Modules.Interfaces;
+using Structur.Program;
+using Structur.Program.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Structure.Modules.Obsolete
+namespace Structur.Modules.Obsolete
 {
     public class ModuleManagerObsolete : StructureModule, IObsoleteModule, IModuleManager
     {

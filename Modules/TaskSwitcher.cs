@@ -1,13 +1,13 @@
-﻿using Structure.Editors;
-using Structure.IO;
-using Structure.IO.Persistence;
-using Structure.Modules.Interface;
-using Structure.TaskItems;
+﻿using Structur.Editors;
+using Structur.IO;
+using Structur.IO.Persistence;
+using Structur.Modules.Interfaces;
+using Structur.TaskItems;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Structure.Modules
+namespace Structur.Modules
 {
     public class TaskSwitcher : StructureModule
     {

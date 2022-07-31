@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Structure.IO.Input
+namespace Structur.IO.Input
 {
     class QueuedInput : IProgramInput
     {

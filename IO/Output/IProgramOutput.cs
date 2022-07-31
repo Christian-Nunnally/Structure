@@ -1,4 +1,4 @@
-﻿namespace Structure.IO.Output
+﻿namespace Structur.IO.Output
 {
     public interface IProgramOutput
     {

@@ -1,7 +1,7 @@
-﻿using Structure.IO.Persistence;
-using Structure.TaskItems;
+﻿using Structur.IO.Persistence;
+using Structur.TaskItems;
 
-namespace Structure.Program
+namespace Structur.Program
 {
     public class StructureData
     {

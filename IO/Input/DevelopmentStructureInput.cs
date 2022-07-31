@@ -1,7 +1,7 @@
-﻿using Structure.IO;
-using Structure.IO.Output;
+﻿using Structur.IO;
+using Structur.IO.Output;
 
-namespace Structure.IO.Input
+namespace Structur.IO.Input
 {
     public class DevelopmentStructureInput : StructureInput
     {

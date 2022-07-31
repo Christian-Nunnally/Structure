@@ -1,10 +1,10 @@
-﻿using Structure.Program.Utilities;
+﻿using Structur.Program.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace Structure.IO
+namespace Structur.IO
 {
     public static class ConsoleKeyHelpers
     {

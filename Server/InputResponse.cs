@@ -1,4 +1,4 @@
-﻿namespace Structure.Server
+﻿namespace Structur.Server
 {
     internal class InputResponse
     {

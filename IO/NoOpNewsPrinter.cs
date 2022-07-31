@@ -1,6 +1,6 @@
-﻿using Structure.IO.Output;
+﻿using Structur.IO.Output;
 
-namespace Structure.IO
+namespace Structur.IO
 {
     public class NoOpNewsPrinter : INewsPrinter
     {

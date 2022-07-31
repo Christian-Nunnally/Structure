@@ -1,8 +1,8 @@
-﻿using Structure.IO;
-using Structure.Program;
-using Structure.Program.Utilities;
+﻿using Structur.IO;
+using Structur.Program;
+using Structur.Program.Utilities;
 
-namespace Structure.Modules.Interface
+namespace Structur.Modules.Interfaces
 {
     public abstract class StructureModule : IModule
     {

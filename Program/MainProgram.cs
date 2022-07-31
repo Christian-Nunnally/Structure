@@ -1,12 +1,12 @@
-﻿using Structure.IO;
-using Structure.IO.Input;
-using Structure.IO.Output;
-using Structure.Modules;
-using Structure.Server;
+﻿using Structur.IO;
+using Structur.IO.Input;
+using Structur.IO.Output;
+using Structur.Modules;
+using Structur.Server;
 
-namespace Structure.Program
+namespace Structur.Program
 {
-    public static class Program
+    public static class MainProgram
     {
         public static void Main()
         {

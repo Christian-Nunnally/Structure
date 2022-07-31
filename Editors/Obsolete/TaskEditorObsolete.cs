@@ -1,10 +1,10 @@
-﻿using Structure.IO;
-using Structure.Program;
-using Structure.Program.Utilities;
-using Structure.TaskItems;
+﻿using Structur.IO;
+using Structur.Program;
+using Structur.Program.Utilities;
+using Structur.TaskItems;
 using System;
 
-namespace Structure.Editors.Obsolete
+namespace Structur.Editors.Obsolete
 {
     public class TaskEditorObsolete : TaskExecutorObsolete
     {

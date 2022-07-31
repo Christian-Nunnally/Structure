@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Structure.IO.Output
+namespace Structur.IO.Output
 {
     public class ConsoleOutput : IProgramOutput
     {
@@ -10,7 +10,11 @@ namespace Structure.IO.Output
 
         public int CursorTop { get => Console.CursorTop; set => Console.CursorTop = value; }
 
-        public bool CursorVisible { get => Console.CursorVisible; set => Console.CursorVisible = value; }
+        public bool CursorVisible
+        {
+            get => !OperatingSystem.IsWindows() || Console.CursorVisible;
+            set => Console.CursorVisible = value;
+        }
 
         public int Width => Console.WindowWidth;
 

@@ -1,4 +1,4 @@
-﻿namespace Structure.IO
+﻿namespace Structur.IO
 {
     public interface IBackgroundProcess
     {

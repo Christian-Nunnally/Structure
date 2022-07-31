@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace Structure.IO
+namespace Structur.IO
 {
     public class BackgroundDelay : IBackgroundProcess
     {

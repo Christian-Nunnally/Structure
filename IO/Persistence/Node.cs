@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Structure.IO.Persistence
+namespace Structur.IO.Persistence
 {
     public class Node
     {

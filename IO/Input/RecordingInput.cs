@@ -1,6 +1,6 @@
-﻿using Structure.IO.Persistence;
+﻿using Structur.IO.Persistence;
 
-namespace Structure.IO.Input
+namespace Structur.IO.Input
 {
     public class RecordingInput : IProgramInput
     {

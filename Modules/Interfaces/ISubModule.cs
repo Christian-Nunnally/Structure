@@ -1,4 +1,4 @@
-﻿namespace Structure.Modules.Interface
+﻿namespace Structur.Modules.Interfaces
 {
     internal interface ISubModule
     {

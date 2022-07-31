@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Structure.IO.Persistence
+namespace Structur.IO.Persistence
 {
     public class PersistedList<T> : IEnumerable<T>
     {

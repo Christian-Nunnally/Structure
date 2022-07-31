@@ -1,10 +1,10 @@
-﻿using Structure.IO;
+﻿using Structur.IO;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace Structure.Graphing
+namespace Structur.Graphing
 {
     public class ConsoleGraph
     {

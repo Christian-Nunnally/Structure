@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading;
 
-namespace Structure.IO.Input
+namespace Structur.IO.Input
 {
     public class MultiInput : IProgramInput
     {

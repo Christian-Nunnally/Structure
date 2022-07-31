@@ -1,4 +1,4 @@
-﻿namespace Structure.TaskItems
+﻿namespace Structur.TaskItems
 {
     public static class TaskItemConversions
     {

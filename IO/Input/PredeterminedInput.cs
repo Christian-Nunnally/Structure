@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Structure.IO.Input
+namespace Structur.IO.Input
 {
     public class PredeterminedInput : IProgramInput
     {
@@ -13,7 +13,7 @@ namespace Structure.IO.Input
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CA1508:Avoid dead conditional code", Justification = "This is bugged and wont cast to an int without the dead code.")]
         private int NumberOfInputs => _cachedNumberOfInputs ?? (_cachedNumberOfInputs = _inputData.Count()) ?? 0;
 
-        private IEnumerator<ProgramInputData> Enumerator => _cachedEnumerator ?? (_cachedEnumerator = _inputData.GetEnumerator());
+        private IEnumerator<ProgramInputData> Enumerator => _cachedEnumerator ??= _inputData.GetEnumerator();
 
         public PredeterminedInput(IEnumerable<ProgramInputData> inputData)
         {

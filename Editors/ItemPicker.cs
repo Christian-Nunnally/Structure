@@ -1,8 +1,8 @@
-﻿using Structure.IO;
-using Structure.IO.Persistence;
+﻿using Structur.IO;
+using Structur.IO.Persistence;
 using System;
 
-namespace Structure.Editors
+namespace Structur.Editors
 {
     public class ItemPicker<T> where T : Node
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Structure.Program.Utilities
+namespace Structur.Program.Utilities
 {
     public static class Executor
     {
@@ -14,7 +14,7 @@ namespace Structure.Program.Utilities
             }
             catch (Exception e)
             {
-                if (ThrowExceptions) throw new Exception("Exception" + e.Message, e);
+                if (ThrowExceptions) throw new InvalidProgramException("Exception" + e.Message, e);
             }
         }
     }

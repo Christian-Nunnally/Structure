@@ -1,20 +1,20 @@
-﻿using Structure.Editors;
-using Structure.Graphing;
-using Structure.IO;
-using Structure.IO.Input;
-using Structure.IO.Output;
-using Structure.Modules.Interface;
-using Structure.Modules.SubModules;
-using Structure.TaskItems;
+﻿using Structur.Editors;
+using Structur.Graphing;
+using Structur.IO;
+using Structur.IO.Input;
+using Structur.IO.Output;
+using Structur.Modules.Interfaces;
+using Structur.Modules.SubModules;
+using Structur.TaskItems;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Structure.IO.Persistence;
-using Structure.Program;
-using Structure.Program.Utilities;
+using Structur.IO.Persistence;
+using Structur.Program;
+using Structur.Program.Utilities;
 
-namespace Structure.Modules
+namespace Structur.Modules
 {
     public class DataGrapher : StructureModule
     {

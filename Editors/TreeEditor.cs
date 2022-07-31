@@ -1,13 +1,14 @@
-﻿using Structure.IO;
-using Structure.IO.Persistence;
-using Structure.TaskItems;
-using Structure.Program.Utilities;
+﻿using Structur.IO;
+using Structur.IO.Persistence;
+using Structur.TaskItems;
+using Structur.Program.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Globalization;
 
-namespace Structure.Editors
+namespace Structur.Editors
 {
     public class TreeEditor<T> where T : Node
     {
@@ -142,7 +143,7 @@ namespace Structure.Editors
                 atParentKey = atParent.ParentID;
             }
             parents.Reverse();
-            parents.All(p => stringBuilder.Append($"{p} > "));
+            parents.All(p => stringBuilder.Append(CultureInfo.CurrentCulture, $"{p} > "));
             stringBuilder.Append('\n');
         }
 
@@ -157,7 +158,7 @@ namespace Structure.Editors
                 if (_scrollIndex > i) continue;
                 if (linesToPrint-- > 0)
                 {
-                    stringBuilder.Append($"{prefix}{tasks[i]}\n");
+                    stringBuilder.Append(CultureInfo.CurrentCulture, $"{prefix}{tasks[i]}\n");
                     if (_showChildren) WriteTasks(-1, GetChildren(tasks[i].ID), spaces + "    ", ref linesToPrint, stringBuilder);
                 }
             }

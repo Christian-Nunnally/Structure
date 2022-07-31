@@ -1,12 +1,13 @@
-﻿using Structure.IO.Output;
-using Structure.IO.Persistence;
-using Structure.Program.Utilities;
+﻿using Structur.IO.Output;
+using Structur.IO.Persistence;
+using Structur.Program.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 
-namespace Structure.IO.Input
+namespace Structur.IO.Input
 {
     public class StructureInput : IProgramInput
     {
@@ -44,7 +45,7 @@ namespace Structure.IO.Input
 
         private void UpdateLoadingPercent(StructureIO io, double percent)
         {
-            ClearAndForceWrite(io, $"Loading... {percent.ToString("0.00")}% ");
+            ClearAndForceWrite(io, $"Loading... {percent.ToString("0.00", new NumberFormatInfo())}% ");
         }
 
         private static IEnumerable<PredeterminedInput> CreateInputsFromSavedSessions()

@@ -1,18 +1,15 @@
 ﻿using System;
 
-namespace Structure.IO
+namespace Structur.IO
 {
     public class CurrentTime
     {
         private DateTime _artificialCurrentTime;
         private bool _useArtificalTime;
 
-        public DateTime GetCurrentTime()
-        {
-            return _useArtificalTime
-                ? _artificialCurrentTime
-                : DateTime.Now;
-        }
+        public DateTime Time => _useArtificalTime
+            ? _artificialCurrentTime
+            : DateTime.Now;
 
         public void SetArtificialTime(DateTime time)
         {

@@ -5,47 +5,54 @@ using EmbedIO.WebApi;
 using Swan.Logging;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
-namespace Structure.Server
+namespace Structur.Server
 {
-    class Server : IDisposable
+    class Server
     {
         public const string ApiName = "structure-api";
-        private readonly WebServer _embedIOServer;
+        private readonly string _url;
+        private readonly IOController _controller;
 
         private Thread ServerThread { get; set; }
 
         public Server(string url, IOController controller)
         {
-            _embedIOServer = CreateWebServer(url, controller);
+            _url = url;
+            _controller = controller;
         }
 
         public void RunInNewThread()
         {
             if (ServerThread != null) throw new InvalidOperationException("Server already running.");
-            ServerThread = new Thread(() => _embedIOServer.RunAsync());
+            ServerThread = new Thread(async () => await CreateAndRunServerAsync());
             ServerThread.Start();
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "This class manages the lifecycle of the server.")]
-        private static WebServer CreateWebServer(string url, IOController controller)
+        private async Task CreateAndRunServerAsync()
         {
-            Logger.UnregisterLogger<ConsoleLogger>();
-            var server = new WebServer(o => o
-                .WithUrlPrefix(url)
-                .WithMode(HttpListenerMode.EmbedIO))
-                .WithLocalSessionManager()
-                .WithWebApi($"/{ApiName}", m => m.WithController(() => controller))
-                .WithStaticFolder("/", "index.html", true, m => m.WithContentCaching(true))
-                .WithModule(new ActionModule("/", HttpVerbs.Any, ctx => ctx.SendDataAsync(new { Message = "Error" })));
-            
-            server.StateChanged += (s, e) => $"WebServer New State - {e.NewState}".Info();
-            return server;
+            using var server = new WebServer(SetupOptions);
+            ConfigureWebserver(server);
+            await server.RunAsync();
         }
 
-        public void Dispose()
+        private void SetupOptions(WebServerOptions options)
         {
-            _embedIOServer?.Dispose();
+            options
+                .WithUrlPrefix(_url)
+                .WithMode(HttpListenerMode.EmbedIO);
+        }
+
+        private WebServer ConfigureWebserver(WebServer webserver)
+        {
+            webserver = webserver
+                .WithLocalSessionManager()
+                .WithWebApi($"/{ApiName}", m => m.WithController(() => _controller))
+                .WithStaticFolder("/", "index.html", true, m => m.WithContentCaching(true))
+                .WithModule(new ActionModule("/", HttpVerbs.Any, ctx => ctx.SendDataAsync(new { Message = "Error" })));
+            webserver.StateChanged += (s, e) => $"WebServer New State - {e.NewState}".Info();
+            return webserver;
         }
     }
 }

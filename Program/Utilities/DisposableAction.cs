@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Structure.Program.Utilities
+namespace Structur.Program.Utilities
 {
     public class DisposableAction : IDisposable
     {
@@ -26,7 +26,7 @@ namespace Structure.Program.Utilities
         {
             if (!disposing) return;
             if (DisposeAction == null) return;
-            DisposeAction?.Invoke();
+            DisposeAction.Invoke();
             DisposeAction = null;
         }
     }

@@ -1,7 +1,7 @@
-﻿using Structure.Program.Utilities;
+﻿using Structur.Program.Utilities;
 using System;
 
-namespace Structure.IO
+namespace Structur.IO
 {
     public class UserAction
     {
