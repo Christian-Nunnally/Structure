@@ -14,27 +14,27 @@ namespace Structur.IO.Input
             _inputs.Add(input);
         }
 
-        public bool IsKeyAvailable()
+        public bool IsInputAvailable()
         {
-            return _inputs.Any(i => i.IsKeyAvailable());
+            return _inputs.Any(i => i.IsInputAvailable());
         }
 
-        public ProgramInputData ReadKey()
+        public ProgramInputData ReadInput()
         {
             while (true)
             {
                 foreach (var input in _inputs)
                 {
-                    if (input.IsKeyAvailable())
+                    if (input.IsInputAvailable())
                     {
                         _currentInput = input;
-                        return _currentInput.ReadKey();
+                        return _currentInput.ReadInput();
                     }
                 }
                 Thread.Sleep(33);
             }
         }
 
-        public void RemoveLastReadKey() => _currentInput?.RemoveLastReadKey();
+        public void RemoveLastInput() => _currentInput?.RemoveLastInput();
     }
 }

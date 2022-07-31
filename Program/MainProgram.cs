@@ -66,7 +66,6 @@ namespace Structur.Program
             return multiInput;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The webserver is meant to stay running for the lifespan of the application.")]
         private static void EnableWebServer(StructureIO io, QueuedInput input, string uri)
         {
             var controller = new IOController(io, input);

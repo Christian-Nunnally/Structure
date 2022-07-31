@@ -4,60 +4,73 @@ using EmbedIO.WebApi;
 using Structur.IO;
 using Structur.IO.Input;
 using Structur.Program;
+using Structur.Program.Utilities;
 using System;
+using System.Threading.Tasks;
 
 namespace Structur.Server
 {
     internal class IOController : WebApiController
     {
-        public const string ControllerName = "key";
+        public const string ControllerName = "/key";
+        public const string ControllerVersionName = "/version";
 
+        private const string PostProgramInputErrorText = "Server Error: The server did not recognize the key request body as valid input...";
         private readonly StructureIO _io;
+        private readonly QueuedInput _serverInput;
 
-        public QueuedInput ServerInputQueue { get; set; }
-
-        public IOController(StructureIO io, QueuedInput queuedInput)
+        public IOController(StructureIO io, QueuedInput serverInputQueue)
         {
-            _io = io;
-            ServerInputQueue = queuedInput;
+            _io = io ?? throw new ArgumentNullException(nameof(io));
+            _serverInput = serverInputQueue ?? throw new ArgumentNullException(nameof(serverInputQueue));
         }
 
-        [Route(HttpVerbs.Get, "/" + ControllerName)]
+        [Route(HttpVerbs.Get, ControllerName)]
         public InputResponse GetScreen()
         {
-            var response = new InputResponse();
-            response.ConsoleText = _io.CurrentBuffer.ToString();
-            return response;
+            return InputResponse.Create(_io.CurrentDisplay);
         }
 
-        [Route(HttpVerbs.Post, "/" + ControllerName)]
-        public InputResponse EnterKey()
+        [Route(HttpVerbs.Post, ControllerName)]
+        public async Task<InputResponse> PostProgramInputAsync()
         {
-            var programInputData = HttpContext.GetRequestDataAsync<ProgramInputData>()?.Result;
-            if (programInputData != null)
-            {
-                _io.IsBusy = true;
-                ServerInputQueue?.EnqueueKey(programInputData);
-                while (_io.IsBusy) { }
-                var response = new InputResponse();
-                response.ConsoleText = _io.CurrentBuffer?.ToString();
-                return response;
-            }
-            return new InputResponse { ConsoleText = "Server Error: The server did not recognize the key request body as valid input..."};
+            var inputData = await HttpContext.GetRequestDataAsync<ProgramInputData>();
+            if (inputData == null) return ErrorInputResponse();
+
+            using (WaitUntilOutputIsIdle()) _serverInput.EnqueueInput(inputData);
+
+            return InputResponse.Create(_io.CurrentDisplay);
         }
 
-        [Route(HttpVerbs.Get, "/" + "version")]
+        [Route(HttpVerbs.Get, ControllerVersionName)]
         public VersionResponse GetVersion()
         {
-            var response = new VersionResponse
+            var version = StructureProgram.Version;
+            return new VersionResponse
             {
-                Major = StructureProgram.Version.Major,
-                Minor = StructureProgram.Version.Minor,
-                Build = StructureProgram.Version.Build,
+                Major = version.Major,
+                Minor = version.Minor,
+                Build = version.Build,
                 KeyHash = _io.KeyHash,
                 KeyCount = _io.KeyCount,
             };
-            return response;
+        }
+
+        private DisposableAction WaitUntilOutputIsIdle()
+        {
+            _io.IsBusy = true;
+            return new DisposableAction(() =>
+            {
+                while(_io.IsBusy) { };
+            });
+        }
+
+        private static InputResponse ErrorInputResponse()
+        {
+            return new InputResponse
+            {
+                ConsoleText = PostProgramInputErrorText
+            };
         }
     }
 }

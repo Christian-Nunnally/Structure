@@ -2,10 +2,10 @@
 {
     public interface IProgramInput
     {
-        public ProgramInputData ReadKey();
+        public ProgramInputData ReadInput();
 
-        public void RemoveLastReadKey();
+        public void RemoveLastInput();
 
-        public bool IsKeyAvailable();
+        public bool IsInputAvailable();
     }
 }

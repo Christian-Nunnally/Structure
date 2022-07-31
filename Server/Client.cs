@@ -23,17 +23,19 @@ namespace Structur.Server
         private string _connectionStatus = "Ready";
         private string _currentStructureOutput;
         private StructureProgram _localProgram;
+        private readonly StructureIO _localProgramIO;
         private Thread _localProgramExecutionThread;
 
-        public Client(StructureIO io, string hostName, ClientSwapInput clientSwapInput, StructureProgram localProgram)
+        public Client(StructureIO io, string hostName, ClientSwapInput clientSwapInput, StructureProgram localProgram, StructureIO localProgramIO)
         {
             _io = io;
             _hostName = hostName;
             _clientSwapInput = clientSwapInput;
-            _ioUri = new Uri(hostName + $"/{Server.ApiName}/{IOController.ControllerName}");
+            _ioUri = new Uri(hostName + $"/{Server.ApiName}{IOController.ControllerName}");
             _versionUri = new Uri(hostName + $"/{Server.ApiName}/version");
             _io.YStartPosition = 0;
             _localProgram = localProgram;
+            _localProgramIO = localProgramIO;
             _localProgramExecutionThread = new Thread(localProgram.Run);
         }
 
@@ -49,8 +51,9 @@ namespace Structur.Server
                 await PostKeyAndSetStatusToReady(key);
                 _io.ProcessInBackgroundWhileWaitingForInput();
 
-                if (_clientSwapInput.ShouldSwapClients())
+                if (_clientSwapInput.IsInputLoaded())
                 {
+                    if (_localProgramIO.KeyCount > 
                     _clientSwapInput.SwapClients();
                     break;
                 }
@@ -67,6 +70,30 @@ namespace Structur.Server
             if (VersionError(nameof(clientVersion.Minor), clientVersion.Minor, serverVersion.Minor)) return false;
             if (VersionError(nameof(clientVersion.Build), clientVersion.Build, serverVersion.Build)) return false;
             return true;
+        }
+
+        private async Task<bool> CheckClientServerHistoryAsync()
+        {
+            _io.Write("Comparing local history with remote...");
+            var serverVersion = await GetVersionAsync();
+
+            if (_localProgramIO.KeyCount == serverVersion.KeyCount)
+            {
+                if (_localProgramIO.KeyHash == serverVersion.KeyHash)
+                {
+                    _io.Write("Histories synchronized...");
+                    return true;
+                }
+            }
+            else if (_localProgramIO.KeyCount < serverVersion.KeyCount)
+            {
+                // Get next set of keys
+                // Swap out input with fake input temporarily
+            }
+            else if (_localProgramIO.KeyCount > serverVersion.KeyCount)
+            {
+                return false;
+            }
         }
 
         private bool VersionError(string versionType, int clientVersion, int serverVersion)
@@ -87,7 +114,7 @@ namespace Structur.Server
 
         private ProgramInputData ReadKeyAndSetStatusToWaiting()
         {
-            var key = _io.ProgramInput.ReadKey();
+            var key = _io.ProgramInput.ReadInput();
             _connectionStatus = "Waiting";
             UpdateScreen();
             return key;

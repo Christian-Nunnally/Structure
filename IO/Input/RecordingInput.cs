@@ -14,16 +14,16 @@ namespace Structur.IO.Input
             _recordedInputs = logDestiation;
         }
 
-        public bool IsKeyAvailable() => _inputSource.IsKeyAvailable();
+        public bool IsInputAvailable() => _inputSource.IsInputAvailable();
 
-        public ProgramInputData ReadKey()
+        public ProgramInputData ReadInput()
         {
-            _lastInput = _inputSource.ReadKey();
+            _lastInput = _inputSource.ReadInput();
             _recordedInputs.Add(_lastInput);
             return _lastInput;
         }
 
-        public void RemoveLastReadKey()
+        public void RemoveLastInput()
         {
             _recordedInputs.Remove(_lastInput);
         }

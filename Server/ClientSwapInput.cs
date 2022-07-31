@@ -17,7 +17,8 @@ namespace Structur.Server
         public IProgramOutput OutputToSwapTo { get; }
         public INewsPrinter NewsPrinter { get; }
 
-        public bool ShouldSwapClients() => _isReadyToSwapClients;
+        public bool IsInputLoaded() => _isReadyToSwapClients;
+
         public void SwapClients() => _swapClients = true;
 
         public ClientSwapInput(StructureIO io, IProgramOutput outputToSwapTo, INewsPrinter newsPrinter)
@@ -27,7 +28,7 @@ namespace Structur.Server
             NewsPrinter = newsPrinter;
         }
 
-        public bool IsKeyAvailable()
+        public bool IsInputAvailable()
         {
             _isReadyToSwapClients = true;
             while (!_swapClients) Thread.Sleep(500);
@@ -46,12 +47,12 @@ namespace Structur.Server
             IO.ProcessAllBackgroundWork();
         }
 
-        public ProgramInputData ReadKey()
+        public ProgramInputData ReadInput()
         {
             throw new InvalidOperationException();
         }
 
-        public void RemoveLastReadKey()
+        public void RemoveLastInput()
         {
         }
     }

@@ -21,16 +21,16 @@ namespace Structur.IO.Input
             _inputData = inputData;
         }
 
-        public bool IsKeyAvailable() => _currentInputIndex < NumberOfInputs;
+        public bool IsInputAvailable() => _currentInputIndex < NumberOfInputs;
 
-        public ProgramInputData ReadKey()
+        public ProgramInputData ReadInput()
         {
             _currentInputIndex++;
             Enumerator.MoveNext();
             return Enumerator.Current;
         }
 
-        public void RemoveLastReadKey()
+        public void RemoveLastInput()
         {
         }
     }

@@ -19,17 +19,17 @@ namespace Structur.IO.Input
             _chainedInputs.Enqueue(action);
         }
 
-        public bool IsKeyAvailable()
+        public bool IsInputAvailable()
         {
-            if (_currentInput is object && _currentInput.IsKeyAvailable()) return true;
+            if (_currentInput is object && _currentInput.IsInputAvailable()) return true;
             LoadNextInput();
-            return _currentInput.IsKeyAvailable();
+            return _currentInput.IsInputAvailable();
         }
 
-        public ProgramInputData ReadKey()
+        public ProgramInputData ReadInput()
         {
-            if (!_currentInput.IsKeyAvailable()) LoadNextInput();
-            return _currentInput.ReadKey();
+            if (!_currentInput.IsInputAvailable()) LoadNextInput();
+            return _currentInput.ReadInput();
         }
 
         private void LoadNextInput()
@@ -45,6 +45,6 @@ namespace Structur.IO.Input
             if (nextInput is IProgramInput input) _currentInput = input;
         }
 
-        public void RemoveLastReadKey() => _currentInput?.RemoveLastReadKey();
+        public void RemoveLastInput() => _currentInput?.RemoveLastInput();
     }
 }

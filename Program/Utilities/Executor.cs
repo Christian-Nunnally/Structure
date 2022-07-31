@@ -14,7 +14,7 @@ namespace Structur.Program.Utilities
             }
             catch (Exception e)
             {
-                if (ThrowExceptions) throw new InvalidProgramException("Exception" + e.Message, e);
+                if (ThrowExceptions) throw new InvalidProgramException("Exception: " + e.Message, e);
             }
         }
     }

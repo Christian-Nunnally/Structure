@@ -85,7 +85,7 @@ namespace Structur.Modules
             {
                 IO.Write("Loading data sets...");
                 thread.Start();
-                while (localIO.ProgramInput.IsKeyAvailable()) { Thread.Sleep(100); }
+                while (localIO.ProgramInput.IsInputAvailable()) { Thread.Sleep(100); }
             });
             _dataRoutines = ioc.Get<StructureData>().Routines;
         }

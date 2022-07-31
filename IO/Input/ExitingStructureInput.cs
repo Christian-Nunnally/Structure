@@ -20,10 +20,10 @@ namespace Structur.IO.Input
 
         public ChainedInput InputSource { get; }
 
-        public bool IsKeyAvailable() => InputSource.IsKeyAvailable();
+        public bool IsInputAvailable() => InputSource.IsInputAvailable();
 
-        public ProgramInputData ReadKey() => InputSource.ReadKey();
+        public ProgramInputData ReadInput() => InputSource.ReadInput();
 
-        public void RemoveLastReadKey() { }
+        public void RemoveLastInput() { }
     }
 }

@@ -62,9 +62,9 @@ namespace Structur.IO.Input
             InputSource.AddInput(recordedUserInputSource);
         }
 
-        public bool IsKeyAvailable() => InputSource.IsKeyAvailable();
+        public bool IsInputAvailable() => InputSource.IsInputAvailable();
 
-        public ProgramInputData ReadKey() => InputSource.ReadKey();
+        public ProgramInputData ReadInput() => InputSource.ReadInput();
 
         protected void SetToLoadMode(StructureIO io, INewsPrinter newsPrinter)
         {
@@ -109,6 +109,6 @@ namespace Structur.IO.Input
             io.ProgramOutput = output;
         }
 
-        public void RemoveLastReadKey() => InputSource.RemoveLastReadKey();
+        public void RemoveLastInput() => InputSource.RemoveLastInput();
     }
 }

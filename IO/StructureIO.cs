@@ -27,6 +27,8 @@ namespace Structur.IO
 
         public StringBuilder CurrentBuffer { get; } = new StringBuilder();
 
+        public string CurrentDisplay => CurrentBuffer.ToString();
+
         public Action<ConsoleKeyInfo, StructureIO> ModifierKeyAction { get; set; }
 
         public CurrentTime CurrentTime { get; }
@@ -105,7 +107,7 @@ namespace Structur.IO
                 var isAllowedKey = allowedKeys.Contains(keyInfo.Key) || allowedKeys == KeyGroups.NoKeys;
                 if (isHotkeyPressed) ModifierKeyAction?.Invoke(keyInfo, this);
                 else if (isAllowedKey) return keyInfo;
-                else ProgramInput.RemoveLastReadKey();
+                else ProgramInput.RemoveLastInput();
                 return ReadKey(allowedKeys);
             }
         }
@@ -142,7 +144,7 @@ namespace Structur.IO
         private ConsoleKeyInfo ReadKeyAndSetTime()
         {
             IsBusy = false;
-            var key = ProgramInput.ReadKey();
+            var key = ProgramInput.ReadInput();
             KeyCount++;
             KeyHash = (KeyHash + key).GetHashCode(StringComparison.Ordinal).ToString(new NumberFormatInfo());
             IsBusy = true;
@@ -153,7 +155,7 @@ namespace Structur.IO
 
         public void ProcessInBackgroundWhileWaitingForInput()
         {
-            while (!ProgramInput.IsKeyAvailable() && ProcessBackgroundWork()) ;
+            while (!ProgramInput.IsInputAvailable() && ProcessBackgroundWork()) ;
         }
 
         public void ProcessAllBackgroundWork()
