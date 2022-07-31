@@ -63,14 +63,6 @@ namespace Structure.IO
             _newsCursorX -= PRINT_SPEED;
         }
 
-        private static (int Left, int Top) SaveCursorPosition(IProgramOutput programOutput) => (programOutput.CursorLeft, programOutput.CursorTop);
-        
-        private static void RestoreCursorPosition(IProgramOutput programOutput, (int Left, int Top) position)
-        {
-            programOutput.CursorLeft = position.Left;
-            programOutput.CursorTop = position.Top;
-        }
-
         private string AddSpacesToCurrentNews(int PRINT_SPEED)
         {
             var outputString = _currentNews;

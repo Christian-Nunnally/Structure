@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Structure.Program;
+using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 
 namespace Structure.IO.Persistence
@@ -12,7 +12,7 @@ namespace Structure.IO.Persistence
         private static readonly ConcurrentDictionary<string, string> _cache = new ConcurrentDictionary<string, string>();
         private static string savePath;
 
-        public static string SavePath => savePath ?? (savePath = GetSavedDirectoryPath(nameof(SavePath)));
+        public static string SavePath => savePath ?? (savePath = GetSavedPath());
 
         public static string ReadFromFile(string key) => _cache.TryGetValue(key, out var value) ? value
             : (_cache[key] = File.Exists(GetFileName(key)) ? File.ReadAllText(GetFileName(key)) : string.Empty);
@@ -25,30 +25,11 @@ namespace Structure.IO.Persistence
             _cache[key] = value;
         }
 
-        private static string GetSavedDirectoryPath(string fileKey)
+        private static string GetSavedPath()
         {
-            var settingsPath = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\{AppDataSettingsFolderName}\\{fileKey}{SaveFileExtension}";
-
-            if (File.Exists("settings.structure"))
-            {
-                settingsPath = File.ReadAllText("settings.structure") + $"\\{fileKey}{SaveFileExtension}";
-            }
-
-            if (!File.Exists(settingsPath)) SaveToFile(settingsPath, GetPathFromUser(fileKey));
-            return File.ReadAllText(settingsPath);
-        }
-
-        private static void SaveToFile(string path, string @string)
-        {
-            var directory = path.Substring(0, path.LastIndexOf("\\", StringComparison.InvariantCulture) + 1);
-            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
-            File.WriteAllText(path, @string);
-        }
-
-        private static string GetPathFromUser(string pathKey)
-        {
-            Console.WriteLine($"Enter the path for {pathKey}:");
-            return Console.ReadLine();
+            var settings = Settings.ReadSettings();
+            if (settings.SavePath == null) throw new InvalidOperationException($"Supply a save path in the {Settings.DefaultSettingsPath} file.");
+           return settings.SavePath;
         }
 
         private static string GetFileName(string key) => $"{SavePath}{key}{SaveFileExtension}";

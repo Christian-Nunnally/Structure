@@ -1,10 +1,13 @@
 ﻿using Structure.IO;
 using Structure.IO.Input;
+using Structure.IO.Output;
+using Structure.Program;
 using System;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Structure.Server
@@ -13,28 +16,66 @@ namespace Structure.Server
     {
         private static readonly HttpClient _httpClient = new HttpClient();
         private readonly string _hostName;
-        private readonly Uri _apiUri;
+        private readonly ClientSwapInput _clientSwapInput;
+        private readonly Uri _ioUri;
+        private readonly Uri _versionUri;
         private readonly StructureIO _io;
         private string _connectionStatus = "Ready";
         private string _currentStructureOutput;
+        private StructureProgram _localProgram;
+        private Thread _localProgramExecutionThread;
 
-        public Client(StructureIO io, string hostName)
+        public Client(StructureIO io, string hostName, ClientSwapInput clientSwapInput, StructureProgram localProgram)
         {
             _io = io;
             _hostName = hostName;
-            _apiUri = new Uri(hostName + $"/{Server.ApiName}/{Controller.ControllerName}");
+            _clientSwapInput = clientSwapInput;
+            _ioUri = new Uri(hostName + $"/{Server.ApiName}/{IOController.ControllerName}");
+            _versionUri = new Uri(hostName + $"/{Server.ApiName}/version");
             _io.YStartPosition = 0;
+            _localProgram = localProgram;
+            _localProgramExecutionThread = new Thread(localProgram.Run);
         }
 
         public async Task RunAsync()
         {
+            if (!await CheckClientServerVersionsMatchAsync()) return;
+
             await GetAndUpdateScreenFromServerAsync();
+            _localProgramExecutionThread.Start();
             while (true)
             {
                 var key = ReadKeyAndSetStatusToWaiting();
                 await PostKeyAndSetStatusToReady(key);
                 _io.ProcessInBackgroundWhileWaitingForInput();
+
+                if (_clientSwapInput.IsReadyToSwapClients)
+                {
+                    _clientSwapInput.ShouldSwapClients = true;
+                    break;
+                }
             }
+            _localProgramExecutionThread.Join();
+        }
+
+        private async Task<bool> CheckClientServerVersionsMatchAsync()
+        {
+            _io.Write("Checking versions...");
+            var clientVersion = StructureProgram.Version;
+            var serverVersion = await GetVersionAsync();
+            if (VersionError(nameof(clientVersion.Major), clientVersion.Major, serverVersion.Major)) return false;
+            if (VersionError(nameof(clientVersion.Minor), clientVersion.Minor, serverVersion.Minor)) return false;
+            if (VersionError(nameof(clientVersion.Build), clientVersion.Build, serverVersion.Build)) return false;
+            return true;
+        }
+
+        private bool VersionError(string versionType, int clientVersion, int serverVersion)
+        {
+            if (clientVersion == serverVersion) return false;
+            _io.Write($"Error connecting to server: {versionType} version of the client is not the same as the server.");
+            _io.Write($"Client {versionType} version = {clientVersion}");
+            _io.Write($"Server {versionType} version = {serverVersion}");
+            return true;
         }
 
         private async Task GetAndUpdateScreenFromServerAsync()
@@ -67,33 +108,41 @@ namespace Structure.Server
             _io.ClearStaleOutput();
         }
 
+        private async Task<VersionResponse> GetVersionAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(_versionUri);
+                return await GetObjectFromHttpResponse<VersionResponse>(response);
+            }
+            catch (SocketException e)
+            {
+                _io.Write("Error connecting to server: " + e.Message);
+                return new VersionResponse();
+            }
+            catch (HttpRequestException e)
+            {
+                _io.Write("Error connecting to server: " + e.Message);
+                return new VersionResponse();
+            }
+        }
+
         private async Task<InputResponse> PostInputAsync(ProgramInputData inputData)
         {
             try
             {
                 var serializedInput = JsonSerializer.Serialize(inputData);
                 using var content = new StringContent(serializedInput, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(_apiUri, content);
-                response.EnsureSuccessStatusCode();
-                var responseBody = await response.Content.ReadAsStringAsync();
-                var inputResponse = JsonSerializer.Deserialize<InputResponse>(responseBody);
-                inputResponse.ConsoleText = inputResponse.ConsoleText;
-                _connectionStatus = "Ready";
-                return inputResponse;
+                var response = await _httpClient.PostAsync(_ioUri, content);
+                return await GetObjectFromHttpResponse<InputResponse>(response);
             }
             catch (SocketException e)
             {
-                _connectionStatus = "Failed";
-                var response = new InputResponse();
-                response.ConsoleText = e.Message;
-                return response;
+                return GetFailedInputResponseFromException(e);
             }
             catch (HttpRequestException e)
             {
-                _connectionStatus = "Failed";
-                var response = new InputResponse();
-                response.ConsoleText = e.Message;
-                return response;
+                return GetFailedInputResponseFromException(e);
             }
         }
 
@@ -101,28 +150,49 @@ namespace Structure.Server
         {
             try
             {
-                var response = await _httpClient.GetAsync(_apiUri);
-                response.EnsureSuccessStatusCode();
-                var responseBody = await response.Content.ReadAsStringAsync();
-                var inputResponse = JsonSerializer.Deserialize<InputResponse>(responseBody);
-                inputResponse.ConsoleText = inputResponse.ConsoleText;
-                _connectionStatus = "Ready";
-                return inputResponse;
+                var response = await _httpClient.GetAsync(_ioUri);
+                return await GetObjectFromHttpResponse<InputResponse>(response);
             }
             catch (SocketException e)
             {
-                _connectionStatus = "Failed";
-                var response = new InputResponse();
-                response.ConsoleText = e.Message;
-                return response;
+                return GetFailedInputResponseFromException(e);
             }
             catch (HttpRequestException e)
             {
-                _connectionStatus = "Failed";
-                var response = new InputResponse();
-                response.ConsoleText = e.Message;
-                return response;
+                return GetFailedInputResponseFromException(e);
             }
         }
+
+        private InputResponse GetFailedInputResponseFromException(Exception e)
+        {
+            _connectionStatus = "Failed";
+            var response = new InputResponse();
+            response.ConsoleText = e.Message;
+            return response;
+        }
+
+        private async Task<T> GetObjectFromHttpResponse<T>(HttpResponseMessage response)
+        {
+            response.EnsureSuccessStatusCode();
+            var responseBody = await response.Content.ReadAsStringAsync();
+            _connectionStatus = "Ready";
+            return JsonSerializer.Deserialize<T>(responseBody);
+        }
+
+        /*
+         * 
+         * #1: Connect to server and figure out:
+         *       Whether client and server versions are the same
+         *       Who has the olest history
+         *       Compare the last # the server knows vs the actual number
+         *       Who has a valid history
+         * If the history is invalid:
+         *      Run in local mode.
+         * If the server has a more up to date history and its valid.
+         *      
+         * 
+         * 
+         * 
+         */
     }
 }

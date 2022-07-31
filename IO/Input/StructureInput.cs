@@ -1,6 +1,7 @@
 ﻿using Structure.IO.Output;
 using Structure.IO.Persistence;
 using Structure.Program.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -10,13 +11,15 @@ namespace Structure.IO.Input
     public class StructureInput : IProgramInput
     {
         private Stopwatch _stopwatch;
+        private readonly IProgramOutput _outputToSwitchTo;
 
         protected ChainedInput InputSource { get; set; }
 
-        public StructureInput(StructureIO io, IProgramInput sourceInput, INewsPrinter newsPrinter)
+        public StructureInput(StructureIO io, IProgramInput sourceInput, IProgramOutput outputToSwitchTo, INewsPrinter newsPrinter)
         {
             InitializeNewInputFromSavedSessions(io, newsPrinter);
             AddRecordingInputForEmptySaveSession(sourceInput);
+            _outputToSwitchTo = outputToSwitchTo;
         }
 
         protected void InitializeNewInputFromSavedSessions(StructureIO io, INewsPrinter newsPrinter)
@@ -24,8 +27,24 @@ namespace Structure.IO.Input
             InputSource = new ChainedInput();
             InputSource.AddAction(() => SetToLoadMode(io, newsPrinter));
             var sessionsInputs = CreateInputsFromSavedSessions();
-            sessionsInputs.All(x => InputSource.AddInput(x));
+
+            int iteration = 0;
+            double percentFactor = 0.0;
+            int count = Math.Max(1, sessionsInputs.Count());
+            int skip = 20;
+            foreach (var sessionInputs in sessionsInputs)
+            {
+                percentFactor += 100;
+                var temp = percentFactor / count;
+                if (iteration++ % skip == 0) InputSource.AddAction(() => UpdateLoadingPercent(io, temp));
+                InputSource.AddInput(sessionInputs);
+            }
             InputSource.AddAction(() => SetToUserMode(io, newsPrinter));
+        }
+
+        private void UpdateLoadingPercent(StructureIO io, double percent)
+        {
+            ClearAndForceWrite(io, $"Loading... {percent.ToString("0.00")}% ");
         }
 
         private static IEnumerable<PredeterminedInput> CreateInputsFromSavedSessions()
@@ -48,28 +67,45 @@ namespace Structure.IO.Input
 
         protected void SetToLoadMode(StructureIO io, INewsPrinter newsPrinter)
         {
-            io.ClearBuffer();
-            io.Write("Loading...");
-            io.ClearStaleOutput();
+            ClearAndForceWrite(io, "Loading... ");
             io.ProgramOutput = new NoOpOutput();
             io.SkipUnescesscaryOperations = true;
             newsPrinter.Disable();
-            _stopwatch = new Stopwatch();
-            _stopwatch.Start();
+            StartStopwatch();
         }
 
         protected void SetToUserMode(StructureIO io, INewsPrinter newsPrinter)
         {
             newsPrinter.Enable();
-            io.ProgramOutput = new ConsoleOutput();
+            io.ProgramOutput = _outputToSwitchTo;
             io.CurrentTime.SetToRealTime();
             var buffer = io.CurrentBuffer.ToString();
-            io.ClearBuffer();
-            io.WriteNoLine(buffer);
-            io.ClearStaleOutput();
+            ClearAndForceWrite(io, buffer);
             io.SkipUnescesscaryOperations = false;
+            StopStopwatch(newsPrinter);
+        }
+
+        private void StartStopwatch()
+        {
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
+        }
+
+        private void StopStopwatch(INewsPrinter newsPrinter)
+        {
             _stopwatch.Stop();
             newsPrinter.EnqueueNews($"Load took {_stopwatch.ElapsedMilliseconds}ms");
+        }
+
+        private void ClearAndForceWrite(StructureIO io, string text)
+        {
+            var output = io.ProgramOutput;
+            io.ProgramOutput = _outputToSwitchTo;
+            io.ClearBuffer();
+            io.WriteNoLine(text);
+            io.ClearStaleOutput();
+            io.ProcessAllBackgroundWork();
+            io.ProgramOutput = output;
         }
 
         public void RemoveLastReadKey() => InputSource.RemoveLastReadKey();

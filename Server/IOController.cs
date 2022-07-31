@@ -3,11 +3,12 @@ using EmbedIO.Routing;
 using EmbedIO.WebApi;
 using Structure.IO;
 using Structure.IO.Input;
+using Structure.Program;
 using System;
 
 namespace Structure.Server
 {
-    internal class Controller : WebApiController
+    internal class IOController : WebApiController
     {
         public const string ControllerName = "key";
 
@@ -15,7 +16,7 @@ namespace Structure.Server
 
         public QueuedInput ServerInputQueue { get; set; }
 
-        public Controller(StructureIO io, QueuedInput queuedInput)
+        public IOController(StructureIO io, QueuedInput queuedInput)
         {
             _io = io;
             ServerInputQueue = queuedInput;
@@ -50,6 +51,20 @@ namespace Structure.Server
             {
                 return new InputResponse();
             }
+        }
+
+        [Route(HttpVerbs.Get, "/" + "version")]
+        public VersionResponse GetVersion()
+        {
+            var response = new VersionResponse
+            {
+                Major = StructureProgram.Version.Major,
+                Minor = StructureProgram.Version.Minor,
+                Build = StructureProgram.Version.Build,
+                KeyHash = _io.KeyHash,
+                KeyCount = _io.KeyCount,
+            };
+            return response;
         }
     }
 }

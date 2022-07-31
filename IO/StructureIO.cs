@@ -31,6 +31,8 @@ namespace Structure.IO
         public CurrentTime CurrentTime { get; }
 
         public bool SkipUnescesscaryOperations { get; set; }
+        public int KeyCount { get; private set; }
+        public string KeyHash { get; private set; }
 
         public StructureIO(StructureIoC ioc)
         {
@@ -116,6 +118,7 @@ namespace Structure.IO
         private void PrintOptions(string prompt, string helpString, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
         {
             Write($"{prompt}\n");
+            // convert to help printer class
             if (string.IsNullOrEmpty(helpString)) keyedOptions.All(PrintOption);
             else Write(helpString);
         }
@@ -139,6 +142,8 @@ namespace Structure.IO
         {
             IsBusy = false;
             var key = ProgramInput.ReadKey();
+            KeyCount++;
+            KeyHash = (KeyHash + key).GetHashCode().ToString();
             IsBusy = true;
             if (key == null) throw new InvalidProgramException();
             CurrentTime.SetArtificialTime(key.Time);
@@ -147,8 +152,15 @@ namespace Structure.IO
 
         public void ProcessInBackgroundWhileWaitingForInput()
         {
-            while (!ProgramInput.IsKeyAvailable() && _backgroundProcesses.Any(x => x.DoProcess(this)));
+            while (!ProgramInput.IsKeyAvailable() && ProcessBackgroundWork()) ;
         }
+
+        public void ProcessAllBackgroundWork()
+        {
+            while (ProcessBackgroundWork());
+        }
+
+        private bool ProcessBackgroundWork() => _backgroundProcesses.Any(x => x.DoProcess(this));
 
         private void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo, ConsoleKey[] allowedKeys)
         {
