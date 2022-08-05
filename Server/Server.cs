@@ -2,6 +2,7 @@
 using EmbedIO.Actions;
 using EmbedIO.Files;
 using EmbedIO.WebApi;
+using Swan;
 using Swan.Logging;
 using System;
 using System.Threading;
@@ -19,6 +20,7 @@ namespace Structur.Server
 
         public Server(string url, IOController controller)
         {
+            Logger.UnregisterLogger<ConsoleLogger>();
             _url = url;
             _controller = controller;
         }
@@ -33,8 +35,8 @@ namespace Structur.Server
         private async Task CreateAndRunServerAsync()
         {
             using var server = new WebServer(SetupOptions);
-            ConfigureWebserver(server);
-            await server.RunAsync();
+            var configuredServer = ConfigureWebserver(server);
+            await configuredServer.RunAsync();
         }
 
         private void SetupOptions(WebServerOptions options)

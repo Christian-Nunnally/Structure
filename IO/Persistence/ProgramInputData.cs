@@ -14,6 +14,10 @@ namespace Structur.IO.Input
             Time = time;
         }
 
+        public ProgramInputData()
+        {
+        }
+
         [JsonProperty(PropertyName = "K")]
         public int Key { get; set; }
 
@@ -36,5 +40,7 @@ namespace Structur.IO.Input
                 modifiers.HasFlag(ConsoleModifiers.Alt),
                 modifiers.HasFlag(ConsoleModifiers.Control));
         }
+
+        public int Code => Key * 32 + Modifiers;
     }
 }

@@ -6,11 +6,22 @@ namespace Structur.Program
     internal class Settings
     {
         public static string DefaultSettingsPath = "settings.structure";
+        public static string DefaultSavePath = "Save";
+
+        public static Settings DefaultSettings
+        {
+            get
+            {
+                var settings = new Settings();
+                settings.SavePath = Path.Combine(Directory.GetCurrentDirectory(), DefaultSavePath, "/");
+                return settings;
+            }
+        }
 
         public static Settings ReadSettings(string settingsFilePath = null)
         {
             settingsFilePath ??= DefaultSettingsPath;
-            if (!File.Exists(settingsFilePath)) WriteSettings(new Settings(), settingsFilePath);
+            if (!File.Exists(settingsFilePath)) WriteSettings(DefaultSettings, settingsFilePath);
             return JsonSerializer.Deserialize<Settings>(File.ReadAllText(settingsFilePath));
         }
 

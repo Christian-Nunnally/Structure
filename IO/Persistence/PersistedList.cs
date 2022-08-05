@@ -17,7 +17,7 @@ namespace Structur.IO.Persistence
 
         public bool HasBeenSaved { get; private set; }
 
-        private List<T> List => _list ?? (_list = LoadList() ?? new List<T>());
+        private List<T> List => _list ??= LoadList() ?? new List<T>();
 
         private List<T> LoadList() => JsonConvert.DeserializeObject<List<T>>(StructureFileIO.ReadFromFile(_name));
 

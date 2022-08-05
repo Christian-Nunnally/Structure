@@ -1,5 +1,6 @@
 ﻿using Structur.IO.Input;
 using Structur.IO.Output;
+using Structur.IO.Persistence;
 using Structur.Program;
 using Structur.Program.Utilities;
 using System;
@@ -35,7 +36,7 @@ namespace Structur.IO
 
         public bool SkipUnescesscaryOperations { get; set; }
         public int KeyCount { get; private set; }
-        public string KeyHash { get; private set; }
+        public int KeyHash { get; private set; }
 
         public StructureIO(StructureIoC ioc)
         {
@@ -146,7 +147,7 @@ namespace Structur.IO
             IsBusy = false;
             var key = ProgramInput.ReadInput();
             KeyCount++;
-            KeyHash = (KeyHash + key).GetHashCode(StringComparison.Ordinal).ToString(new NumberFormatInfo());
+            KeyHash = (KeyHash + 7) * key.Code % 27277;
             IsBusy = true;
             if (key == null) throw new InvalidProgramException();
             CurrentTime.SetArtificialTime(key.Time);
@@ -155,7 +156,7 @@ namespace Structur.IO
 
         public void ProcessInBackgroundWhileWaitingForInput()
         {
-            while (!ProgramInput.IsInputAvailable() && ProcessBackgroundWork()) ;
+            while (!ProgramInput.IsInputAvailable() && ProcessBackgroundWork());
         }
 
         public void ProcessAllBackgroundWork()

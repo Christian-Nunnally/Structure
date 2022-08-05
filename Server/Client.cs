@@ -2,7 +2,12 @@
 using Structur.IO.Input;
 using Structur.IO.Output;
 using Structur.Program;
+using Structur.Program.Utilities;
+using Structur.Server.Requests;
+using Structur.Server.Responses;
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
@@ -14,27 +19,27 @@ namespace Structur.Server
 {
     public class Client
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly HttpClient _httpClient = new();
         private readonly string _hostName;
-        private readonly ClientSwapInput _clientSwapInput;
+        private readonly OutputSwapInput _clientSwapInput;
         private readonly Uri _ioUri;
         private readonly Uri _versionUri;
+        private readonly Uri _historyUri;
         private readonly StructureIO _io;
         private string _connectionStatus = "Ready";
         private string _currentStructureOutput;
-        private StructureProgram _localProgram;
         private readonly StructureIO _localProgramIO;
-        private Thread _localProgramExecutionThread;
+        private readonly Thread _localProgramExecutionThread;
 
-        public Client(StructureIO io, string hostName, ClientSwapInput clientSwapInput, StructureProgram localProgram, StructureIO localProgramIO)
+        public Client(StructureIO io, string hostName, OutputSwapInput clientSwapInput, StructureProgram localProgram, StructureIO localProgramIO)
         {
             _io = io;
             _hostName = hostName;
             _clientSwapInput = clientSwapInput;
-            _ioUri = new Uri(hostName + $"/{Server.ApiName}{IOController.ControllerName}");
+            _ioUri = new Uri(hostName + $"/{Server.ApiName}{IOController.ControllerInputName}");
             _versionUri = new Uri(hostName + $"/{Server.ApiName}/version");
+            _historyUri = new Uri(hostName + $"/{Server.ApiName}/history");
             _io.YStartPosition = 0;
-            _localProgram = localProgram;
             _localProgramIO = localProgramIO;
             _localProgramExecutionThread = new Thread(localProgram.Run);
         }
@@ -51,11 +56,13 @@ namespace Structur.Server
                 await PostKeyAndSetStatusToReady(key);
                 _io.ProcessInBackgroundWhileWaitingForInput();
 
-                if (_clientSwapInput.IsInputLoaded())
+                if (_clientSwapInput.IsReadyToSwapOutputs())
                 {
-                    if (_localProgramIO.KeyCount > 
-                    _clientSwapInput.SwapClients();
-                    break;
+                    if (await CheckClientServerHistoryAsync())
+                    {
+                        _clientSwapInput.InitiateOutputSwap();
+                        break;
+                    }
                 }
             }
             _localProgramExecutionThread.Join();
@@ -74,12 +81,13 @@ namespace Structur.Server
 
         private async Task<bool> CheckClientServerHistoryAsync()
         {
+            if (_clientSwapInput.IsInternalInputAvailable()) return false;
             _io.Write("Comparing local history with remote...");
             var serverVersion = await GetVersionAsync();
 
             if (_localProgramIO.KeyCount == serverVersion.KeyCount)
             {
-                if (_localProgramIO.KeyHash == serverVersion.KeyHash)
+                if (_localProgramIO.KeyHash.ToString(CultureInfo.CurrentCulture) == serverVersion.KeyHash)
                 {
                     _io.Write("Histories synchronized...");
                     return true;
@@ -87,13 +95,38 @@ namespace Structur.Server
             }
             else if (_localProgramIO.KeyCount < serverVersion.KeyCount)
             {
-                // Get next set of keys
-                // Swap out input with fake input temporarily
+                _io.Write("Local behind remote...");
+                var inputs = await GetHistoryFromServerAsync(_localProgramIO.KeyCount, serverVersion.KeyCount+2);
+                var hash = _localProgramIO.KeyHash;
+                foreach (var input in inputs)
+                {
+                    hash = (hash + 7) * input.Code % 27277;
+                }
+                if (hash.ToString(CultureInfo.CurrentCulture) == serverVersion.KeyHash)
+                {
+                    inputs.All(i => _clientSwapInput.EnqueueInput(i));
+                    return false;
+                }
+                return false;
             }
             else if (_localProgramIO.KeyCount > serverVersion.KeyCount)
             {
                 return false;
             }
+            return false;
+        }
+
+        private async Task<ProgramInputData[]> GetHistoryFromServerAsync(int keyCount1, int keyCount2)
+        {
+            var historyRequest = new HistoryRequest();
+            historyRequest.StartInclusive = keyCount1;
+            historyRequest.StopExclusive = keyCount2;
+            var serializedInput = JsonSerializer.Serialize(historyRequest);
+            using var content = new StringContent(serializedInput, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(_historyUri, content);
+            var historyReponse = await GetObjectFromHttpResponseAsync<HistoryResponse>(response);
+            return historyReponse.History;
         }
 
         private bool VersionError(string versionType, int clientVersion, int serverVersion)
@@ -140,7 +173,7 @@ namespace Structur.Server
             try
             {
                 var response = await _httpClient.GetAsync(_versionUri);
-                return await GetObjectFromHttpResponse<VersionResponse>(response);
+                return await GetObjectFromHttpResponseAsync<VersionResponse>(response);
             }
             catch (SocketException e)
             {
@@ -161,7 +194,7 @@ namespace Structur.Server
                 var serializedInput = JsonSerializer.Serialize(inputData);
                 using var content = new StringContent(serializedInput, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync(_ioUri, content);
-                return await GetObjectFromHttpResponse<InputResponse>(response);
+                return await GetObjectFromHttpResponseAsync<InputResponse>(response);
             }
             catch (SocketException e)
             {
@@ -178,7 +211,7 @@ namespace Structur.Server
             try
             {
                 var response = await _httpClient.GetAsync(_ioUri);
-                return await GetObjectFromHttpResponse<InputResponse>(response);
+                return await GetObjectFromHttpResponseAsync<InputResponse>(response);
             }
             catch (SocketException e)
             {
@@ -198,7 +231,7 @@ namespace Structur.Server
             return response;
         }
 
-        private async Task<T> GetObjectFromHttpResponse<T>(HttpResponseMessage response)
+        private async Task<T> GetObjectFromHttpResponseAsync<T>(HttpResponseMessage response)
         {
             response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync();

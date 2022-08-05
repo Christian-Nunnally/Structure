@@ -11,49 +11,51 @@ namespace Structur.Program
         public static void Main()
         {
             var ioc = CreateIoCContainer();
+            var newsPrinter = ioc.Get<INewsPrinter>();
             var io = new StructureIO(ioc);
+            var consoleOutput = new ConsoleOutput();
+            var consoleInput = new ConsoleInput();
+            var noopOutput = new NoOpOutput();
             var settings = Settings.ReadSettings();
-
-            IProgramInput mainProgramInput = settings.EnableWebServer
-                ? EnableWebServerAndRouteConsoleOrServerKeysToInput(io, settings.ServerHostname)
-                : (IProgramInput)new ConsoleInput();
-
-            var clientSwapInput = new ClientSwapInput(io, new ConsoleOutput(), ioc.Get<INewsPrinter>());
-            if (settings.EnableClient)
-            {
-                var chainedInput = new ChainedInput();
-                chainedInput.AddInput(clientSwapInput);
-                chainedInput.AddInput(new ConsoleInput());
-                mainProgramInput = chainedInput;
-            }
-
+            var enableClient = settings.EnableClient;
+            var enableServer = settings.EnableWebServer;
+            var enableDebugging = settings.EnableDebugging;
             var startingModules = StartingModules.Create();
             var program = new StructureProgram(ioc, io, startingModules);
 
-            if (settings.EnableDebugging) io.ProgramInput = new DevelopmentStructureInput(io, mainProgramInput, new ConsoleOutput(), ioc.Get<INewsPrinter>(), true);
-            else if (settings.EnableClient) io.ProgramInput = new StructureInput(io, mainProgramInput, new NoOpOutput(), ioc.Get<INewsPrinter>());
-            else io.ProgramInput = new StructureInput(io, mainProgramInput, new ConsoleOutput(), ioc.Get<INewsPrinter>());
-
-            io.ProgramOutput = new ConsoleOutput();
-
-            if (settings.EnableClient)
+            if (enableClient)
             {
-                io.ProgramOutput = new NoOpOutput();
-            }
+                var clientSwapInput = new OutputSwapInput(io, consoleOutput, newsPrinter);
+                var chainedInput = new ChainedInput();
+                chainedInput.AddInput(clientSwapInput);
+                chainedInput.AddInput(consoleInput);
+                io.ProgramInput = WrapInputWithStructureInput(io, enableDebugging, chainedInput, noopOutput, newsPrinter);
+                io.ProgramOutput = noopOutput;
 
-            if (settings.EnableClient)
-            {
                 var clientIO = new StructureIO(ioc);
-                clientIO.ProgramInput = new ConsoleInput();
-                clientIO.ProgramOutput = new ConsoleOutput();
-                var client = new Client(clientIO, settings.ServerHostname, clientSwapInput, program);
+                clientIO.ProgramInput = consoleInput;
+                clientIO.ProgramOutput = consoleOutput;
+                var client = new Client(clientIO, settings.ServerHostname, clientSwapInput, program, io);
                 client.RunAsync().Wait();
-                return;
             }
             else
             {
+                IProgramInput mainProgramInput = consoleInput;
+                if (enableServer)
+                {
+                    mainProgramInput = EnableWebServerAndRouteConsoleOrServerKeysToInput(io, settings.Hostname);
+                }
+                io.ProgramInput = WrapInputWithStructureInput(io, enableDebugging, mainProgramInput, consoleOutput, newsPrinter);
+                io.ProgramOutput = consoleOutput;
                 program.Run();
             }
+        }
+
+        private static IProgramInput WrapInputWithStructureInput(StructureIO io, bool enableDebugging, IProgramInput mainProgramInput, IProgramOutput outputToSwitchToAfterLoading, INewsPrinter newsPrinter)
+        {
+            return enableDebugging
+                ? new DevelopmentStructureInput(io, mainProgramInput, outputToSwitchToAfterLoading, newsPrinter)
+                : new StructureInput(io, mainProgramInput, outputToSwitchToAfterLoading, newsPrinter);
         }
 
         private static MultiInput EnableWebServerAndRouteConsoleOrServerKeysToInput(StructureIO io, string serverHostname)

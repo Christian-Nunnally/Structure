@@ -22,6 +22,6 @@ namespace Structur.IO.Persistence
 
         public static PersistedList<ProgramInputData>[] LoadSavedDataSessions() => LoadDataSessions().SavedDataSessions;
 
-        private static PersistedList<ProgramInputData> LoadSession(int setNumber) => new PersistedList<ProgramInputData>($"session-{setNumber}");
+        private static PersistedList<ProgramInputData> LoadSession(int setNumber) => new($"session-{setNumber}");
     }
 }

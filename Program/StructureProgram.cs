@@ -39,11 +39,8 @@ namespace Structur.Program
 
         private void Loop()
         {
-            if (!_io.SkipUnescesscaryOperations)
-            { 
-                _io.Write(TitleString);
-                _hotkey.Print(_io);
-            }
+            _io.Write(TitleString);
+            _hotkey.Print(_io);
             _io.Read(x => { }, KeyGroups.NoKeys, KeyGroups.NoKeys);
         }
     }
