@@ -53,7 +53,8 @@ namespace Structur.IO
         public void ClearBuffer()
         {
             CurrentBuffer.Clear();
-            ProgramOutput.SetCursorPosition(XStartPosition, YStartPosition);
+            ProgramOutput.CursorTop = YStartPosition;
+            ProgramOutput.CursorLeft = XStartPosition;
         }
 
         public void Run(Action action)

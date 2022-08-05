@@ -16,8 +16,6 @@
 
         void WriteLine(string text);
 
-        void SetCursorPosition(int left, int top);
-
         void Clear();
     }
 }

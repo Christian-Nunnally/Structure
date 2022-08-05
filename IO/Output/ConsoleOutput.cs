@@ -22,8 +22,6 @@ namespace Structur.IO.Output
 
         public void Clear() => Console.Clear();
 
-        public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
-
         public void Write(string text) => Console.Write(text);
 
         public void WriteLine(string text) => Console.WriteLine(text);

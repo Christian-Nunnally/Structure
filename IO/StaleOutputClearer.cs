@@ -34,7 +34,8 @@ namespace Structur.IO
             for (int i = _currentIndex; i < buffer.Length; i++)
             {
                 var character = buffer[i];
-                output.SetCursorPosition(Math.Min(_x++, output.Width - 1), _y);
+                output.CursorLeft = Math.Min(_x++, output.Width - 1);
+                output.CursorTop = _y;
                 if (!char.IsWhiteSpace(character)) continue;
 
                 if (character == '\n' || _x >= output.Width)

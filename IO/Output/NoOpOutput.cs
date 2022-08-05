@@ -14,8 +14,6 @@
 
         public void Clear() { }
 
-        public void SetCursorPosition(int left, int top) { }
-
         public void Write(string text) { }
 
         public void WriteLine(string text) { }
