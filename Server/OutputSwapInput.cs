@@ -46,11 +46,12 @@ namespace Structur.Server
 
         private void SwapOutput()
         {
+            IO.SkipUnescesscaryOperations = false;
             IO.ProgramOutput = OutputToSwapTo;
-            IO.Write(IO.CurrentBuffer.ToString());
+            var buffer = IO.CurrentBuffer.ToString();
+            IO.ClearBuffer();
+            IO.WriteNoLine(buffer);
             IO.ClearStaleOutput();
-            while (NewsPrinter.DoProcess(IO));
-            IO.ProcessAllBackgroundWork();
         }
 
         public ProgramInputData ReadInput() => _inputQueue.ReadInput();

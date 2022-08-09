@@ -3,10 +3,10 @@ using System.Text.Json;
 
 namespace Structur.Program
 {
-    internal class Settings
+    public class Settings
     {
-        public static string DefaultSettingsPath = "settings.structure";
-        public static string DefaultSavePath = "Save";
+        public static readonly string DefaultSettingsPath = "settings.structure";
+        public static readonly string DefaultSavePath = "Save";
 
         public static Settings DefaultSettings
         {

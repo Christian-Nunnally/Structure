@@ -3,6 +3,7 @@ using Structur.IO.Output;
 using Structur.IO.Persistence;
 using Structur.Program;
 using Structur.Program.Utilities;
+using Structure.IO;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -15,6 +16,7 @@ namespace Structur.IO
     {
         private readonly Stack<string> _buffers = new();
         private readonly List<IBackgroundProcess> _backgroundProcesses;
+        private readonly OptionHelpPrinter _optionHelpPrinter;
 
         public int XStartPosition { get; set; }
 
@@ -35,7 +37,9 @@ namespace Structur.IO
         public CurrentTime CurrentTime { get; }
 
         public bool SkipUnescesscaryOperations { get; set; }
+
         public int KeyCount { get; private set; }
+
         public int KeyHash { get; private set; }
 
         public StructureIO(StructureIoC ioc)
@@ -43,6 +47,7 @@ namespace Structur.IO
             ModifierKeyAction = ioc.Get<Hotkey>().Execute;
             _backgroundProcesses = ioc?.GetAll<IBackgroundProcess>().ToList();
             CurrentTime = ioc.Get<CurrentTime>();
+            _optionHelpPrinter = new OptionHelpPrinter(this);
         }
 
         public void ClearStaleOutput()
@@ -99,6 +104,14 @@ namespace Structur.IO
             ReadOptionsCore(prompt, customHelpString, possibleKeys, keyedOptions);
         }
 
+        private void IncrementKeyHash(ConsoleKeyInfo key)
+        {
+            KeyCount++;
+            KeyHash = GenerateNextInputHash(KeyHash, key);
+        }
+
+        public static int GenerateNextInputHash(int hash, ConsoleKeyInfo key) => (hash + 7) * (int)key.Key % 27277;
+
         public ConsoleKeyInfo ReadKey(ConsoleKey[] allowedKeys)
         {
             while (true)
@@ -107,8 +120,16 @@ namespace Structur.IO
                 var keyInfo = ReadKeyAndSetTime();
                 var isHotkeyPressed = ConsoleKeyHelpers.IsModifierPressed(keyInfo);
                 var isAllowedKey = allowedKeys.Contains(keyInfo.Key) || allowedKeys == KeyGroups.NoKeys;
-                if (isHotkeyPressed) ModifierKeyAction?.Invoke(keyInfo, this);
-                else if (isAllowedKey) return keyInfo;
+                if (isHotkeyPressed)
+                {
+                    IncrementKeyHash(keyInfo);
+                    ModifierKeyAction?.Invoke(keyInfo, this);
+                }
+                else if (isAllowedKey)
+                {
+                    IncrementKeyHash(keyInfo);
+                    return keyInfo;
+                }
                 else ProgramInput.RemoveLastInput();
                 return ReadKey(allowedKeys);
             }
@@ -116,21 +137,10 @@ namespace Structur.IO
 
         private void ReadOptionsCore(string prompt, string helpString, ConsoleKey[] possibleKeys, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
         {
-            PrintOptions(prompt, helpString, keyedOptions);
+            Write($"{prompt}\n");
+            _optionHelpPrinter.PrintHelp(helpString, keyedOptions);
             ReadKeyAndSelectOption(keyedOptions, possibleKeys);
         }
-
-        private void PrintOptions(string prompt, string helpString, Dictionary<ConsoleKeyInfo, UserAction> keyedOptions)
-        {
-            Write($"{prompt}\n");
-            // convert to help printer class
-            if (string.IsNullOrEmpty(helpString)) keyedOptions.All(PrintOption);
-            else Write(helpString);
-        }
-
-        private void PrintOption(KeyValuePair<ConsoleKeyInfo, UserAction> x) => WriteNoLine(OptionString(x.Key, x.Value));
-
-        private static string OptionString(ConsoleKeyInfo key, UserAction option) => !string.IsNullOrEmpty(option.Description) ? $" {Utility.KeyToKeyString(key)} - {option.Description}\n" : string.Empty;
 
         private void ReadKeyAndSelectOption(Dictionary<ConsoleKeyInfo, UserAction> keyedOptions, ConsoleKey[] possibleKeys)
         {
@@ -147,8 +157,6 @@ namespace Structur.IO
         {
             IsBusy = false;
             var key = ProgramInput.ReadInput();
-            KeyCount++;
-            KeyHash = (KeyHash + 7) * key.Code % 27277;
             IsBusy = true;
             if (key == null) throw new InvalidProgramException();
             CurrentTime.SetArtificialTime(key.Time);

@@ -1,6 +1,6 @@
 ﻿namespace Structur.Server.Responses
 {
-    internal class InputResponse
+    public class InputResponse
     {
         public static InputResponse Create(string text)
         {

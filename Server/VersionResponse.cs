@@ -1,6 +1,6 @@
 ﻿namespace Structur.Server
 {
-    internal class VersionResponse
+    public class VersionResponse
     {
         public int Major { get; set; }
 

@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Structur.Server
 {
-    internal class IOController : WebApiController
+    public class IOController : WebApiController
     {
         public const string ControllerInputName = "/key";
         public const string ControllerHistoryeName = "/history";

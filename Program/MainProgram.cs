@@ -71,7 +71,7 @@ namespace Structur.Program
         private static void EnableWebServer(StructureIO io, QueuedInput input, string uri)
         {
             var controller = new IOController(io, input);
-            var server = new Server.Server(uri, controller);
+            var server = new Server.StructureServer(uri, controller);
             server.RunInNewThread();
         }
 

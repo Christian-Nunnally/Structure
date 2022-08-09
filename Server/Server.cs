@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Structur.Server
 {
-    class Server
+    public class StructureServer
     {
         public const string ApiName = "structure-api";
         private readonly string _url;
@@ -18,11 +18,15 @@ namespace Structur.Server
 
         private Thread ServerThread { get; set; }
 
-        public Server(string url, IOController controller)
+        public StructureServer(string url, IOController controller)
         {
             Logger.UnregisterLogger<ConsoleLogger>();
             _url = url;
             _controller = controller;
+        }
+
+        public StructureServer(Uri uri, IOController controller) : this(uri.AbsoluteUri, controller)
+        {
         }
 
         public void RunInNewThread()

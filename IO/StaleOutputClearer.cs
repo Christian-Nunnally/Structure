@@ -3,7 +3,7 @@ using System;
 
 namespace Structur.IO
 {
-    class StaleOutputClearer : IBackgroundProcess
+    public class StaleOutputClearer : IBackgroundProcess
     {
         private int _currentIndex;
         private bool _needsClearing;

@@ -36,11 +36,12 @@ namespace Structur.Server
             _io = io;
             _hostName = hostName;
             _clientSwapInput = clientSwapInput;
-            _ioUri = new Uri(hostName + $"/{Server.ApiName}{IOController.ControllerInputName}");
-            _versionUri = new Uri(hostName + $"/{Server.ApiName}/version");
-            _historyUri = new Uri(hostName + $"/{Server.ApiName}/history");
+            _ioUri = new Uri(hostName + $"/{StructureServer.ApiName}{IOController.ControllerInputName}");
+            _versionUri = new Uri(hostName + $"/{StructureServer.ApiName}/version");
+            _historyUri = new Uri(hostName + $"/{StructureServer.ApiName}/history");
             _io.YStartPosition = 0;
             _localProgramIO = localProgramIO;
+            localProgramIO.SkipUnescesscaryOperations = true;
             _localProgramExecutionThread = new Thread(localProgram.Run);
         }
 
@@ -60,6 +61,7 @@ namespace Structur.Server
                 {
                     if (await CheckClientServerHistoryAsync())
                     {
+                        while (_clientSwapInput.IsInternalInputAvailable());
                         _clientSwapInput.InitiateOutputSwap();
                         break;
                     }
@@ -96,16 +98,16 @@ namespace Structur.Server
             else if (_localProgramIO.KeyCount < serverVersion.KeyCount)
             {
                 _io.Write("Local behind remote...");
-                var inputs = await GetHistoryFromServerAsync(_localProgramIO.KeyCount, serverVersion.KeyCount+2);
+                var inputs = await GetHistoryFromServerAsync(_localProgramIO.KeyCount, serverVersion.KeyCount);
                 var hash = _localProgramIO.KeyHash;
                 foreach (var input in inputs)
                 {
-                    hash = (hash + 7) * input.Code % 27277;
+                    hash = StructureIO.GenerateNextInputHash(hash, input.GetKeyInfo());
                 }
                 if (hash.ToString(CultureInfo.CurrentCulture) == serverVersion.KeyHash)
                 {
                     inputs.All(i => _clientSwapInput.EnqueueInput(i));
-                    return false;
+                    return true;
                 }
                 return false;
             }

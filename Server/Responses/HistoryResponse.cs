@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Structur.Server.Responses
 {
-    internal class HistoryResponse
+    public class HistoryResponse
     {
         public static HistoryResponse Create(ProgramInputData[] history)
         {

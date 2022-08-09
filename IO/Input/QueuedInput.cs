@@ -2,7 +2,7 @@
 
 namespace Structur.IO.Input
 {
-    class QueuedInput : IProgramInput
+    public class QueuedInput : IProgramInput
     {
         private readonly Queue<ProgramInputData> _inputQueue = new();
 

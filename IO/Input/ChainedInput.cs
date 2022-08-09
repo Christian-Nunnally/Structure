@@ -28,6 +28,7 @@ namespace Structur.IO.Input
 
         public ProgramInputData ReadInput()
         {
+            if (_currentInput is null) LoadNextInput();
             if (!_currentInput.IsInputAvailable()) LoadNextInput();
             return _currentInput.ReadInput();
         }
