@@ -250,7 +250,11 @@ namespace Structur.Editors
             _tree.Set(node as T);
         }
 
-        private void DeleteItem(T item) => _tree.Remove(item?.ID);
+        private void DeleteItem(T item)
+        {
+            //GetChildren(item.ID).All(x => x.ParentID = item.ParentID);
+            _tree.Remove(item?.ID);
+        }
 
         private void EnterPressed(T item) => (IsParent(item) ? EnterPressedOnParentAction : EnterPressedOnLeafAction)(item);
 
