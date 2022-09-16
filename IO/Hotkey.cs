@@ -10,7 +10,7 @@ namespace Structur.IO
 {
     public class Hotkey
     {
-        private readonly Dictionary<ConsoleKey, List<UserAction>> _hotkeys = new Dictionary<ConsoleKey, List<UserAction>>();
+        private readonly Dictionary<ConsoleKey, List<UserAction>> _hotkeys = new();
 
         public void Print(StructureIO io) => _hotkeys.All(x => x.Value.All(y => io.Write($"ctrl + {$"{x.Key}".ToLower(CultureInfo.CurrentCulture)}: {y.Description}")));
 

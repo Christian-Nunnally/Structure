@@ -189,6 +189,7 @@ namespace Structur.IO
             }
             else
             {
+                if (allowedKeys == KeyGroups.NoKeys) return;
                 if (key.Key == ConsoleKey.Backspace) BackspaceKeyFromLine(line, echo);
                 else if (key.Key == ConsoleKey.Enter && echo) Write();
                 else if (key.Key == ConsoleKey.Escape) Write();

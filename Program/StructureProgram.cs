@@ -29,12 +29,12 @@ namespace Structur.Program
             _modules = modules;
         }
 
-        public void Run()
+        public void Run(ExitToken exitToken)
         {
             var manager = _modules.OfType<IModuleManager>().First();
             manager.RegisterModules(_modules);
             manager.Enable(_ioc, _io);
-            while (!Exit) _io.Run(Loop);
+            while (!exitToken.Exit) _io.Run(Loop);
         }
 
         private void Loop()

@@ -10,12 +10,12 @@ namespace Structur.Modules
 {
     public class ModuleManager : StructureModule, IModuleManager
     {
-        private const string ModuleStartHoykeyPrompt = "Manage modules";
+        public const string ModuleStartHoykeyPrompt = "Manage modules";
         public const string ManageModulesPrompt = "Select action";
         public const string UpgradeModulePrompt = "Pick module to upgrade";
         public const string EnableModulePrompt = "Pick module to enable";
         public const string DisableModulePrompt = "Pick module to disable";
-        private readonly List<IModule> _managedModules = new List<IModule>();
+        private readonly List<IModule> _managedModules = new();
         private UserAction _action;
 
         public void RegisterModules(IModule[] modules) => _managedModules.AddRange(modules);
@@ -67,7 +67,7 @@ namespace Structur.Modules
             IO.Write("\n");
         }
 
-        private static List<UserAction> CreateExitOptionsList() => new List<UserAction>
+        private static List<UserAction> CreateExitOptionsList() => new()
         {
             new UserAction("Exit", () => { }, ConsoleKey.Enter),
             new UserAction("", () => { }, ConsoleKey.LeftArrow),
@@ -100,7 +100,7 @@ namespace Structur.Modules
         {
             var index = _managedModules.IndexOf(module);
             if (index < 0) return;
-            if (!(module is IObsoleteModule obsoleteModule)) return;
+            if (module is not IObsoleteModule obsoleteModule) return;
             var wasEnabled = module.Enabled;
             if (wasEnabled) DisableModule(module);
             var upgradedModule = obsoleteModule.UpgradeModule();

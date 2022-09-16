@@ -29,10 +29,10 @@ namespace Structur.Modules
         private TaskHistoryQuery _selectedQuery;
         private bool _selectAllQueries = true;
         private NodeTree<TaskItem> _dataRoutines;
-        private readonly List<TaskHistoryQuery> _queries = new List<TaskHistoryQuery>();
+        private readonly List<TaskHistoryQuery> _queries = new();
         private bool _dataSetsInitialized;
         private bool _isUsingRealData;
-        private readonly List<(string Name, IList<TaskItem> Data)> _dataSets = new List<(string Name, IList<TaskItem> Data)>();
+        private readonly List<(string Name, IList<TaskItem> Data)> _dataSets = new();
 
         protected override void OnDisable()
         {
@@ -80,7 +80,7 @@ namespace Structur.Modules
             var program = new StructureProgram(ioc, localIO, startingModules.ToArray());
             localIO.ProgramInput = new ExitingStructureInput(program);
             localIO.ProgramOutput = new NoOpOutput();
-            var thread = new Thread(program.Run);
+            var thread = new Thread(() => program.Run(new ExitToken()));
             IO.Run(() =>
             {
                 IO.Write("Loading data sets...");
@@ -171,7 +171,6 @@ namespace Structur.Modules
                 new UserAction("Modify how values are computed", ChangeHowValuesAreComputed),
                 new UserAction("Modify what is being graphed", ChangeWhatIsBeingGraphed),
                 new UserAction("Add/remove/select query", AddOrRemoveQueries),
-                new UserAction("Add tasks copied from another task", AddCopiedTasks),
                 new UserAction("Change axis settings", ChangeAxisSettings),
                 new UserAction("List raw values", ToggleListValues),
                 new UserAction("Exit", Exit, ConsoleKey.Escape),
@@ -349,22 +348,27 @@ namespace Structur.Modules
 
         private void ChangeRange()
         {
-            IO.ReadInteger("Set new range", SetRange);
+            var range = TimeSpan.MinValue;
+            ModifySelectedQueries(x => range = x.Range);
+            IO.ReadTimeSpan("Set new range", SetRange, range);
         }
 
-        private void SetRange(int range)
+        private void SetRange(TimeSpan range)
         {
-            if (range > 0) ModifySelectedQueries(x => x.Range = new TimeSpan(range, 0, 0, 0));
+            if (range > TimeSpan.MinValue) ModifySelectedQueries(x => x.Range = range);
         }
 
         private void ChangeGrouping()
         {
-            IO.ReadInteger("Set new grouping", SetGrouping);
+            var grouping = TimeSpan.MinValue;
+            ModifySelectedQueries(x => grouping = x.Range);
+            IO.ReadTimeSpan("Set new grouping", SetGrouping, grouping);
         }
 
-        private void SetGrouping(int grouping)
+
+        private void SetGrouping(TimeSpan grouping)
         {
-            if (grouping > 0) ModifySelectedQueries(x => x.AggregationRange = new TimeSpan(grouping, 0, 0, 0));
+            if (grouping > TimeSpan.MinValue) ModifySelectedQueries(x => x.AggregationRange = grouping);
         }
 
         private void ModifySelectedQueries(Action<TaskHistoryQuery> modify)
@@ -372,5 +376,14 @@ namespace Structur.Modules
             if (_selectAllQueries) _queries.All(modify);
             else modify(_selectedQuery);
         }
+
+/*
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
     }
 }

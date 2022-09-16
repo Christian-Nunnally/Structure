@@ -3,6 +3,7 @@ using Structur.IO.Input;
 using Structur.IO.Output;
 using Structur.Modules;
 using Structur.Server;
+using System;
 
 namespace Structur.Program
 {
@@ -11,43 +12,61 @@ namespace Structur.Program
         public static void Main()
         {
             var ioc = CreateIoCContainer();
-            var newsPrinter = ioc.Get<INewsPrinter>();
-            var io = new StructureIO(ioc);
-            var consoleOutput = new ConsoleOutput();
-            var consoleInput = new ConsoleInput();
-            var noopOutput = new NoOpOutput();
-            var settings = Settings.ReadSettings();
-            var enableClient = settings.EnableClient;
-            var enableServer = settings.EnableWebServer;
-            var enableDebugging = settings.EnableDebugging;
-            var startingModules = StartingModules.Create();
-            var program = new StructureProgram(ioc, io, startingModules);
+            RunStructure(ioc, new ExitToken());
+        }
 
-            if (enableClient)
+        public static void RunStructure(StructureIoC ioc, ExitToken exitToken)
+        {
+            try
             {
-                var clientSwapInput = new OutputSwapInput(io, consoleOutput, newsPrinter);
-                var chainedInput = new ChainedInput();
-                chainedInput.AddInput(clientSwapInput);
-                chainedInput.AddInput(consoleInput);
-                io.ProgramInput = WrapInputWithStructureInput(io, enableDebugging, chainedInput, noopOutput, newsPrinter);
-                io.ProgramOutput = noopOutput;
+                var newsPrinter = ioc.Get<INewsPrinter>();
+                var io = new StructureIO(ioc);
+                var consoleOutput = ioc.Get<IProgramOutput>();
+                var consoleInput = ioc.Get<IProgramInput>();
+                var noopOutput = ioc.Get<NoOpOutput>();
+                var settings = ioc.Get<Settings>();
+                var enableClient = settings.EnableClient;
+                var enableServer = settings.EnableWebServer;
+                var enableDebugging = settings.EnableDebugging;
+                var startingModules = StartingModules.Create();
+                var program = new StructureProgram(ioc, io, startingModules);
 
-                var clientIO = new StructureIO(ioc);
-                clientIO.ProgramInput = consoleInput;
-                clientIO.ProgramOutput = consoleOutput;
-                var client = new Client(clientIO, settings.ServerHostname, clientSwapInput, program, io);
-                client.RunAsync().Wait();
-            }
-            else
-            {
-                IProgramInput mainProgramInput = consoleInput;
-                if (enableServer)
+                if (enableClient)
                 {
-                    mainProgramInput = EnableWebServerAndRouteConsoleOrServerKeysToInput(io, settings.Hostname);
+                    var clientSwapInput = new OutputSwapInput(io, consoleOutput, newsPrinter);
+                    var chainedInput = new ChainedInput();
+                    chainedInput.AddInput(clientSwapInput);
+                    chainedInput.AddInput(consoleInput);
+                    io.ProgramInput = WrapInputWithStructureInput(io, enableDebugging, chainedInput, noopOutput, newsPrinter);
+                    io.ProgramOutput = noopOutput;
+
+                    var clientIO = new StructureIO(ioc);
+                    clientIO.ProgramInput = consoleInput;
+                    clientIO.ProgramOutput = consoleOutput;
+                    var client = new Client(clientIO, settings.ServerHostname, clientSwapInput, program, io);
+                    client.RunAsync(exitToken).Wait();
                 }
-                io.ProgramInput = WrapInputWithStructureInput(io, enableDebugging, mainProgramInput, consoleOutput, newsPrinter);
-                io.ProgramOutput = consoleOutput;
-                program.Run();
+                else
+                {
+                    IProgramInput mainProgramInput = consoleInput;
+                    if (enableServer)
+                    {
+                        mainProgramInput = EnableWebServerAndRouteConsoleOrServerKeysToInput(io, settings.Hostname, mainProgramInput);
+                    }
+                    io.ProgramInput = WrapInputWithStructureInput(io, enableDebugging, mainProgramInput, consoleOutput, newsPrinter);
+                    io.ProgramOutput = consoleOutput;
+                    program.Run(exitToken);
+                }
+            }
+            catch (ArgumentException e)
+            {
+                var errorOutput = ioc.Get<IProgramOutput>();
+                errorOutput.WriteLine($"[ERROR] {e.Message}");
+            }
+            catch (UriFormatException e)
+            {
+                var errorOutput = ioc.Get<IProgramOutput>();
+                errorOutput.WriteLine($"[ERROR] {e.Message}");
             }
         }
 
@@ -58,13 +77,13 @@ namespace Structur.Program
                 : new StructureInput(io, mainProgramInput, outputToSwitchToAfterLoading, newsPrinter);
         }
 
-        private static MultiInput EnableWebServerAndRouteConsoleOrServerKeysToInput(StructureIO io, string serverHostname)
+        private static MultiInput EnableWebServerAndRouteConsoleOrServerKeysToInput(StructureIO io, string serverHostname, IProgramInput input)
         {
             var webServerInput = new QueuedInput();
             EnableWebServer(io, webServerInput, serverHostname);
             var multiInput = new MultiInput();
             multiInput.AddInput(webServerInput);
-            multiInput.AddInput(new ConsoleInput());
+            multiInput.AddInput(input);
             return multiInput;
         }
 
@@ -75,12 +94,13 @@ namespace Structur.Program
             server.RunInNewThread();
         }
 
-        private static StructureIoC CreateIoCContainer()
+        public static StructureIoC CreateIoCContainer()
         {
             var ioc = new StructureIoC();
             ioc.Register<Hotkey>();
             ioc.Register<CurrentTime>();
             ioc.Register<StructureData>();
+            ioc.Register<NoOpOutput>();
             var newsPrinter = new NewsPrinter();
             var delayer = new BackgroundDelay();
             var staleOutputClearer = new StaleOutputClearer();
@@ -88,6 +108,9 @@ namespace Structur.Program
             ioc.Register<IBackgroundProcess>(() => staleOutputClearer);
             ioc.Register<IBackgroundProcess>(() => delayer);
             ioc.Register<IBackgroundProcess>(() => newsPrinter);
+            ioc.Register<Settings>(() => Settings.ReadSettings());
+            ioc.Register<IProgramOutput>(typeof(ConsoleOutput));
+            ioc.Register<IProgramInput>(typeof(ConsoleInput));
             return ioc;
         }
     }

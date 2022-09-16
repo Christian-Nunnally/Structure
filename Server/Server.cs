@@ -5,6 +5,7 @@ using EmbedIO.WebApi;
 using Swan;
 using Swan.Logging;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,9 +21,16 @@ namespace Structur.Server
 
         public StructureServer(string url, IOController controller)
         {
-            Logger.UnregisterLogger<ConsoleLogger>();
-            _url = url;
+            UnregisterLogger();
+            _url = url ?? throw new ArgumentNullException(nameof(url));
             _controller = controller;
+        }
+
+        private static void UnregisterLogger()
+        {
+            try { Logger.UnregisterLogger<ConsoleLogger>(); }
+            catch (IOException) { }
+            catch (InvalidOperationException) { }
         }
 
         public StructureServer(Uri uri, IOController controller) : this(uri.AbsoluteUri, controller)

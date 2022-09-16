@@ -5,32 +5,30 @@ namespace Structur.Program
 {
     public class Settings
     {
-        public static readonly string DefaultSettingsPath = "settings.structure";
-        public static readonly string DefaultSavePath = "Save";
+        public static readonly string DefaultSettingsFile = "settings.structure";
+        public static readonly string DefaultSaveDirectory = "Save";
 
         public static Settings DefaultSettings
         {
             get
             {
                 var settings = new Settings();
-                settings.SavePath = Path.Combine(Directory.GetCurrentDirectory(), DefaultSavePath, "/");
+                settings.SavePath = Path.Combine(Directory.GetCurrentDirectory(), DefaultSaveDirectory, "/");
                 return settings;
             }
         }
 
-        public static Settings ReadSettings(string settingsFilePath = null)
+        public static Settings ReadSettings()
         {
-            settingsFilePath ??= DefaultSettingsPath;
-            if (!File.Exists(settingsFilePath)) WriteSettings(DefaultSettings, settingsFilePath);
-            return JsonSerializer.Deserialize<Settings>(File.ReadAllText(settingsFilePath));
+            if (!File.Exists(DefaultSettingsFile)) WriteSettings(DefaultSettings);
+            return JsonSerializer.Deserialize<Settings>(File.ReadAllText(DefaultSettingsFile));
         }
 
-        public static void WriteSettings(Settings settings, string settingsFilePath = null)
+        public static void WriteSettings(Settings settings)
         {
-            settingsFilePath ??= DefaultSettingsPath;
             var options = new JsonSerializerOptions();
             options.WriteIndented = true;
-            File.WriteAllText(settingsFilePath, JsonSerializer.Serialize(settings, options));
+            File.WriteAllText(DefaultSettingsFile, JsonSerializer.Serialize(settings, options));
         }
 
         public bool EnableWebServer { get; set; }

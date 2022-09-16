@@ -68,7 +68,7 @@ namespace Structur.IO.Input
 
         protected void SetToLoadMode(StructureIO io, INewsPrinter newsPrinter)
         {
-            ClearAndForceWrite(io, "Loading... ");
+            ClearAndForceWrite(io, string.Empty);
             io.ProgramOutput = new NoOpOutput();
             io.SkipUnescesscaryOperations = true;
             newsPrinter.Disable();

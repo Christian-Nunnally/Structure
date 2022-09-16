@@ -6,7 +6,7 @@ namespace Structur.IO.Input
 {
     public class MultiInput : IProgramInput
     {
-        private readonly List<IProgramInput> _inputs = new List<IProgramInput>();
+        private readonly List<IProgramInput> _inputs = new();
         private IProgramInput _currentInput;
 
         public void AddInput(IProgramInput input)

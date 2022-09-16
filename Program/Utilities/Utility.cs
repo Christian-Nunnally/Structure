@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.IO;
 
 namespace Structur.Program.Utilities
 {
@@ -61,5 +62,7 @@ namespace Structur.Program.Utilities
                 _ => ' ',
             };
         }
+
+        public static string SafelyReadAllTextFromFile(this string fileName) => File.Exists(fileName) ? File.ReadAllText(fileName) : string.Empty;
     }
 }

@@ -252,7 +252,9 @@ namespace Structur.Editors
 
         private void DeleteItem(T item)
         {
-            //GetChildren(item.ID).All(x => x.ParentID = item.ParentID);
+            // TODO: For TreeEditorV3:
+            // if (item is null) return;
+            // if (_tree[item.ParentID] is object) GetChildren(item.ID).All(x => x.ParentID = item.ParentID);
             _tree.Remove(item?.ID);
         }
 

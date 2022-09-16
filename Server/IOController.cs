@@ -51,7 +51,7 @@ namespace Structur.Server
                 counter += sessions[0].NumberOfInputs;
                 sessions.RemoveAt(0);
             }
-            while (sessions[0].IsInputAvailable() && sessions[0].NumberOfInputs < request.StartInclusive) 
+            while (sessions.Count != 0 && sessions[0].IsInputAvailable() && sessions[0].NumberOfInputs < request.StartInclusive) 
             {
                 counter += 1;
                 sessions[0].ReadInput();

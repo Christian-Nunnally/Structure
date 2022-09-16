@@ -19,6 +19,8 @@ namespace Structur.Server
 {
     public class Client
     {
+        public const string EmptyHostNameErrorMessage = "Failed to set up structure client, host name can not be empty.";
+
         private static readonly HttpClient _httpClient = new();
         private readonly string _hostName;
         private readonly OutputSwapInput _clientSwapInput;
@@ -26,13 +28,14 @@ namespace Structur.Server
         private readonly Uri _versionUri;
         private readonly Uri _historyUri;
         private readonly StructureIO _io;
-        private string _connectionStatus = "Ready";
+        private ConnectionStatus _connectionStatus;
         private string _currentStructureOutput;
         private readonly StructureIO _localProgramIO;
         private readonly Thread _localProgramExecutionThread;
 
         public Client(StructureIO io, string hostName, OutputSwapInput clientSwapInput, StructureProgram localProgram, StructureIO localProgramIO)
         {
+            if (string.IsNullOrEmpty(hostName)) throw new ArgumentException(EmptyHostNameErrorMessage);
             _io = io;
             _hostName = hostName;
             _clientSwapInput = clientSwapInput;
@@ -42,32 +45,32 @@ namespace Structur.Server
             _io.YStartPosition = 0;
             _localProgramIO = localProgramIO;
             localProgramIO.SkipUnescesscaryOperations = true;
-            _localProgramExecutionThread = new Thread(localProgram.Run);
+            _localProgramExecutionThread = new Thread(() => localProgram.Run(new ExitToken()));
         }
 
-        public async Task RunAsync()
+        public async Task RunAsync(ExitToken exitToken)
         {
             if (!await CheckClientServerVersionsMatchAsync()) return;
 
             await GetAndUpdateScreenFromServerAsync();
             _localProgramExecutionThread.Start();
-            while (true)
+            while (!exitToken.Exit)
             {
                 var key = ReadKeyAndSetStatusToWaiting();
                 await PostKeyAndSetStatusToReady(key);
                 _io.ProcessInBackgroundWhileWaitingForInput();
 
-                if (_clientSwapInput.IsReadyToSwapOutputs())
-                {
-                    if (await CheckClientServerHistoryAsync())
-                    {
-                        while (_clientSwapInput.IsInternalInputAvailable());
-                        _clientSwapInput.InitiateOutputSwap();
-                        break;
-                    }
-                }
+                //if (_clientSwapInput.IsReadyToSwapOutputs())
+                //{
+                //    if (await CheckClientServerHistoryAsync())
+                //    {
+                //        while (_clientSwapInput.IsInternalInputAvailable());
+                //        _clientSwapInput.InitiateOutputSwap();
+                //        break;
+                //    }
+                //}
             }
-            _localProgramExecutionThread.Join();
+            //_localProgramExecutionThread.Join();
         }
 
         private async Task<bool> CheckClientServerVersionsMatchAsync()
@@ -150,7 +153,7 @@ namespace Structur.Server
         private ProgramInputData ReadKeyAndSetStatusToWaiting()
         {
             var key = _io.ProgramInput.ReadInput();
-            _connectionStatus = "Waiting";
+            _connectionStatus = ConnectionStatus.Waiting;
             UpdateScreen();
             return key;
         }
@@ -165,9 +168,14 @@ namespace Structur.Server
         private void UpdateScreen()
         {
             _io.ClearBuffer();
-            _io.Write($"Connection to {_hostName} - {_connectionStatus}      ");
+            _io.Write(GetConnectionStatus(_hostName, _connectionStatus));
             _io.Write(_currentStructureOutput);
             _io.ClearStaleOutput();
+        }
+
+        public static string GetConnectionStatus(string hostName, ConnectionStatus connectionStatus)
+        {
+            return $"Connection to {hostName} - {connectionStatus}      ";
         }
 
         private async Task<VersionResponse> GetVersionAsync()
@@ -227,7 +235,7 @@ namespace Structur.Server
 
         private InputResponse GetFailedInputResponseFromException(Exception e)
         {
-            _connectionStatus = "Failed";
+            _connectionStatus = ConnectionStatus.Failed;
             var response = new InputResponse();
             response.ConsoleText = e.Message;
             return response;
@@ -237,7 +245,7 @@ namespace Structur.Server
         {
             response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync();
-            _connectionStatus = "Ready";
+            _connectionStatus = ConnectionStatus.Ready;
             return JsonSerializer.Deserialize<T>(responseBody);
         }
 
@@ -256,5 +264,12 @@ namespace Structur.Server
          * 
          * 
          */
+
+        public enum ConnectionStatus
+        {
+            Ready,
+            Waiting,
+            Failed,
+        }
     }
 }
