@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Structur.Program.Utilities;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Structur.IO.Persistence
@@ -12,8 +14,9 @@ namespace Structur.IO.Persistence
             NodeRemoved += x => CountChanged?.Invoke();
         }
 
-        protected Dictionary<string, TValue> Dictionary { get; } = new Dictionary<string, TValue>();
-        
+        protected Dictionary<string, TValue> Dictionary { get; } = new();
+        protected TValue[] Values => Dictionary.Values.ToArray();
+
         public event Action CountChanged;
         public event Action<TValue> NodeRemoved;
 
@@ -54,12 +57,14 @@ namespace Structur.IO.Persistence
 
         public void Remove(TValue value) => Remove(value?.ID);
 
-        public IList<TValue> GetChildren(string parent)
+        public IList<TValue> GetChildren(string parent, bool recursive = false)
         {
-            var childrenOfCurrentParent = this.Where(x => x.Value.ParentID == parent).Select(x => x.Value).OrderBy(x => x.Rank);
-            return parent == null
-                ? this.Where(x => x.Value.ParentID != null && this[x.Value.ParentID] == null).Select(x => x.Value).Concat(childrenOfCurrentParent).ToList()
-                : childrenOfCurrentParent.ToList();
+            var children = Values.Where(x => x.ParentID == parent).ToList();
+            if (recursive) children.AddRange(children.SelectMany(x => GetChildren(x.ID)));
+            if (parent == null) children.AddRange(Values.Where(ParentHasBeenDeleted));
+            return children.OrderBy(x => x.Rank).ToList();
         }
+
+        private bool ParentHasBeenDeleted(TValue x) => x.ParentID != null && this[x.ParentID] == null;
     }
 }

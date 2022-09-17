@@ -365,7 +365,7 @@ namespace Structur.Modules
         private void ModifySelectedQueries(Action<TaskHistoryQuery> modify)
         {
             modify(_selectedQuery);
-            _queriesTree.Get
+            _queriesTree.GetChildren(_selectedQuery.ID);
         }
 
 /*
