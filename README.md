@@ -17,7 +17,10 @@ Strucuture is a tiny, modular, CLI application for tracking stuff.
 
 TODO
 
-#### Current features:
+## How to: Run tests
+> `dotnet test --verbosity normal`
+
+## Current features
 - Quickly create and complete task items in a task tree.
 - Task lists can be infinitely nested.
 - Tasks can be easily reprioitized or moved up/down the task tree. 
@@ -27,6 +30,3 @@ TODO
 - Closing and opening application resumes where it was left.
 - Ability to start any activity without losing current context.
 - All actions performed with single keystrokes.
-
-## How to: Run tests
-> `dotnet test --verbosity normal`
