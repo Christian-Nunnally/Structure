@@ -23,11 +23,6 @@ namespace Structur.IO.Persistence
             node.Rank = Rank + 1;
         }
 
-        public void SwapRanks(Node otherNode)
-        {
-            var tempRank = Rank;
-            Rank = otherNode.Rank;
-            otherNode.Rank = tempRank;
-        }
+        public void SwapRanks(Node node) => (node.Rank, Rank) = (Rank, node.Rank);
     }
 }

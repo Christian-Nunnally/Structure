@@ -31,11 +31,15 @@ namespace Structur.IO
             }
         }
 
+        public void Add(UserAction action) => Add(action.Hotkey.Key, action);
+
         public void Add(ConsoleKey key, UserAction action)
         {
             if (_hotkeys.ContainsKey(key)) _hotkeys[key].Add(action);
             else _hotkeys.Add(key, new List<UserAction> { action });
         }
+
+        public void Remove(UserAction action) => Remove(action.Hotkey.Key, action);
 
         public void Remove(ConsoleKey key, UserAction action)
         {

@@ -13,7 +13,8 @@ namespace Structur.IO
 
         public bool HotkeyOverridden { get; set; }
 
-        public UserAction(string description, Action action)
+        // TODO: remove this consturcture.
+        private UserAction(string description, Action action)
         {
             Description = description;
             Action = action;

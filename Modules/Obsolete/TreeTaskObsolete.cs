@@ -13,7 +13,7 @@ namespace Structur.Modules.Obsolete
 
         public IModule UpgradeModule()
         {
-            return new TreeTask();
+            return new TaskTree();
         }
 
         protected override void OnDisable()

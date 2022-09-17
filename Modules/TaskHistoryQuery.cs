@@ -1,4 +1,5 @@
-﻿using Structur.Program;
+﻿using Structur.IO.Persistence;
+using Structur.Program;
 using Structur.Program.Utilities;
 using Structur.TaskItems;
 using System;
@@ -8,7 +9,7 @@ using System.Linq;
 
 namespace Structur.Modules
 {
-    internal class TaskHistoryQuery
+    internal class TaskHistoryQuery : Node
     {
         public TimeSpan Range { get; set; } = new TimeSpan(30, 0, 0, 0);
 
@@ -23,6 +24,10 @@ namespace Structur.Modules
         public string SearchTerm { get; set; }
 
         public IList<TaskItem> CopiedFromIds = new List<TaskItem>();
+
+        public TaskHistoryQuery()
+        {
+        }
 
         public IList<(string Label, double Value)> ComputeValues(Predicate<TaskItem> filter)
         {

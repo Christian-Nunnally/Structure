@@ -56,12 +56,15 @@ namespace Structur.IO
                     if (char.IsWhiteSpace(possibleKeys[i])) continue;
                     if (!keys.Any(x => x.Key.KeyChar == possibleKeyCharacters[i]))
                     {
-                        var consoleKeyInfo = ConsoleKeyHelpers.ConvertCharToConsoleKey(possibleKeys[i]);
+                        var consoleKeyInfo = ConvertCharToConsoleKey(possibleKeys[i]);
                         if (consoleKeyInfo.Key >= ConsoleKey.NumPad0 && consoleKeyInfo.Key <= ConsoleKey.NumPad9)
                         {
                             keys.Add((new ConsoleKeyInfo($"{(int)consoleKeyInfo.Key - ConsoleKey.NumPad0}"[0], ConsoleKey.D0 + (consoleKeyInfo.Key - ConsoleKey.NumPad0), false, false, false), option));
                         }
-                        keys.Add((consoleKeyInfo, option));
+                        else
+                        {
+                            keys.Add((consoleKeyInfo, option));
+                        }
                         option.Hotkey = consoleKeyInfo;
                         break;
                     }

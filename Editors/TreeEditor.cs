@@ -42,7 +42,7 @@ namespace Structur.Editors
 
         public bool ShouldExit { get; set; }
 
-        public int NumberOfVisibleTasks => GetChildren(_currentParentCached).Count;
+        public int NumberOfVisibleTasks => _tree.GetChildren(_currentParentCached).Count;
 
         public int Cursor
         {
@@ -96,7 +96,7 @@ namespace Structur.Editors
         {
             while (true)
             {
-                var children = GetChildren(_currentParentCached);
+                var children = _tree.GetChildren(_currentParentCached);
                 ConsolidateRank(children);
                 WriteTasks(children, NUMBER_OF_VISIBLE_ITEMS);
                 if (ShouldExit) return;
@@ -159,7 +159,7 @@ namespace Structur.Editors
                 if (linesToPrint-- > 0)
                 {
                     stringBuilder.Append(CultureInfo.CurrentCulture, $"{prefix}{tasks[i]}\n");
-                    if (_showChildren) WriteTasks(-1, GetChildren(tasks[i].ID), spaces + "    ", ref linesToPrint, stringBuilder);
+                    if (_showChildren) WriteTasks(-1, _tree.GetChildren(tasks[i].ID), spaces + "    ", ref linesToPrint, stringBuilder);
                 }
             }
             var carrot = tasks.Count == cursorIndex ? "> " : "  ";
@@ -173,7 +173,7 @@ namespace Structur.Editors
             _return = false;
             _io.ReadOptions("", HELP_STRING, _options);
             if (_return) return false;
-            if (GetChildren(_currentParentCached).Count == 0 && _goBackIfNoChild) ViewParent();
+            if (_tree.GetChildren(_currentParentCached).Count == 0 && _goBackIfNoChild) ViewParent();
             _goBackIfNoChild = true;
             return true;
         }
@@ -196,21 +196,13 @@ namespace Structur.Editors
             if (_currentParentCached == null) ShouldExit = true;
             var currentParent = _tree.Get(_currentParentCached);
             _currentParentCached = currentParent?.ParentID;
-            Cursor = GetChildren(_currentParentCached).IndexOf(currentParent);
-        }
-
-        public IList<T> GetChildren(string parent)
-        {
-            var childrenOfCurrentParent = _tree.Where(x => x.Value.ParentID == parent).Select(x => x.Value).OrderBy(x => x.Rank);
-            return parent == null
-                ? _tree.Where(x => x.Value.ParentID != null && _tree[x.Value.ParentID] == null).Select(x => x.Value).Concat(childrenOfCurrentParent).ToList()
-                : childrenOfCurrentParent.ToList();
+            Cursor = _tree.GetChildren(_currentParentCached).IndexOf(currentParent);
         }
 
         private void LowerItemRank(T item)
         {
             if (item == null) return;
-            var items = GetChildren(item.ParentID);
+            var items = _tree.GetChildren(item.ParentID);
             var thisItemIndex = items.IndexOf(item);
             if (thisItemIndex <= 0 || items.Count <= 1) return;
             var otherItem = items[thisItemIndex - 1];
@@ -221,7 +213,7 @@ namespace Structur.Editors
         private void RaiseItemRank(T item)
         {
             if (item == null) return;
-            var items = GetChildren(item.ParentID);
+            var items = _tree.GetChildren(item.ParentID);
             var thisItemIndex = items.IndexOf(item);
             if (thisItemIndex >= items.Count - 1) return;
             var otherItem = items[thisItemIndex + 1];
@@ -260,7 +252,7 @@ namespace Structur.Editors
 
         private void EnterPressed(T item) => (IsParent(item) ? EnterPressedOnParentAction : EnterPressedOnLeafAction)(item);
 
-        private bool IsParent(T item) => GetChildren(item?.ID).Any();
+        private bool IsParent(T item) => _tree.GetChildren(item?.ID).Any();
 
         private void CursorDown() => Cursor++;
 
@@ -288,7 +280,7 @@ namespace Structur.Editors
 
         private void ParentUnderSibling(T task)
         {
-            var siblings = GetChildren(_currentParentCached);
+            var siblings = _tree.GetChildren(_currentParentCached);
             if (siblings.Contains(task)) siblings.Remove(task);
             if (!siblings.Any()) return;
             var tempTree = new NodeTree<T>();
@@ -308,14 +300,14 @@ namespace Structur.Editors
             var newNode = node.Copy();
             newNode.ParentID = parentID;
             _tree.Set(newNode.ID, (T)newNode);
-            var children = GetChildren(node.ID);
+            var children = _tree.GetChildren(node.ID);
             children.All(x => CopyNode(x, newNode.ID));
         }
 
         private Action RunWithCurrentTask(Action<T> interaction) => () =>
         {
             Cursor = _cursor;
-            var tasks = GetChildren(_currentParentCached);
+            var tasks = _tree.GetChildren(_currentParentCached);
             var task = Cursor >= 0 && Cursor < tasks.Count ? tasks[Cursor] : null;
             interaction(task);
         };

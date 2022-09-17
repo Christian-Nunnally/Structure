@@ -10,6 +10,9 @@ namespace Structur.Modules
 {
     public class ModuleManager : StructureModule, IModuleManager
     {
+        public static readonly ConsoleKeyInfo OpenModuleManagerHotkey = new('l', ConsoleKey.L, shift: true, alt: false, control: true);
+        public static readonly ConsoleKeyInfo EnableModuleHotkey = new('e', ConsoleKey.E, shift: false, alt: false, control: false);
+
         public const string ModuleStartHoykeyPrompt = "Manage modules";
         public const string ManageModulesPrompt = "Select action";
         public const string UpgradeModulePrompt = "Pick module to upgrade";
@@ -22,13 +25,13 @@ namespace Structur.Modules
 
         protected override void OnDisable()
         {
-            Hotkey.Remove(ConsoleKey.L, _action);
+            Hotkey.Remove(_action);
         }
 
         protected override void OnEnable()
         {
-            _action = new UserAction(ModuleStartHoykeyPrompt, ManageModules);
-            Hotkey.Add(ConsoleKey.L, _action);
+            _action = new UserAction(ModuleStartHoykeyPrompt, ManageModules, OpenModuleManagerHotkey.Key);
+            Hotkey.Add(_action);
         }
 
         private void ManageModules()

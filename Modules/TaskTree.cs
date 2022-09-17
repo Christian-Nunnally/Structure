@@ -5,8 +5,11 @@ using System;
 
 namespace Structur.Modules
 {
-    internal class TreeTask : StructureModule
+    public class TaskTree : StructureModule
     {
+        public const string Title = "Task tree";
+        public const string RunTaskTreePrompt = "Open task tree";
+
         private UserAction _doTasks;
 
         protected override void OnDisable()
@@ -16,13 +19,13 @@ namespace Structur.Modules
 
         protected override void OnEnable()
         {
-            _doTasks = new UserAction("Do tasks", Start);
+            _doTasks = new UserAction(RunTaskTreePrompt, Start);
             Hotkey.Add(ConsoleKey.T, _doTasks);
         }
         
         private void Start()
         {
-            var editor = new TaskExecutor(IO, "Task tree", Data.Tasks, true);
+            var editor = new TaskExecutor(IO, Title, Data.Tasks, true);
             IO.Run(editor.Edit);
         }
     }

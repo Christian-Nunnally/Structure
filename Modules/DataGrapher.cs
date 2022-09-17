@@ -27,23 +27,23 @@ namespace Structur.Modules
         private bool _listValues;
         private bool _exit;
         private TaskHistoryQuery _selectedQuery;
-        private bool _selectAllQueries = true;
         private NodeTree<TaskItem> _dataRoutines;
         private readonly List<TaskHistoryQuery> _queries = new();
         private bool _dataSetsInitialized;
         private bool _isUsingRealData;
         private readonly List<(string Name, IList<TaskItem> Data)> _dataSets = new();
+        private readonly NodeTree<TaskHistoryQuery> _queriesTree = new();
 
         protected override void OnDisable()
         {
-            Hotkey.Remove(ConsoleKey.H, _startAction);
+            Hotkey.Remove(_startAction);
         }
 
         protected override void OnEnable()
         {
             
-            _startAction = new UserAction(ModuleHotkeyDescription, Start);
-            Hotkey.Add(ConsoleKey.H, _startAction);
+            _startAction = new UserAction(ModuleHotkeyDescription, Start, ConsoleKey.H);
+            Hotkey.Add(_startAction);
         }
 
         private void PopulateDataSets()
@@ -168,11 +168,11 @@ namespace Structur.Modules
         {
             var options = new[]
             {
-                new UserAction("Modify how values are computed", ChangeHowValuesAreComputed),
-                new UserAction("Modify what is being graphed", ChangeWhatIsBeingGraphed),
-                new UserAction("Add/remove/select query", AddOrRemoveQueries),
-                new UserAction("Change axis settings", ChangeAxisSettings),
-                new UserAction("List raw values", ToggleListValues),
+                new UserAction("Modify how values are computed", ChangeHowValuesAreComputed, ConsoleKey.V),
+                new UserAction("Modify what is being graphed", ChangeWhatIsBeingGraphed, ConsoleKey.M),
+                new UserAction("Add/remove/select query", AddOrRemoveQueries, ConsoleKey.A),
+                new UserAction("Change axis settings", ChangeAxisSettings, ConsoleKey.C),
+                new UserAction("List raw values", ToggleListValues, ConsoleKey.L),
                 new UserAction("Exit", Exit, ConsoleKey.Escape),
             };
             IO.ReadOptions("Task history options", null, options);
@@ -182,7 +182,7 @@ namespace Structur.Modules
         {
             var options = new[]
 {
-                new UserAction("Change x axis range", ChangeRange),
+                new UserAction("Change x axis range", ChangeRange, ConsoleKey.X),
                 new UserAction("Exit", Exit, ConsoleKey.Escape),
             };
             IO.ReadOptions("Task history options", null, options);
@@ -192,8 +192,8 @@ namespace Structur.Modules
         {
             var options = new[]
 {
-                new UserAction("Select query", SelectQuery),
-                new UserAction("Add query", AddQuery),
+                new UserAction("Select query", SelectQuery, ConsoleKey.S),
+                new UserAction("Add query", AddQuery, ConsoleKey.A),
                 new UserAction("Exit", Exit, ConsoleKey.Escape),
             };
             IO.ReadOptions("Change what is bing graphed", null, options);
@@ -203,10 +203,10 @@ namespace Structur.Modules
         {
             var options = new[]
             {
-                new UserAction("Add tasks copied from another task", AddCopiedTasks),
-                new UserAction("Select data set", SelectDataSet),
-                new UserAction("Filter by word", SetSearchTerm),
-                new UserAction("Clear filters", ClearFilters),
+                new UserAction("Add tasks copied from another task", AddCopiedTasks, ConsoleKey.A),
+                new UserAction("Select data set", SelectDataSet, ConsoleKey.S),
+                new UserAction("Filter by word", SetSearchTerm, ConsoleKey.F),
+                new UserAction("Clear filters", ClearFilters, ConsoleKey.C),
                 new UserAction("Exit", Exit, ConsoleKey.Escape),
             };
             IO.ReadOptions("Change what is bing graphed", null, options);
@@ -216,9 +216,9 @@ namespace Structur.Modules
         {
             var options = new[]
 {
-                new UserAction("Change grouping", ChangeGrouping),
-                new UserAction("Y axis", ChangeYAxisMode),
-                new UserAction("Toggle interpolate zeros", ToggleInterpolateZeros),
+                new UserAction("Change grouping", ChangeGrouping, ConsoleKey.G),
+                new UserAction("Y axis", ChangeYAxisMode, ConsoleKey.Y),
+                new UserAction("Toggle interpolate zeros", ToggleInterpolateZeros, ConsoleKey.T),
                 new UserAction("Exit", Exit, ConsoleKey.Escape),
             };
             IO.ReadOptions("Change how values are computed", null, options);
@@ -232,25 +232,13 @@ namespace Structur.Modules
 
         private void SelectQuery()
         {
-            var options = new List<UserAction>();
-            int i = 0;
-            foreach (var query in _queries)
-            {
-                options.Add(new UserAction($"{i++}", () => SelectQuery(query)));
-            }
-            options.Add(new UserAction("All", SelectAllQueries, ConsoleKey.A));
-            IO.Run(() => IO.ReadOptions("Select a query or all", null, options.ToArray()));
+            ItemPicker<TaskHistoryQuery> picker = new(IO, "Select a query", true, true, _queriesTree, true, SelectQuery);
+            IO.Run(picker.Edit);
         }
 
         private void SelectQuery(TaskHistoryQuery query)
         {
             _selectedQuery = query;
-            _selectAllQueries = false;
-        }
-
-        private void SelectAllQueries()
-        {
-            _selectAllQueries = true;
         }
 
         private void SetSearchTerm()
@@ -271,16 +259,19 @@ namespace Structur.Modules
 
         private void SelectDataSet()
         {
-            var options = new List<UserAction>();
+            var options = new NodeTree<TaskItem>();
             foreach (var dataSet in _dataSets)
             {
-                options.Add(new UserAction(dataSet.Name, () => SelectDataSet(dataSet)));
+                options.Set(dataSet.Name, new TaskItem() { Name = dataSet.Name });
             }
-            IO.ReadOptions("Select data set", "", options.ToArray());
+
+            ItemPicker<TaskItem> picker = new(IO, "Select data set", true, true, options, true, SelectDataSet);
+            IO.Run(picker.Edit);
         }
 
-        private void SelectDataSet((string Name, IList<TaskItem> Data) dataSet)
+        private void SelectDataSet(TaskItem dataSetRepresentitive)
         {
+            var dataSet = _dataSets.FirstOrDefault(x => x.Name == dataSetRepresentitive.Name);
             ModifySelectedQueries(x => x.DataSet = dataSet);
         }
 
@@ -311,11 +302,11 @@ namespace Structur.Modules
         {
             var options = new[]
             {
-                new UserAction("Item count", SetToCountMode),
-                new UserAction("Max value", SetToMaxValueMode),
-                new UserAction("Min value", SetToMinValueMode),
-                new UserAction("Sum of values", SetToSumValueMode),
-                new UserAction("Average value", SetToMeanValueMode)
+                new UserAction("Item count", SetToCountMode, ConsoleKey.C),
+                new UserAction("Max value", SetToMaxValueMode, ConsoleKey.M),
+                new UserAction("Min value", SetToMinValueMode, ConsoleKey.N),
+                new UserAction("Sum of values", SetToSumValueMode, ConsoleKey.S),
+                new UserAction("Average value", SetToMeanValueMode, ConsoleKey.A)
             };
 
             IO.ReadOptions(SetYAxisModeActionDescription, null, options);
@@ -373,8 +364,8 @@ namespace Structur.Modules
 
         private void ModifySelectedQueries(Action<TaskHistoryQuery> modify)
         {
-            if (_selectAllQueries) _queries.All(modify);
-            else modify(_selectedQuery);
+            modify(_selectedQuery);
+            _queriesTree.Get
         }
 
 /*

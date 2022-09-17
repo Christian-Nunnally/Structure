@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Structur.IO.Persistence
 {
@@ -52,5 +53,13 @@ namespace Structur.IO.Persistence
         public void Set(TValue value) => Set(value?.ID, value);
 
         public void Remove(TValue value) => Remove(value?.ID);
+
+        public IList<TValue> GetChildren(string parent)
+        {
+            var childrenOfCurrentParent = this.Where(x => x.Value.ParentID == parent).Select(x => x.Value).OrderBy(x => x.Rank);
+            return parent == null
+                ? this.Where(x => x.Value.ParentID != null && this[x.Value.ParentID] == null).Select(x => x.Value).Concat(childrenOfCurrentParent).ToList()
+                : childrenOfCurrentParent.ToList();
+        }
     }
 }

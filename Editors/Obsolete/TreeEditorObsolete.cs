@@ -35,7 +35,7 @@ namespace Structur.Editors.Obsolete
             EnterPressedOnParentAction = SetParent;
             EnterPressedOnLeafAction = SetParent;
             NoChildrenAction = ViewParent;
-            CustomActions.Add(new UserAction("t", ChangeItemType));
+            CustomActions.Add(new UserAction("t", ChangeItemType, ConsoleKey.T));
             _prompt = prompt;
             Tree = tree;
             _io = io;
