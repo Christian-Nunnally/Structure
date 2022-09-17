@@ -1,4 +1,5 @@
 ﻿# Structure
+![Build & Tests](https://github.com/github/docs/actions/workflows/build.yml/badge.svg?branch=main)
 
 Strucuture is a tiny modular platform for tracking stuff.
 
