@@ -13,7 +13,8 @@ namespace Structur.Program
             get
             {
                 var settings = new Settings();
-                settings.SavePath = Path.Combine(Directory.GetCurrentDirectory(), DefaultSaveDirectory, "/");
+                settings.SavePath = $"{Directory.GetCurrentDirectory()}\\{DefaultSaveDirectory}\\";
+                Directory.CreateDirectory(settings.SavePath);
                 return settings;
             }
         }
