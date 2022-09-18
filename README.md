@@ -15,7 +15,7 @@ Strucuture is a tiny, modular, CLI application for tracking stuff.
 
 ## How to: Use
 
-[More detailed documentation on the wiki](https://github.com/Christian-Nunnally/Structure/wiki)
+[Documentation lives in the wiki](https://github.com/Christian-Nunnally/Structure/wiki)
 
 ## How to: Run tests
 > `dotnet test --verbosity normal`
