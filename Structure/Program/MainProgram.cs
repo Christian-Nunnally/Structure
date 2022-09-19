@@ -106,7 +106,7 @@ namespace Structur.Program
             var staleOutputClearer = new StaleOutputClearer();
             ioc.Register<INewsPrinter>(() => newsPrinter);
             ioc.Register<IBackgroundProcess>(() => staleOutputClearer);
-            ioc.Register<IBackgroundProcess>(() => delayer);
+            ioc.Register<IBackgroundProcess>(() => delayer, "delayer");
             ioc.Register<IBackgroundProcess>(() => newsPrinter);
             ioc.Register<Settings>(() => Settings.ReadSettings());
             ioc.Register<IProgramOutput>(typeof(ConsoleOutput));

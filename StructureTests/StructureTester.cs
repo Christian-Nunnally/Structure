@@ -88,13 +88,21 @@ namespace StructureTests
         public void Contains(string substring)
         {
             var allOutput = TestOutput.Screens.Aggregate("", (s, s2) => s + "\n\n---\n\n" + s2);
-            if (!allOutput.Contains(substring)) Assert.Fail($"'{substring}' not found in:\n\n{allOutput}");
+            if (!allOutput.Contains(substring))
+            {
+                TestOutput.WriteDebugStrings();
+                Assert.Fail($"'{substring}' not found in:\n\n{allOutput}");
+            }
         }
 
         public void NotContains(string substring)
         {
             var allOutput = TestOutput.Screens.Aggregate("", (s, s2) => s + "\n\n---\n\n" + s2);
-            if (allOutput.Contains(substring)) Assert.Fail($"'{substring}' found in:\n\n{allOutput}");
+            if (allOutput.Contains(substring))
+            {
+                TestOutput.WriteDebugStrings();
+                Assert.Fail($"'{substring}' found in:\n\n{allOutput}");
+            }
         }
     }
 }

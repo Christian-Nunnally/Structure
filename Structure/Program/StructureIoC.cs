@@ -11,7 +11,7 @@ namespace Structur.Program
         public T Get<T>()
         {
             if (!_factories.ContainsKey(typeof(T))) throw new InvalidOperationException($"{typeof(T).FullName} not a registered type in the IoC container.");
-            return (T)_factories[typeof(T)].First().Value.Invoke();
+            return (T)_factories[typeof(T)].Last().Value.Invoke();
         }
 
         public T Get<T>(string key)
@@ -27,7 +27,7 @@ namespace Structur.Program
             return _factories[typeof(T)].Select(x => (T)x.Value.Invoke()).ToArray();
         }
 
-        public void Register<T>(Func<object> factory) => Register<T>(factory, "singleInstance");
+        public void Register<T>(Func<object> factory) => Register<T>(factory, factory().GetType().Name);
 
         public void Register<T>(Func<object> factory, string tag)
         {

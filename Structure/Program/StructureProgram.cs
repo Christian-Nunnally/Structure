@@ -18,11 +18,12 @@ namespace Structur.Program
 
         public static Version Version => Assembly.GetExecutingAssembly().GetName().Version;
 
-        public static string TitleString => $"Structure {Version.Major}.{Version.Minor}.{Version.Build}";
+        public static string TitleString => $"Structure v{Version.Major}.{Version.Minor}.{Version.Build}";
 
         public StructureProgram(StructureIoC ioc, StructureIO io, IModule[] modules)
         {
             Contract.Requires(io != null);
+            Console.Title = TitleString;
             _ioc = ioc;
             _io = io;
             _hotkey = ioc?.Get<Hotkey>();

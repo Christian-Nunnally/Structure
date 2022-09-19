@@ -102,7 +102,9 @@ namespace Structur.IO.Input
         {
             var output = io.ProgramOutput;
             io.ProgramOutput = _outputToSwitchTo;
-            io.ClearBuffer();
+            io.ProgramOutput.Clear();
+            io.ProgramOutput.CursorTop = io.YStartPosition;
+            io.ProgramOutput.CursorLeft = io.XStartPosition;
             io.WriteNoLine(text);
             io.ClearStaleOutput();
             io.ProcessAllBackgroundWork();

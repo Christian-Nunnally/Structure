@@ -13,6 +13,7 @@ namespace Structur.IO.Output
         private bool _cursorVisible;
         private bool _disabled;
         private readonly StringBuilder _screen = new();
+        private List<string> _debuggingStrings = new();
 
         public IList<string> Screens { get; } = new List<string>();
 
@@ -36,6 +37,7 @@ namespace Structur.IO.Output
         {
             if (_disabled) return;
             var currentText = _screen.ToString().Replace(Environment.NewLine, "\n", StringComparison.Ordinal);
+            _debuggingStrings.Add(currentText);
             var splitText = currentText.Split('\n').ToList();
             while (splitText.Count <= CursorTop) splitText.Add(string.Empty);
             while (splitText[CursorTop].Length < CursorLeft) splitText[CursorTop] = string.Concat(splitText[CursorTop], " ");
@@ -49,6 +51,18 @@ namespace Structur.IO.Output
             _screen.Remove(_screen.Length - 1, 1);
             CursorTop += text.Count(c => c == '\n');
             CursorLeft += text.Contains('\n', StringComparison.OrdinalIgnoreCase) ? text.Length - text.LastIndexOf('\n') - 1 : text.Length;
+        }
+
+        public void WriteDebugStrings()
+        {
+            Console.WriteLine("TextOutput Debugging strings >>>>>");
+            foreach (var debuggingString in _debuggingStrings)
+            {
+                Console.WriteLine("------------");
+                Console.WriteLine(debuggingString);
+                Console.WriteLine("------------");
+            }
+            Console.WriteLine("TextOutput Debugging strings <<<<<");
         }
 
         public void Disable()
