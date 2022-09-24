@@ -47,7 +47,8 @@ namespace StructureTests.Modules
         {
             EnableTaskTreeModule();
             OpenTaskTreeModule();
-            TypeTaskNameAndInsert();
+            TypeTaskName();
+            SubmitTask();
 
             Tester.Run();
 
@@ -56,16 +57,47 @@ namespace StructureTests.Modules
         }
 
         [TestMethod]
+        public void InsertingATaskNamedAAA_BackspacePressed_TaskNameIsAA()
+        {
+            EnableTaskTreeModule();
+            OpenTaskTreeModule();
+            TypeTaskName();
+
+            Tester.Run(HotkeyConstants.BackspaceHotkey);
+
+            var a = HotkeyConstants.AHotkey.KeyChar;
+            Tester.Contains($"{a}{a}");
+            Tester.NotContains($"{a}{a}{a}");
+        }
+
+        [TestMethod]
+        public void InsertingATaskNamedAAA_LeftArrowPressedAndBTyped_TaskNameIsAABA()
+        {
+            EnableTaskTreeModule();
+            OpenTaskTreeModule();
+            TypeTaskName();
+            MoveSelectionLeft();
+            TypeB();
+
+            Tester.Run();
+
+            var a = HotkeyConstants.AHotkey.KeyChar;
+            var b = HotkeyConstants.BHotkey.KeyChar;
+            Tester.Contains($"{a}{a}{b}{a}");
+        }
+
+        [TestMethod]
         public void TaskAdded_AddedTaskNotSelected()
         {
             EnableTaskTreeModule();
             OpenTaskTreeModule();
-            TypeTaskNameAndInsert();
+            TypeTaskName();
+            SubmitTask();
 
             Tester.Run();
 
-            var character = HotkeyConstants.AHotkey.KeyChar;
-            Tester.NotContains($"> {character}{character}{character}");
+            var a = HotkeyConstants.AHotkey.KeyChar;
+            Tester.NotContains($"> {a}{a}{a}");
         }
 
         [TestMethod]
@@ -73,7 +105,8 @@ namespace StructureTests.Modules
         {
             EnableTaskTreeModule();
             OpenTaskTreeModule();
-            TypeTaskNameAndInsert();
+            TypeTaskName();
+            SubmitTask();
             MoveSelectionUp();
 
             Tester.Run(TreeEditor<TaskItem>.MoveSelectionUpHotkey);
@@ -106,15 +139,21 @@ namespace StructureTests.Modules
 
         private void OpenTaskTreeModule() => Tester.Queue(TaskTree.OpenTaskTreeHotkey);
 
-        private void TypeTaskNameAndInsert()
+        private void TypeTaskName()
         {
-            Tester.Queue(
-                HotkeyConstants.AHotkey,
-                HotkeyConstants.AHotkey,
-                HotkeyConstants.AHotkey,
-                HotkeyConstants.SubmitHotkey);
+            TypeA();
+            TypeA();
+            TypeA();
         }
 
+        private void TypeA() => Tester.Queue(HotkeyConstants.AHotkey);
+
+        private void TypeB() => Tester.Queue(HotkeyConstants.BHotkey);
+
+        private void SubmitTask() => Tester.Queue(HotkeyConstants.SubmitHotkey);
+        
         private void MoveSelectionUp() => Tester.Queue(TreeEditor<TaskItem>.MoveSelectionUpHotkey);
+        
+        private void MoveSelectionLeft() => Tester.Queue(TreeEditor<TaskItem>.SelectParentHotkey);
     }
 }
