@@ -12,9 +12,15 @@ namespace Structur.Editors
 {
     public class TreeEditor<T> where T : Node
     {
+        public static readonly ConsoleKeyInfo MoveSelectionUpHotkey = new('\u2191', ConsoleKey.UpArrow, shift: false, alt: false, control: false);
+        public static readonly ConsoleKeyInfo MoveSelectionDownHotkey = new('\u2193', ConsoleKey.DownArrow, shift: false, alt: false, control: false);
+        public static readonly ConsoleKeyInfo SelectParentHotkey = new('\u2190', ConsoleKey.LeftArrow, shift: false, alt: false, control: false);
+        public static readonly ConsoleKeyInfo SelectChildHotkey = new('\u2192', ConsoleKey.RightArrow, shift: false, alt: false, control: false);
+        public static readonly ConsoleKeyInfo RenameHotkey = new('r', ConsoleKey.R, shift: false, alt: false, control: false);
         public static readonly ConsoleKeyInfo InsertItemHotkey = new('i', ConsoleKey.I, shift: false, alt: false, control: false);
         public static readonly ConsoleKeyInfo SubmitHotkey = new('\u000A', ConsoleKey.Enter, shift: false, alt: false, control: false);
 
+        public const string SelectorString = ">";
         public const string InsertItemPrompt = "Insert item";
         private readonly string HELP_STRING = string.Join(Environment.NewLine, 
             "←↑↓→ - Move selection",
@@ -69,12 +75,13 @@ namespace Structur.Editors
 
             _options = new UserAction[]
             {
-                new UserAction("Move selection up", RunWithCurrentTask(CursorUp), ConsoleKey.UpArrow),
-                new UserAction("Move selection down", RunWithCurrentTask(CursorDown), ConsoleKey.DownArrow),
-                new UserAction("View parent", RunWithCurrentTask(ViewParent), ConsoleKey.LeftArrow),
-                new UserAction("View child", RunWithCurrentTask(SetParent), ConsoleKey.RightArrow),
+                new UserAction("Move selection up", RunWithCurrentTask(CursorUp), MoveSelectionUpHotkey.Key),
+                new UserAction("Move selection down", RunWithCurrentTask(CursorDown), MoveSelectionDownHotkey.Key),
+                new UserAction("View parent", RunWithCurrentTask(ViewParent), SelectParentHotkey.Key),
+                new UserAction("View child", RunWithCurrentTask(SetParent), SelectChildHotkey.Key),
+                //new UserAction("Rename task", RunWithCurrentTask(RenameItem), RenameHotkey.Key),
                 new UserAction("Delete task", RunWithCurrentTask(DeleteItem), ConsoleKey.Delete),
-                new UserAction("Complete task", RunWithCurrentTask(EnterPressed), ConsoleKey.Enter),
+                new UserAction("Complete task", RunWithCurrentTask(EnterPressed), SubmitHotkey.Key),
                 new UserAction("Lower task priority", RunWithCurrentTask(LowerItemRank), ConsoleKey.W),
                 new UserAction("Raise task priority", RunWithCurrentTask(RaiseItemRank), ConsoleKey.S),
                 new UserAction("Reparent to grandparent", RunWithCurrentTask(ReparentToGrandparent), ConsoleKey.A),
@@ -94,6 +101,11 @@ namespace Structur.Editors
                     new UserAction("Insert new item", () => _io.Run(PromptToInsertNode("Insert new item", DefaultNodeFactory)), ConsoleKey.I),
                 }).ToArray();
             }
+        }
+
+        private void RenameItem(T obj)
+        {
+            throw new NotImplementedException();
         }
 
         public void Edit()
@@ -158,7 +170,7 @@ namespace Structur.Editors
             if (cursorIndex != -1) stringBuilder.Append(canScrollUp ? $"...\n" : "\n");
             for (int i = 0; i < tasks.Count; i++)
             {
-                var prefix = spaces.Length == 0 ? $"- {(i == cursorIndex ? "> " : "  ")}" : "    " + spaces;
+                var prefix = spaces.Length == 0 ? $"- {(i == cursorIndex ? $"{SelectorString} " : "  ")}" : "    " + spaces;
                 if (_scrollIndex > i) continue;
                 if (linesToPrint-- > 0)
                 {
@@ -166,7 +178,7 @@ namespace Structur.Editors
                     if (_showChildren) WriteTasks(-1, _tree.GetChildren(tasks[i].ID), spaces + "    ", ref linesToPrint, stringBuilder);
                 }
             }
-            var carrot = tasks.Count == cursorIndex ? "> " : "  ";
+            var carrot = tasks.Count == cursorIndex ? $"{SelectorString} " : "  ";
             var lastLine = spaces.Length == 0 ? $"- {carrot}" : "    " + spaces + "\n";
             var scrollDownLastLine = canScrollDown ? $"...\n" : "\n";
             if (cursorIndex != -1) stringBuilder.Append(canScrollDown ? scrollDownLastLine : lastLine);

@@ -15,7 +15,6 @@ namespace StructureTests
 {
     public class StructureTester
     {
-        private bool _infoPrinted = false;
         private bool _isRunning;
 
         private ExitToken ExitToken { get; set; }
@@ -25,8 +24,6 @@ namespace StructureTests
         public TextOutput TestOutput { get; set; }
 
         public IList<string> Screens { get; } = new List<string>();
-
-        protected string Output => TestOutput.Read();
 
         public List<ConsoleKeyInfo> _inputQueue = new();
 
@@ -44,7 +41,7 @@ namespace StructureTests
 
         public void Run(params ConsoleKeyInfo[] inputData)
         {
-            var timeout = 1000000;
+            var timeout = 5000;
             RunWithoutStopping(inputData);
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -79,9 +76,8 @@ namespace StructureTests
             var input = CreateTestInput(exitToken);
             var ioc = CreateTestIoCContainer(input, TestOutput, Settings);
             MainProgram.RunStructure(ioc, ExitToken);
-            Screens.Add(TestOutput.Read());
+            if (!Screens.Any()) Screens.Add(TestOutput.Read());
         }
-
 
         private static StructureIoC CreateTestIoCContainer(IProgramInput input, TextOutput output, Settings settings)
         {
@@ -97,66 +93,60 @@ namespace StructureTests
         {
             var programInputData = _inputQueue.Select(x => new ProgramInputData(x, DateTime.Now));
             var input = new ChainedInput();
-            input.AddAction(RecordScreen);
+            input.AddAction(RecordOutput);
             foreach (var inputData in programInputData)
             {
                 input.AddInput(new PredeterminedInput(inputData));
                 input.AddAction(() => MainProgram.MainIO.ProcessAllBackgroundWork());
                 input.AddAction(() => RecordScreen(inputData));
-
             }
             input.AddInput(new ExitingProgramInput(ExitToken, readyExitToken));
             return input;
         }
 
-        public void RecordScreen()
+        public void RecordScreen(ProgramInputData input)
+        {
+            RecordInput(input);
+            RecordOutput();
+        }
+
+        private void RecordInput(ProgramInputData input)
+        {
+            var modifiers = (ConsoleModifiers)input.Modifiers;
+            var shiftText = ModifierString(modifiers, ConsoleModifiers.Shift, "shift");
+            var ctrlText = ModifierString(modifiers, ConsoleModifiers.Control, "ctrl");
+            var altText = ModifierString(modifiers, ConsoleModifiers.Alt, "alt");
+            var keyText = input.GetKeyInfo().Key;
+            Screens.Add($"Input <- {shiftText}{altText}{ctrlText}{keyText}");
+        }
+
+        private static string ModifierString(ConsoleModifiers modifiers, ConsoleModifiers check, string text) 
+            => modifiers.HasFlag(check) ? $"{text} + " : "";
+
+        public void RecordOutput()
         {
             Screens.Add(TestOutput.Read());
         }
 
-        public void RecordScreen(ProgramInputData input)
+        public void PrintScreens()
         {
-            var modifiers = (ConsoleModifiers)input.Modifiers;
-            var hasCtrl = modifiers.HasFlag(ConsoleModifiers.Control);
-            var hasShift = modifiers.HasFlag(ConsoleModifiers.Shift);
-            var hasAlt = modifiers.HasFlag(ConsoleModifiers.Alt);
-            Screens.Add($"Input <- {(hasShift ? "shift + " : "")}{(hasAlt ? "alt + " : "")}{(hasCtrl ? "ctrl + " : "")}{input.GetKeyInfo().Key}");
-            RecordScreen();
-        }
-
-        public void Contains(string substring)
-        {
-            var allOutput = Screens.Aggregate("", (s, s2) => s + "\n\n---\n\n" + s2);
-            PrintInfo();
-            if (!allOutput.Contains(substring))
-            {
-                TestOutput.WriteDebugStrings();
-                Assert.Fail($"'{substring}' not found in:\n\n{allOutput}");
-            }
-        }
-
-        public void NotContains(string substring)
-        {
-            var allOutput = Screens.Aggregate("", (s, s2) => s + "\n\n---\n\n" + s2);
-            PrintInfo();
-            if (allOutput.Contains(substring))
-            {
-                TestOutput.WriteDebugStrings();
-                Assert.Fail($"'{substring}' found in:\n\n{allOutput}");
-            }
-        }
-
-        public void PrintInfo()
-        {
-            if (_infoPrinted) return;
-            _infoPrinted = true;
-            Console.WriteLine("Structure test");
             foreach (var screen in Screens)
-            {
-                Console.WriteLine("----------------------------------------");
-                Console.WriteLine(screen);
-            }
+                Console.WriteLine($"----------------------------------------\n{screen}\n");
             Console.WriteLine("----------------------------------------");
+        }
+
+        public void Contains(string substring, int screenIndex = -1)
+        {
+            if (!Screens.Any()) Assert.Fail($"No screens recorded.");
+            var screen = Screens[((screenIndex % Screens.Count) + Screens.Count) % Screens.Count];
+            if (!screen.Contains(substring)) Assert.Fail($"'{substring}' not found in:\n\n{screen}");
+        }
+
+        public void NotContains(string substring, int screenIndex = -1)
+        {
+            if (!Screens.Any()) Assert.Fail($"No screens recorded.");
+            var screen = Screens[((screenIndex % Screens.Count) + Screens.Count) % Screens.Count];
+            if (screen.Contains(substring)) Assert.Fail($"'{substring}' found in:\n\n{screen}");
         }
     }
 }

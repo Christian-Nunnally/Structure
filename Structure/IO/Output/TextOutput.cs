@@ -8,112 +8,62 @@ namespace Structur.IO.Output
 {
     public class TextOutput : IProgramOutput
     {
-        private int _cursorLeft;
-        private int _cursorTop;
-        private bool _cursorVisible;
-        private bool _disabled;
-        private readonly StringBuilder _screen = new();
         private readonly List<List<char>> _lines = new();
-        private readonly List<string> _debuggingStrings = new();
 
-        public int CursorLeft { get => _cursorLeft; set => _cursorLeft = value; }
+        public int CursorLeft { get; set; }
 
-        public int CursorTop { get => _cursorTop; set => _cursorTop = value; }
+        public int CursorTop { get; set; }
 
-        public bool CursorVisible { get => _cursorVisible; set => _cursorVisible = value; }
+        public bool CursorVisible { get; set; }
 
         public int Width => 100;
 
         public int Height => 100;
 
-        public void Clear() 
+        public void Clear()
         {
             CursorLeft = 0;
             CursorTop = 0;
-            _screen.Clear();
             _lines.Clear();
         }
 
         public void Write(string text)
         {
-            if (_disabled) return;
+            foreach (var character in text) WriteCharacter(character);
+        }
 
-            foreach (var character in text)
+        private void WriteCharacter(char character)
+        {
+            while (_lines.Count <= CursorTop) _lines.Add(new List<char>());
+            while (_lines[CursorTop].Count < CursorLeft) _lines[CursorTop].Add(' ');
+            if (character == '\n')
             {
-                while (_lines.Count <= CursorTop) _lines.Add(new List<char>());
-                while (_lines[CursorTop].Count < CursorLeft) _lines[CursorTop].Add(' ');
-                if (character == '\n')
+                CursorTop++;
+                CursorLeft = 0;
+            }
+            else if (character == '\b')
+            {
+                if (CursorLeft == 0)
                 {
-                    CursorTop++;
-                    CursorLeft = 0;
-                }
-                else if (character == '\b')
-                {
-                    if (CursorLeft == 0)
+                    if (CursorTop > 0)
                     {
-                        if (CursorTop > 0)
-                        {
-                            CursorTop--;
-                            CursorLeft = _lines[CursorTop].Count;
-                        }
+                        CursorTop--;
+                        CursorLeft = _lines[CursorTop].Count;
                     }
-                    else CursorLeft--;
                 }
-                else
-                {
-                    if (_lines[CursorTop].Count == CursorLeft) _lines[CursorTop].Add(character);
-                    else _lines[CursorTop][CursorLeft] = character;
-                    CursorLeft++;
-                }
-                if (CursorLeft >= Width)
-                {
-                    CursorLeft = 0;
-                    CursorTop++;
-                }
+                else CursorLeft--;
             }
-            _screen.Clear();
-            foreach (var line in _lines)
+            else
             {
-                var stringLine = line.Aggregate("", (a, b) => ($"{a}{b}"));
-                _screen.AppendLine(stringLine);
+                if (_lines[CursorTop].Count == CursorLeft) _lines[CursorTop].Add(character);
+                else _lines[CursorTop][CursorLeft] = character;
+                CursorLeft++;
             }
-            _screen.Remove(_screen.Length - 1, 1);
-            return;
-
-            // TODO: Process newlines correctly.
-            //if (_disabled) return;
-            //var currentText = _screen.ToString().Replace(Environment.NewLine, "\n", StringComparison.Ordinal);
-            //_debuggingStrings.Add(currentText);
-            //var splitText = currentText.Split('\n').ToList();
-            //while (splitText.Count <= CursorTop) splitText.Add(string.Empty);
-            //while (splitText[CursorTop].Length < CursorLeft) splitText[CursorTop] = string.Concat(splitText[CursorTop], " ");
-            //var textLength = text.Length;
-            //var currentLine = splitText[CursorTop];
-            //var prefix = currentLine[..CursorLeft];
-            //var postfix = currentLine.Length > CursorLeft + textLength ? currentLine[(CursorLeft + textLength)..] : string.Empty;
-            //splitText[CursorTop] = prefix + text + postfix;
-            //_screen.Clear();
-            //foreach (var line in splitText) _screen.Append(line + '\n');
-            //_screen.Remove(_screen.Length - 1, 1);
-            //CursorTop += text.Count(c => c == '\n');
-            //CursorLeft += text.Contains('\n', StringComparison.OrdinalIgnoreCase) ? text.Length - text.LastIndexOf('\n') - 1 : text.Length;
-        }
-
-        public void WriteDebugStrings()
-        {
-            Console.WriteLine("TextOutput Debugging strings >>>>>");
-            foreach (var debuggingString in _debuggingStrings)
+            if (CursorLeft >= Width)
             {
-                Console.WriteLine("------------");
-                Console.WriteLine(debuggingString);
-                Console.WriteLine("------------");
+                CursorLeft = 0;
+                CursorTop++;
             }
-            Console.WriteLine("TextOutput Debugging strings <<<<<");
-        }
-
-        public void Disable()
-        {
-            _disabled = true;
         }
 
         public void WriteLine(string text)
@@ -123,6 +73,12 @@ namespace Structur.IO.Output
             CursorLeft = 0;
         }
 
-        public string Read() => $"{_screen.ToString().TrimEnd()}\n";
+        public string Read()
+        {
+            var result = new StringBuilder();
+            var lines = _lines.Select(l => new string(l.ToArray()));
+            foreach (var line in lines) result.AppendLine(line);
+            return $"{result}".TrimEnd();
+        }
     }
 }
