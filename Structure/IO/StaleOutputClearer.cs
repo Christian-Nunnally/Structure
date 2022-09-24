@@ -12,6 +12,8 @@ namespace Structur.IO
         private int _y = 1;
         private int _yStart = 1;
 
+        public bool ClearImmediately { get; set; }
+
         public bool DoProcess(StructureIO io)
         {
             _yStart = io.YStartPosition;

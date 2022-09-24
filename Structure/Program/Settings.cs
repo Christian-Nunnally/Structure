@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Structur.Program
 {
@@ -19,12 +22,14 @@ namespace Structur.Program
             }
         }
 
+        [RequiresUnreferencedCode("")]
         public static Settings ReadSettings()
         {
             if (!File.Exists(DefaultSettingsFile)) WriteSettings(DefaultSettings);
             return JsonSerializer.Deserialize<Settings>(File.ReadAllText(DefaultSettingsFile));
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
         public static void WriteSettings(Settings settings)
         {
             var options = new JsonSerializerOptions();

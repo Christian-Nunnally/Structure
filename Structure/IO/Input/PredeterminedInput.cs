@@ -13,6 +13,12 @@ namespace Structur.IO.Input
 
         private IEnumerator<ProgramInputData> Enumerator => _cachedEnumerator ??= _inputData.GetEnumerator();
 
+        public PredeterminedInput(ProgramInputData inputData)
+        {
+            if (inputData is null) return;
+            _inputData = new ProgramInputData[] { inputData };
+        }
+
         public PredeterminedInput(IEnumerable<ProgramInputData> inputData)
         {
             if (inputData is null) return;

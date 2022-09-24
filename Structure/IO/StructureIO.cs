@@ -90,6 +90,8 @@ namespace Structur.IO
             while (true)
             {
                 var key = ReadKey(allowedReadKey);
+                // TODO: This might be breaking change.
+                if (key.Key == ConsoleKey.Escape) return;
                 ProcessReadKeyIntoLine(key, line, true, allowedKeys);
                 if (submitKeys.Contains(key.Key) || submitKeys == KeyGroups.NoKeys) break;
             }

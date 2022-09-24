@@ -68,7 +68,6 @@ namespace Structur.IO.Input
 
         protected void SetToLoadMode(StructureIO io, INewsPrinter newsPrinter)
         {
-            ClearAndForceWrite(io, string.Empty);
             io.ProgramOutput = new NoOpOutput();
             io.SkipUnescesscaryOperations = true;
             newsPrinter.Disable();
@@ -103,8 +102,7 @@ namespace Structur.IO.Input
             var output = io.ProgramOutput;
             io.ProgramOutput = _outputToSwitchTo;
             io.ProgramOutput.Clear();
-            io.ProgramOutput.CursorTop = io.YStartPosition;
-            io.ProgramOutput.CursorLeft = io.XStartPosition;
+            io.ClearBuffer();
             io.WriteNoLine(text);
             io.ClearStaleOutput();
             io.ProcessAllBackgroundWork();

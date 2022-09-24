@@ -35,13 +35,15 @@ namespace Structur.Program
             var manager = _modules.OfType<IModuleManager>().First();
             manager.RegisterModules(_modules);
             manager.Enable(_ioc, _io);
-            while (!exitToken.Exit) _io.Run(Loop);
+            while (!exitToken.Exit) Loop();
         }
 
         private void Loop()
         {
+            _io.ClearBuffer();
             _io.Write(TitleString);
             _hotkey.Print(_io);
+            _io.ClearStaleOutput();
             _io.Read(x => { }, KeyGroups.NoKeys, KeyGroups.NoKeys);
         }
     }

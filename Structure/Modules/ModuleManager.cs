@@ -10,8 +10,9 @@ namespace Structur.Modules
 {
     public class ModuleManager : StructureModule, IModuleManager
     {
-        public static readonly ConsoleKeyInfo OpenModuleManagerHotkey = new('l', ConsoleKey.L, shift: true, alt: false, control: true);
+        public static readonly ConsoleKeyInfo OpenModuleManagerHotkey = new('l', ConsoleKey.L, shift: false, alt: false, control: true);
         public static readonly ConsoleKeyInfo EnableModuleHotkey = new('e', ConsoleKey.E, shift: false, alt: false, control: false);
+        public static readonly ConsoleKeyInfo EnableTaskTreeHotkey = new('b', ConsoleKey.B, shift: false, alt: false, control: false);
 
         public const string ModuleStartHoykeyPrompt = "Manage modules";
         public const string ManageModulesPrompt = "Select action";
@@ -65,7 +66,7 @@ namespace Structur.Modules
 
         private void PrintModuleStatusList()
         {
-            IO.Write("MODULES\n\n\nSTATE      NAME");
+            IO.Write("MODULES\n\nSTATE           NAME");
             _managedModules.All(m => IO.Write(ModuleString(m)));
             IO.Write("\n");
         }
@@ -80,7 +81,7 @@ namespace Structur.Modules
         private static string ModuleString(IModule module)
         {
             var upgradeable = module is IObsoleteModule;
-            var state = module.Enabled ? "enabled" : "disabled";
+            var state = module.Enabled ? " enabled  " : " disabled ";
             if (upgradeable) state += "+";
             return $"[{state}]    {module.Name}";
         }

@@ -2,6 +2,7 @@
 using Structur.Program.Utilities;
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace Structur.IO.Persistence

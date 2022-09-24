@@ -4,23 +4,29 @@ using Structur.IO.Output;
 using Structur.Modules;
 using Structur.Server;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Structur.Program
 {
     public static class MainProgram
     {
+        // This is for testing only. Maybe move it to the testing namespace somehow.
+        public static StructureIO MainIO { get; set; }
+
+        [RequiresUnreferencedCode("")]
         public static void Main()
         {
             var ioc = CreateIoCContainer();
             RunStructure(ioc, new ExitToken());
         }
 
+        [RequiresUnreferencedCode("")]
         public static void RunStructure(StructureIoC ioc, ExitToken exitToken)
         {
             try
             {
                 var newsPrinter = ioc.Get<INewsPrinter>();
-                var io = new StructureIO(ioc);
+                MainIO = new StructureIO(ioc);
                 var consoleOutput = ioc.Get<IProgramOutput>();
                 var consoleInput = ioc.Get<IProgramInput>();
                 var noopOutput = ioc.Get<NoOpOutput>();
@@ -29,21 +35,21 @@ namespace Structur.Program
                 var enableServer = settings.EnableWebServer;
                 var enableDebugging = settings.EnableDebugging;
                 var startingModules = StartingModules.Create();
-                var program = new StructureProgram(ioc, io, startingModules);
+                var program = new StructureProgram(ioc, MainIO, startingModules);
 
                 if (enableClient)
                 {
-                    var clientSwapInput = new OutputSwapInput(io, consoleOutput, newsPrinter);
+                    var clientSwapInput = new OutputSwapInput(MainIO, consoleOutput, newsPrinter);
                     var chainedInput = new ChainedInput();
                     chainedInput.AddInput(clientSwapInput);
                     chainedInput.AddInput(consoleInput);
-                    io.ProgramInput = WrapInputWithStructureInput(io, enableDebugging, chainedInput, noopOutput, newsPrinter);
-                    io.ProgramOutput = noopOutput;
+                    MainIO.ProgramInput = WrapInputWithStructureInput(MainIO, enableDebugging, chainedInput, noopOutput, newsPrinter);
+                    MainIO.ProgramOutput = noopOutput;
 
                     var clientIO = new StructureIO(ioc);
                     clientIO.ProgramInput = consoleInput;
                     clientIO.ProgramOutput = consoleOutput;
-                    var client = new Client(clientIO, settings.ServerHostname, clientSwapInput, program, io);
+                    var client = new Client(clientIO, settings.ServerHostname, clientSwapInput, program, MainIO);
                     client.RunAsync(exitToken).Wait();
                 }
                 else
@@ -51,10 +57,10 @@ namespace Structur.Program
                     IProgramInput mainProgramInput = consoleInput;
                     if (enableServer)
                     {
-                        mainProgramInput = EnableWebServerAndRouteConsoleOrServerKeysToInput(io, settings.Hostname, mainProgramInput);
+                        mainProgramInput = EnableWebServerAndRouteConsoleOrServerKeysToInput(MainIO, settings.Hostname, mainProgramInput);
                     }
-                    io.ProgramInput = WrapInputWithStructureInput(io, enableDebugging, mainProgramInput, consoleOutput, newsPrinter);
-                    io.ProgramOutput = consoleOutput;
+                    MainIO.ProgramInput = WrapInputWithStructureInput(MainIO, enableDebugging, mainProgramInput, consoleOutput, newsPrinter);
+                    MainIO.ProgramOutput = consoleOutput;
                     program.Run(exitToken);
                 }
             }

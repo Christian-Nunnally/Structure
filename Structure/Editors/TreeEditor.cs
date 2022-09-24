@@ -12,6 +12,10 @@ namespace Structur.Editors
 {
     public class TreeEditor<T> where T : Node
     {
+        public static readonly ConsoleKeyInfo InsertItemHotkey = new('i', ConsoleKey.I, shift: false, alt: false, control: false);
+        public static readonly ConsoleKeyInfo SubmitHotkey = new('\u000A', ConsoleKey.Enter, shift: false, alt: false, control: false);
+
+        public const string InsertItemPrompt = "Insert item";
         private readonly string HELP_STRING = string.Join(Environment.NewLine, 
             "←↑↓→ - Move selection",
             "i - Insert item",
@@ -83,7 +87,7 @@ namespace Structur.Editors
             };
             if (allowInserting)
             {
-                NoChildrenAction = PromptToInsertNode("Insert item", DefaultNodeFactory);
+                NoChildrenAction = PromptToInsertNode(InsertItemPrompt, DefaultNodeFactory);
                 _options = _options.Concat(new UserAction[]
                 {
                     new UserAction("Copy current task", RunWithCurrentTask(CopyCurrentNode), ConsoleKey.C),

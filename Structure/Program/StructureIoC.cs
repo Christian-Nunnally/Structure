@@ -53,5 +53,12 @@ namespace Structur.Program
             if (_factories[typeof(T)].ContainsKey("singleInstance")) _factories[typeof(T)]["singleInstance"] = () => instance;
             else _factories[typeof(T)].Add("singleInstance", () => instance);
         }
+
+        public void Unregister<T>(string tag)
+        {
+            if (!_factories.ContainsKey(typeof(T))) throw new NotImplementedException("Cannot unregister unregistered type.");
+            if (!_factories[typeof(T)].ContainsKey(tag)) throw new NotImplementedException("Cannot unregister unregistered type.");
+            _factories[typeof(T)].Remove(tag);
+        }
     }
 }

@@ -13,6 +13,7 @@ using System.Threading;
 using Structur.IO.Persistence;
 using Structur.Program;
 using Structur.Program.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Structur.Modules
 {
@@ -39,6 +40,7 @@ namespace Structur.Modules
             Hotkey.Remove(_startAction);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
         protected override void OnEnable()
         {
             
@@ -46,6 +48,7 @@ namespace Structur.Modules
             Hotkey.Add(_startAction);
         }
 
+        [RequiresUnreferencedCode("Calls Structur.Modules.DataGrapher.RunStructureWithModules(params Structur.Modules.Interfaces.IModule[])")]
         private void PopulateDataSets()
         {
             _dataSets.Clear();
@@ -64,6 +67,7 @@ namespace Structur.Modules
             if (_selectedQuery == null) AddQuery();
         }
 
+        [RequiresUnreferencedCode("Calls Structur.Modules.StartingModules.Create()")]
         private void RunStructureWithModules(params IModule[] modules)
         {
             var ioc = new StructureIoC();
@@ -90,6 +94,7 @@ namespace Structur.Modules
             _dataRoutines = ioc.Get<StructureData>().Routines;
         }
 
+        [RequiresUnreferencedCode("Calls Structur.Modules.DataGrapher.PopulateDataSets()")]
         private void Start()
         {
             while(!_exit)

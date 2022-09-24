@@ -1,13 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Structur.Editors;
 using Structur.Modules;
+using Structur.TaskItems;
 using StructureTests.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace StructureTests.Editors
+namespace StructureTests.Modules
 {
     [TestClass]
     public class TaskTreeTests
@@ -29,15 +26,55 @@ namespace StructureTests.Editors
         }
 
         [TestMethod]
-        public void TaskTreeDisabled_EnableTaskTree_OpenTaskTreeHotkeyPromptVisible()
+        public void TaskTreeDisabled_EnableTaskTreeAndRefreshScreen_OpenTaskTreeHotkeyPromptVisible()
         {
             Tester.Run(
                 ModuleManager.OpenModuleManagerHotkey,
                 ModuleManager.EnableModuleHotkey,
-                ModuleManager.EnableModuleHotkey
+                ModuleManager.EnableTaskTreeHotkey,
+                TreeEditor<TaskItem>.SubmitHotkey
                 );
 
-            Tester.NotContains(TaskTree.Title);
+            Tester.Contains(TaskTree.RunTaskTreePrompt);
         }
+
+        [TestMethod]
+        public void TaskTreeEmpty_TaskTreeOpened_InsertTaskPromptVisible()
+        {
+            EnableTaskTreeModule();
+            OpenTaskTreeModule();
+
+            Tester.Run();
+
+            Tester.Contains(TreeEditor<TaskItem>.InsertItemPrompt);
+        }
+
+        [TestMethod]
+        public void TaskTreePromptOpened_TaskNameTyped_TaskNameVisible()
+        {
+            EnableTaskTreeModule();
+            OpenTaskTreeModule();
+
+            Tester.Run(
+                HotkeyConstants.AHotkey,
+                HotkeyConstants.AHotkey,
+                HotkeyConstants.AHotkey,
+                HotkeyConstants.SubmitHotkey
+                );
+
+            var character = HotkeyConstants.AHotkey.KeyChar;
+            Tester.Contains($"{character}{character}{character}");
+        }
+
+        private void EnableTaskTreeModule()
+        {
+            Tester.Queue(
+                ModuleManager.OpenModuleManagerHotkey,
+                ModuleManager.EnableModuleHotkey,
+                ModuleManager.EnableTaskTreeHotkey
+                );
+        }
+
+        private void OpenTaskTreeModule() => Tester.Queue(TaskTree.OpenTaskTreeHotkey);
     }
 }

@@ -4,6 +4,7 @@ using Structur.Program;
 using Structur.Program.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -11,6 +12,7 @@ namespace Structur.Modules
 {
     public static class StartingModules
     {
+        [RequiresUnreferencedCode("Calls System.Reflection.Assembly.GetLoadableTypes()")]
         public static IModule[] Create()
         {
             var allModuleTypes = GetLoadableModuleTypes();
@@ -56,6 +58,7 @@ namespace Structur.Modules
             return newModule.GetType();
         }
 
+        [RequiresUnreferencedCode("Calls System.Reflection.Assembly.GetLoadableTypes()")]
         private static IEnumerable<Type> GetLoadableModuleTypes()
         {
             var moduleType = typeof(IModule);

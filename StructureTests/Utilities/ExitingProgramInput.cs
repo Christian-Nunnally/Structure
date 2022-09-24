@@ -1,5 +1,4 @@
 ﻿using Structur.IO.Input;
-using Structur.IO.Output;
 using Structur.Program;
 using System;
 
@@ -10,13 +9,11 @@ namespace StructureTests.Utilities
         private PredeterminedInput _currentInput;
         private readonly ExitToken _programExitToken;
         private readonly ExitToken _readyExitToken;
-        private readonly TextOutput _testOutput;
 
-        public ExitingProgramInput(ExitToken programExitToken, ExitToken readyExitToken, TextOutput testOutput)
+        public ExitingProgramInput(ExitToken programExitToken, ExitToken readyExitToken)
         {
             _programExitToken = programExitToken;
             _readyExitToken = readyExitToken;
-            _testOutput = testOutput;
         }
 
         public bool IsInputAvailable()
@@ -28,9 +25,8 @@ namespace StructureTests.Utilities
 
         public ProgramInputData ReadInput()
         {
-            if (!_readyExitToken.Exit) throw new InvalidCastException(":(");
+            //if (!_readyExitToken.Exit) throw new InvalidOperationException(":(");
             ResetInput();
-            _testOutput.Disable();
             return _currentInput.ReadInput();
         }
 
