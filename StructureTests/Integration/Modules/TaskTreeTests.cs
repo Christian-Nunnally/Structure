@@ -87,6 +87,23 @@ namespace StructureTests.Modules
         }
 
         [TestMethod]
+        public void InsertingATaskNamedAAA_LeftThenRightArrowPressedAndBTyped_TaskNameIsAAAB()
+        {
+            EnableTaskTreeModule();
+            OpenTaskTreeModule();
+            TypeTaskName();
+            MoveSelectionLeft();
+            MoveSelectionRight();
+            TypeB();
+
+            Tester.Run();
+
+            var a = HotkeyConstants.AHotkey.KeyChar;
+            var b = HotkeyConstants.BHotkey.KeyChar;
+            Tester.Contains($"{a}{a}{b}{a}");
+        }
+
+        [TestMethod]
         public void TaskAdded_AddedTaskNotSelected()
         {
             EnableTaskTreeModule();
@@ -154,6 +171,8 @@ namespace StructureTests.Modules
         
         private void MoveSelectionUp() => Tester.Queue(TreeEditor<TaskItem>.MoveSelectionUpHotkey);
         
-        private void MoveSelectionLeft() => Tester.Queue(TreeEditor<TaskItem>.SelectParentHotkey);
+        private void MoveSelectionLeft() => Tester.Queue(HotkeyConstants.LeftArrowHotkey);
+
+        private void MoveSelectionRight() => Tester.Queue(HotkeyConstants.RightArrowHotkey);
     }
 }

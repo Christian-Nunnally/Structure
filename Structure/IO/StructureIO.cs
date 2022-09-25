@@ -87,13 +87,18 @@ namespace Structur.IO
         public void ReadCore(Action<string> continuation, ConsoleKey[] allowedKeys, ConsoleKey[] submitKeys, ConsoleKey[] allowedReadKey)
         {
             var line = new StringBuilder();
+            var lineStartIndex = ProgramOutput.CursorLeft;
             while (true)
             {
                 var key = ReadKey(allowedReadKey);
                 // TODO: This might be breaking change.
                 if (key.Key == ConsoleKey.Escape) return;
-                ProcessReadKeyIntoLine(key, line, true, allowedKeys);
-                if (submitKeys.Contains(key.Key) || submitKeys == KeyGroups.NoKeys) break;
+                ProcessReadKeyIntoLine(key, line, true, allowedKeys, lineStartIndex);
+                if (submitKeys.Contains(key.Key) || submitKeys == KeyGroups.NoKeys)
+                {
+                    if (key.Key != ConsoleKey.LeftArrow) break;
+                    else if (line.Length == 0) break;
+                }
             }
             Write();
             continuation?.Invoke(line.ToString());
@@ -177,39 +182,60 @@ namespace Structur.IO
 
         private bool ProcessBackgroundWork() => _backgroundProcesses.Any(x => x.DoProcess(this));
 
-        private void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo, ConsoleKey[] allowedKeys)
+        private void ProcessReadKeyIntoLine(ConsoleKeyInfo key, StringBuilder line, bool echo, ConsoleKey[] allowedKeys, int lineStartIndex)
         {
             if (ConsoleKeyHelpers.IsAlphanumeric(key))
             {
-                AppendStringToLine($"{key.KeyChar}", line, echo);
+                AppendStringToLine($"{key.KeyChar}", line, echo, lineStartIndex);
             }
             else if (allowedKeys.Contains(key.Key))
             {
-                if (key.Key == ConsoleKey.Backspace) BackspaceKeyFromLine(line, echo);
+                if (key.Key == ConsoleKey.Backspace) BackspaceKeyFromLine(line, echo, lineStartIndex);
                 else if (key.Key == ConsoleKey.Enter && echo) Write();
-                else AppendStringToLine($"{{{key.Key}}}", line, echo);
+                else AppendStringToLine($"{{{key.Key}}}", line, echo, lineStartIndex);
             }
             else
             {
                 if (allowedKeys == KeyGroups.NoKeys) return;
-                if (key.Key == ConsoleKey.Backspace) BackspaceKeyFromLine(line, echo);
+                if (key.Key == ConsoleKey.Backspace) BackspaceKeyFromLine(line, echo, lineStartIndex);
                 else if (key.Key == ConsoleKey.Enter && echo) Write();
                 else if (key.Key == ConsoleKey.Escape) Write();
+                else if (key.Key == ConsoleKey.LeftArrow) MoveCursorLeft(lineStartIndex);
+                else if (key.Key == ConsoleKey.RightArrow) MoveCursorRight(line.Length, lineStartIndex);
             }
         }
 
-        private void BackspaceKeyFromLine(StringBuilder line, bool echo)
+        private void MoveCursorLeft(int lineStartIndex)
         {
-            if (line.Length == 0) return;
-            if (echo) ProgramOutput.Write("\b \b");
-            CurrentBuffer.Remove(CurrentBuffer.Length - 1, 1);
-            line.Remove(line.Length - 1, 1);
+            if (ProgramOutput.CursorLeft > lineStartIndex) ProgramOutput.CursorLeft--;
         }
 
-        private void AppendStringToLine(string text, StringBuilder line, bool echo)
+        private void MoveCursorRight(int lineLength, int lineStartIndex)
         {
-            if (echo) WriteNoLine(text);
-            line.Append(text);
+            if (ProgramOutput.CursorLeft < lineStartIndex + lineLength) ProgramOutput.CursorLeft++;
+        }
+
+        private void BackspaceKeyFromLine(StringBuilder line, bool echo, int lineStartIndex)
+        {
+            if (line.Length == 0) return;
+            CurrentBuffer.Remove(ProgramOutput.CursorLeft - lineStartIndex, 1);
+            line.Remove(ProgramOutput.CursorLeft - lineStartIndex - 1, 1);
+            if (echo) EchoCurrentInputLine("\b \b", line, lineStartIndex);
+        }
+
+        private void AppendStringToLine(string text, StringBuilder line, bool echo, int lineStartIndex)
+        {
+            line.Insert(ProgramOutput.CursorLeft - lineStartIndex, text);
+            if (echo) EchoCurrentInputLine(text, line, lineStartIndex);
+        }
+
+        private void EchoCurrentInputLine(string text, StringBuilder line, int lineStartIndex)
+        {
+            WriteNoLine(text);
+            var currentCursor = ProgramOutput.CursorLeft;
+            ProgramOutput.CursorLeft = lineStartIndex;
+            WriteNoLine(line.ToString());
+            ProgramOutput.CursorLeft = currentCursor;
         }
 
         public void ReadOptionsObsolete(string prompt, string helpString, params UserAction[] options)
